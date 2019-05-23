@@ -29,4 +29,17 @@ lazy val root = (project in file(".")).
       "io.mdcatapult.klein" %% "queue"                % "0.0.3",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.3",
     )
+  ).
+  settings(
+    publishSettings: _*
   )
+
+lazy val publishSettings = Seq(
+  publishTo := {
+    if (isSnapshot.value)
+      Some("MDC Maven Repo" at "https://nexus.mdcatapult.io/repository/maven-snapshots/;build.timestamp=" + new java.util.Date().getTime)
+    else
+      Some("MDC Maven Repo" at "https://nexus.mdcatapult.io/repository/maven-releases/")
+  },
+  credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+)
