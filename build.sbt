@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).
   settings(
     name              := "doclib-common",
     organization := "io.mdcatapult.doclib",
-    version           := "0.0.1",
+    version           := "0.0.3",
     scalaVersion      := "2.12.8",
     scalacOptions     ++= Seq("-Ypartial-unification"),
     resolvers         ++= Seq("MDC Nexus" at "http://nexus.mdcatapult.io/repository/maven-releases/"),
@@ -26,7 +26,7 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-kernel"                % catsVersion,
       "org.typelevel" %% "cats-core"                  % catsVersion,
       "io.lemonlabs" %% "scala-uri"                   % "1.4.5",
-      "io.mdcatapult.klein" %% "queue"                % "0.0.3",
+      "io.mdcatapult.klein" %% "queue"                % "0.0.5",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.3",
     )
   ).
