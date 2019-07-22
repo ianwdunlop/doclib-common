@@ -1,4 +1,4 @@
-package io.mdcatapult.doclib.util
+package io.mdcatapult.doclib.bson
 
 import io.lemonlabs.uri.RelativeUrl
 import org.bson._

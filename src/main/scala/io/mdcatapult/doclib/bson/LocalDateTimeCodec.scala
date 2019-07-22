@@ -1,9 +1,9 @@
-package io.mdcatapult.doclib.util
+package io.mdcatapult.doclib.bson
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-import org.bson.{BsonReader, BsonWriter}
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
+import org.bson.{BsonReader, BsonWriter}
 
 class LocalDateTimeCodec extends Codec[LocalDateTime] {
 

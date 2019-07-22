@@ -1,9 +1,9 @@
-package io.mdcatapult.doclib.util
+package io.mdcatapult.doclib.json
 
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 
-import scala.util._
+import scala.util.{Failure, Success, Try}
 
 trait StringAnyMapJson {
 

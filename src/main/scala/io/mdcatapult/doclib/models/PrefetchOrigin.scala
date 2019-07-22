@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.models
 
 import io.lemonlabs.uri.Uri
+import io.mdcatapult.doclib.json.{LemonLabsUriJson, StringAnyMapJson}
 import io.mdcatapult.doclib.util._
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
@@ -12,7 +13,7 @@ object PrefetchOrigin extends StringAnyMapJson with LemonLabsUriJson {
 
 case class PrefetchOrigin(
                            scheme: String,
-                           uri: Uri,
+                           uri: Option[Uri] = None,
                            headers: Option[Map[String, Seq[String]]] = None,
                            metadata: Option[Map[String, Any]] = None
                          )

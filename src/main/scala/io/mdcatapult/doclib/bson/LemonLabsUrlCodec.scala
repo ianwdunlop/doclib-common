@@ -1,8 +1,9 @@
-package io.mdcatapult.doclib.util
+package io.mdcatapult.doclib.bson
 
 import io.lemonlabs.uri.Url
 import org.bson._
 import org.bson.codecs._
+
 import scala.util._
 
 class LemonLabsUrlCodec extends Codec[Url] {
