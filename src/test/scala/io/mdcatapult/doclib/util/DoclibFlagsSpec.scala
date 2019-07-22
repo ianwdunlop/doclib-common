@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 
   implicit val config: Config = ConfigFactory.parseMap(Map[String, Any](
-    "version.number" → "0",
+    "version.number" → 0.1,
     "version.hash" → "test",
     "doclib.flags" → "doclib"
   ).asJava)
@@ -65,8 +65,8 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         assert(u.containsKey("$currentDate"))
         assert(u.getDocument("$currentDate").containsKey("doclib.$.started"))
         assert(u.getDocument("$set").containsKey("doclib.$.version"))
-        assert(u.getDocument("$set").get("doclib.$.version").isInt32)
-        assert(u.getDocument("$set").getInt32("doclib.$.version").getValue == config.getInt("version.number"))
+        assert(u.getDocument("$set").get("doclib.$.version").isDouble)
+        assert(u.getDocument("$set").getDouble("doclib.$.version").getValue == config.getDouble("version.number"))
         assert(u.getDocument("$set").containsKey("doclib.$.hash"))
         assert(u.getDocument("$set").get("doclib.$.hash").isString)
         assert(u.getDocument("$set").getString("doclib.$.hash").getValue == config.getString("version.hash"))
@@ -138,7 +138,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         assert(u.getDocument("$addToSet").containsKey("doclib"))
         assert(u.getDocument("$addToSet").getDocument("doclib").containsKey("key"))
         assert(u.getDocument("$addToSet").getDocument("doclib").getString("key").getValue == "test")
-        assert(u.getDocument("$addToSet").getDocument("doclib").getInt32("version").getValue == config.getInt("version.number"))
+        assert(u.getDocument("$addToSet").getDocument("doclib").getDouble("version").getValue == config.getDouble("version.number"))
         assert(u.getDocument("$addToSet").getDocument("doclib").getString("hash").getValue == config.getString("version.hash"))
         true
       }

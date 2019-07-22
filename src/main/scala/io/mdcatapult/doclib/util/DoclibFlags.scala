@@ -43,7 +43,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
         equal("_id", doc.getObjectId("_id")),
         addToSet(flags, DoclibFlag(
           key = key,
-          version = config.getInt("version.number"),
+          version = config.getDouble("version.number"),
           hash = config.getString("version.hash"),
           started = LocalDateTime.now()
         ))
@@ -59,7 +59,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
           equal(flagKey, key)),
         combine(
           currentDate(flagStarted),
-          set(flagVersion, config.getInt("version.number")),
+          set(flagVersion, config.getDouble("version.number")),
           set(flagHash, config.getString("version.hash")),
           set(flagEnded, BsonNull()),
           set(flagErrored, BsonNull())

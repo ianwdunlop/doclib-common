@@ -18,7 +18,7 @@ object DoclibFlag  {
   */
 case class DoclibFlag(
                        key: String,
-                       version: Int,
+                       version: Double,
                        hash: String,
                        started: LocalDateTime,
                        ended: Option[LocalDateTime] = None,
