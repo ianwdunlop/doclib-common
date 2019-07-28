@@ -40,8 +40,8 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
     "_id" → BsonObjectId(),
     "doclib" → BsonArray(Document(
       "key" → BsonString("test"),
-      "version" → BsonInt32(0),
-      "hash" → BsonBoolean(false),
+      "version" → BsonDouble(0.1),
+      "hash" → BsonString("1234567890"),
       "started" → BsonDateTime(started),
       "ended" → BsonNull(),
       "errored" → BsonNull()
@@ -49,8 +49,18 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
   ))
 
   "A 'started' document" should "return true when testing for the flag" in {
-    val flags = new DoclibFlags("test")
-    assert(flags.hasFlag(startedDoc))
+    assert(DoclibFlags.hasFlag("test", startedDoc, "doclib"))
+  }
+
+  it should "get a valid flag" in {
+    val flag = DoclibFlags.getFlag("test", startedDoc, "doclib")
+    assert(flag.length == 1)
+    assert(flag.head.started.toEpochSecond(ZoneOffset.UTC) == started)
+  }
+
+  it should "fail to get an invalid flag" in {
+    val flag = DoclibFlags.getFlag("dummy", startedDoc, "doclib")
+    assert(flag.isEmpty)
   }
 
   it should "restart the document" in {
@@ -122,7 +132,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 
   "A 'new' document" should "return false when testing for the flag" in {
     val flags = new DoclibFlags("missing")
-    assert(!flags.hasFlag(newDoc))
+    assert(!DoclibFlags.hasFlag("test", newDoc, "doclib"))
   }
 
   it should "start the document cleanly" in {

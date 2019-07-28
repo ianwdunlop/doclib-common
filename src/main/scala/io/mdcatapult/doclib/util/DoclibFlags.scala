@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.models.DoclibFlag
@@ -15,6 +15,38 @@ import org.mongodb.scala.result.UpdateResult
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
+object DoclibFlags {
+  /**
+    * test if flag exists for key
+    * @todo shoudl really use casting to DoclibFlag but for time purposes doesnt
+    * @param doc Document
+    * @return
+    */
+  def hasFlag(key: String, doc:Document, flags: String): Boolean =
+    doc(flags).asArray().toArray.exists(_.asInstanceOf[BsonDocument].getString("key").getValue == key)
+
+  def getFlag(key: String, doc:Document, flags: String): List[DoclibFlag] =
+    doc(flags).asArray().toArray.toList
+      .filter(_.asInstanceOf[BsonDocument].getString("key").getValue == key)
+      .map(bd ⇒ {
+        val d = bd.asInstanceOf[BsonDocument]
+        DoclibFlag(
+          key=d.getString("key").getValue,
+          version=d.getDouble("version").getValue.toDouble,
+          hash=d.getString("hash").getValue,
+          started=LocalDateTime.ofEpochSecond(d.getDateTime("started").getValue, 0, ZoneOffset.UTC),
+          ended=if (d.containsKey("ended") && d.get("ended").isDateTime)
+            Some(LocalDateTime.ofEpochSecond(d.getDateTime("ended").getValue, 0, ZoneOffset.UTC))
+          else
+            None,
+          errored=if (d.containsKey("errored") && d.get("errored").isDateTime)
+            Some(LocalDateTime.ofEpochSecond(d.getDateTime("errored").getValue, 0, ZoneOffset.UTC))
+          else
+            None
+        )
+      })
+}
+
 class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], config: Config) {
 
   protected val flags: String = config.getString("doclib.flags")
@@ -26,17 +58,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
   protected val flagErrored = s"$flags.$$.errored"
 
 
-  /**
-    * test if flag exists for key
-    * @todo shoudl really use casting to DoclibFlag but for time purposes doesnt
-    * @param doc Document
-    * @return
-    */
-  def hasFlag(doc:Document): Boolean =
-    doc(flags).asArray().toArray.exists(_.asInstanceOf[BsonDocument].getString("key").getValue == key)
-
   def start(doc: Document): Future[Option[UpdateResult]] = {
-    if (hasFlag(doc)) {
+    if (DoclibFlags.hasFlag(key, doc, flags)) {
       restart(doc)
     } else {
       collection.updateOne(
@@ -52,7 +75,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
   }
 
   def restart(doc: Document): Future[Option[UpdateResult]] =
-    if (hasFlag(doc)) {
+    if (DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
         and(
           equal("_id", doc.getObjectId("_id")),
@@ -68,7 +91,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
 
 
   def end(doc: Document)(implicit collection: MongoCollection[Document], config: Config): Future[Option[UpdateResult]] =
-    if (hasFlag(doc)) {
+    if (DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
         and(
           equal("_id", doc.getObjectId("_id")),
@@ -80,7 +103,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     } else Future.failed(new Exception(s"Cannot 'end' as flag '$key' has not been started"))
 
   def error(doc: Document)(implicit collection: MongoCollection[Document], config: Config): Future[Option[UpdateResult]] =
-    if (hasFlag(doc)) {
+    if (DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
         and(
           equal("_id", doc.getObjectId("_id")),
