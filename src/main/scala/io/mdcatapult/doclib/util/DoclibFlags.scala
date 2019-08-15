@@ -57,7 +57,11 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
 
-
+  /**
+    * the document to start
+    * @param doc
+    * @return
+    */
   def start(doc: Document): Future[Option[UpdateResult]] = {
     if (DoclibFlags.hasFlag(key, doc, flags)) {
       restart(doc)
@@ -74,6 +78,11 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     }
   }
 
+  /**
+    *
+    * @param doc the document to restart
+    * @return
+    */
   def restart(doc: Document): Future[Option[UpdateResult]] =
     if (DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
@@ -90,8 +99,14 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     } else Future.failed(new Exception(s"Cannot 'restart' as flag '$key' has not been started"))
 
 
-  def end(doc: Document)(implicit collection: MongoCollection[Document], config: Config): Future[Option[UpdateResult]] =
-    if (DoclibFlags.hasFlag(key, doc, flags)) {
+  /**
+    *
+    * @param doc mongo document to update
+    * @param noCheck should this be done without checking if the flag exists
+    * @return
+    */
+  def end(doc: Document, noCheck: Boolean = false): Future[Option[UpdateResult]] =
+    if (noCheck || DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
         and(
           equal("_id", doc.getObjectId("_id")),
@@ -102,8 +117,14 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
         )).toFutureOption()
     } else Future.failed(new Exception(s"Cannot 'end' as flag '$key' has not been started"))
 
-  def error(doc: Document)(implicit collection: MongoCollection[Document], config: Config): Future[Option[UpdateResult]] =
-    if (DoclibFlags.hasFlag(key, doc, flags)) {
+  /**
+    *
+    * @param doc mongo document to update
+    * @param noCheck should this be done without checking if the flag exists
+    * @return
+    */
+  def error(doc: Document, noCheck: Boolean = false): Future[Option[UpdateResult]] =
+    if (noCheck || DoclibFlags.hasFlag(key, doc, flags)) {
       collection.updateOne(
         and(
           equal("_id", doc.getObjectId("_id")),
