@@ -18,7 +18,7 @@ case class PrefetchMsg(
                         source: String,
                         origin: Option[List[PrefetchOrigin]],
                         tags: Option[List[String]],
-                        metadata: Option[Document],
+                        metadata: Option[Map[String, Any]],
                         derivative: Option[Boolean]
                       ) extends Envelope
 
