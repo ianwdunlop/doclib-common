@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.util
 
 import io.mdcatapult.doclib.bson._
+import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.metadata.MetaString
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
@@ -13,12 +14,11 @@ object MongoCodecs {
 
   def get : CodecRegistry = fromRegistries(
     fromProviders(
+      classOf[PrefetchMsg],
       classOf[PrefetchOrigin],
       classOf[FileAttrs],
       classOf[DoclibFlag],
-      classOf[FileAttrs],
-      classOf[MetaString],
-      classOf[DoclibFlag]
+      classOf[MetaString]
     ),
     CodecRegistries.fromCodecs(
       new LocalDateTimeCodec,
