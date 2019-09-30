@@ -64,6 +64,7 @@ trait BsonDocumentJson {
         val v: JsValueWrapper = o match {
           case b: BsonBoolean ⇒ JsBoolean(b.getValue)
           case s: String ⇒ JsString(s)
+          case s: BsonString ⇒ JsString(s.getValue)
           case n: BsonInt32 ⇒ JsNumber(n.getValue)
           case n: BsonInt64 ⇒  JsNumber(n.getValue)
           case n: BsonNumber ⇒ JsNumber(n.doubleValue())

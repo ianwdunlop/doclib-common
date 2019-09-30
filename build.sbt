@@ -11,7 +11,7 @@ lazy val root = (project in file(".")).
   settings(
     name              := "common",
     organization := "io.mdcatapult.doclib",
-    version           := "0.0.14",
+    version           := "0.0.15",
     scalaVersion      := "2.12.8",
     crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
     scalacOptions     ++= Seq("-Ypartial-unification"),
@@ -34,7 +34,7 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-kernel"                % catsVersion,
       "org.typelevel" %% "cats-core"                  % catsVersion,
       "io.lemonlabs" %% "scala-uri"                   % "1.4.5",
-      "io.mdcatapult.klein" %% "queue"                % "0.0.8",
+      "io.mdcatapult.klein" %% "queue"                % "0.0.9",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.3",
       "commons-io" % "commons-io"                     % "2.6",
       "org.apache.commons" % "commons-compress"       % "1.18",
