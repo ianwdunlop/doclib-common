@@ -7,4 +7,7 @@ object MetaString {
   implicit val msgWriter: Writes[MetaString] = Json.writes[MetaString]
   implicit val msgFormatter: Format[MetaString] = Json.format[MetaString]
 }
-case class MetaString(key: String, value: String) extends MetaValue
+case class MetaString(key: String, value: String) extends MetaValue[String] {
+  def getKey: String = key
+  def getValue: String = value
+}
