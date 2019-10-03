@@ -11,7 +11,7 @@ lazy val root = (project in file(".")).
   settings(
     name              := "common",
     organization := "io.mdcatapult.doclib",
-    version           := "0.0.15",
+    version           := "0.0.16",
     scalaVersion      := "2.12.8",
     crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
     scalacOptions     ++= Seq("-Ypartial-unification"),

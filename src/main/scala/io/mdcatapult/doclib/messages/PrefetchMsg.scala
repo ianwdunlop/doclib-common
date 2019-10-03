@@ -1,14 +1,12 @@
 package io.mdcatapult.doclib.messages
 
-import io.mdcatapult.doclib.json.BsonDocumentJson
+import io.mdcatapult.doclib.json.{BsonDocumentJson, MetaValueJson}
+import io.mdcatapult.doclib.models.Origin
+import io.mdcatapult.doclib.models.metadata.MetaValue
 import io.mdcatapult.klein.queue.Envelope
 import play.api.libs.json._
-import play.api.libs.json.Json._
-import io.mdcatapult.doclib.models.PrefetchOrigin
-import io.mdcatapult.doclib.util._
-import org.mongodb.scala.Document
 
-object PrefetchMsg extends BsonDocumentJson {
+object PrefetchMsg extends BsonDocumentJson  with MetaValueJson{
   implicit val msgReader: Reads[PrefetchMsg] = Json.reads[PrefetchMsg]
   implicit val msgWriter: Writes[PrefetchMsg] = Json.writes[PrefetchMsg]
   implicit val msgFormatter: Format[PrefetchMsg] = Json.format[PrefetchMsg]
@@ -16,9 +14,9 @@ object PrefetchMsg extends BsonDocumentJson {
 
 case class PrefetchMsg(
                         source: String,
-                        origin: Option[List[PrefetchOrigin]],
+                        origin: Option[List[Origin]],
                         tags: Option[List[String]],
-                        metadata: Option[Map[String, Any]],
+                        metadata: Option[List[MetaValue[_]]],
                         derivative: Option[Boolean]
                       ) extends Envelope
 

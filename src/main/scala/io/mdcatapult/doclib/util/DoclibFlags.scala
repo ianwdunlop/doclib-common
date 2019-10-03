@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.util
 import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.Config
-import io.mdcatapult.doclib.models.DoclibFlag
+import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag}
 import org.bson.BsonDocument
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.Document
@@ -15,39 +15,7 @@ import org.mongodb.scala.result.UpdateResult
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-object DoclibFlags {
-  /**
-    * test if flag exists for key
-    * @todo shoudl really use casting to DoclibFlag but for time purposes doesnt
-    * @param doc Document
-    * @return
-    */
-  def hasFlag(key: String, doc:Document, flags: String): Boolean =
-    doc(flags).asArray().toArray.exists(_.asInstanceOf[BsonDocument].getString("key").getValue == key)
-
-  def getFlag(key: String, doc:Document, flags: String): List[DoclibFlag] =
-    doc(flags).asArray().toArray.toList
-      .filter(_.asInstanceOf[BsonDocument].getString("key").getValue == key)
-      .map(bd ⇒ {
-        val d = bd.asInstanceOf[BsonDocument]
-        DoclibFlag(
-          key=d.getString("key").getValue,
-          version=d.getDouble("version").getValue.toDouble,
-          hash=d.getString("hash").getValue,
-          started=LocalDateTime.ofEpochSecond(d.getDateTime("started").getValue, 0, ZoneOffset.UTC),
-          ended=if (d.containsKey("ended") && d.get("ended").isDateTime)
-            Some(LocalDateTime.ofEpochSecond(d.getDateTime("ended").getValue, 0, ZoneOffset.UTC))
-          else
-            None,
-          errored=if (d.containsKey("errored") && d.get("errored").isDateTime)
-            Some(LocalDateTime.ofEpochSecond(d.getDateTime("errored").getValue, 0, ZoneOffset.UTC))
-          else
-            None
-        )
-      })
-}
-
-class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], config: Config) {
+class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config) {
 
   protected val flags: String = config.getString("doclib.flags")
   protected val flagKey = s"$flags.key"
@@ -62,12 +30,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     * @param doc
     * @return
     */
-  def start(doc: Document): Future[Option[UpdateResult]] = {
-    if (DoclibFlags.hasFlag(key, doc, flags)) {
+  def start(doc: DoclibDoc): Future[Option[UpdateResult]] = {
+    if (doc.hasFlag(key)) {
       restart(doc)
     } else {
       collection.updateOne(
-        equal("_id", doc.getObjectId("_id")),
+        equal("_id", doc._id),
         addToSet(flags, DoclibFlag(
           key = key,
           version = config.getDouble("version.number"),
@@ -83,11 +51,11 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     * @param doc the document to restart
     * @return
     */
-  def restart(doc: Document): Future[Option[UpdateResult]] =
-    if (DoclibFlags.hasFlag(key, doc, flags)) {
+  def restart(doc: DoclibDoc): Future[Option[UpdateResult]] =
+    if (doc.hasFlag(key)) {
       collection.updateOne(
         and(
-          equal("_id", doc.getObjectId("_id")),
+          equal("_id", doc._id),
           equal(flagKey, key)),
         combine(
           currentDate(flagStarted),
@@ -105,11 +73,11 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     * @param noCheck should this be done without checking if the flag exists
     * @return
     */
-  def end(doc: Document, noCheck: Boolean = false): Future[Option[UpdateResult]] =
-    if (noCheck || DoclibFlags.hasFlag(key, doc, flags)) {
+  def end(doc: DoclibDoc, noCheck: Boolean = false): Future[Option[UpdateResult]] =
+    if (noCheck || doc.hasFlag(key)) {
       collection.updateOne(
         and(
-          equal("_id", doc.getObjectId("_id")),
+          equal("_id", doc._id),
           equal(flagKey, key)),
         combine(
           currentDate(flagEnded),
@@ -123,11 +91,11 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[Document], c
     * @param noCheck should this be done without checking if the flag exists
     * @return
     */
-  def error(doc: Document, noCheck: Boolean = false): Future[Option[UpdateResult]] =
-    if (noCheck || DoclibFlags.hasFlag(key, doc, flags)) {
+  def error(doc: DoclibDoc, noCheck: Boolean = false): Future[Option[UpdateResult]] =
+    if (noCheck || doc.hasFlag(key)) {
       collection.updateOne(
         and(
-          equal("_id", doc.getObjectId("_id")),
+          equal("_id", doc._id),
           equal(flagKey, key)),
         combine(
           set(flagEnded, BsonNull()),

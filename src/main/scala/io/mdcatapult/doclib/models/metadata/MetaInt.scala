@@ -8,4 +8,7 @@ object MetaInt {
   implicit val msgFormatter: Format[MetaInt] = Json.format[MetaInt]
 }
 
-case class MetaInt(key: String, value: Int) extends MetaValue
+case class MetaInt(key: String, value: Int) extends MetaValue[Int] {
+  def getKey: String = key
+  def getValue: Int = value
+}

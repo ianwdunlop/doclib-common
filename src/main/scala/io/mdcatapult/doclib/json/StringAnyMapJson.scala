@@ -32,6 +32,7 @@ trait StringAnyMapJson {
       val ret: (String, JsValueWrapper) = s -> v
       ret
     }.toSeq: _*)
+
   implicit val stringAnyMapFormatter: Format[Map[String, Any]] = Format(stringAnyMapReader, stringAnyMapWriter)
 
 }
