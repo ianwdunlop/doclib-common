@@ -22,13 +22,15 @@ object MongoCodecs {
       classOf[MetaString],
       classOf[MetaDouble],
       classOf[MetaBoolean],
-      classOf[Derivative]
+      classOf[MetaDateTime],
+      classOf[Derivative],
     ),
     CodecRegistries.fromCodecs(
       new LocalDateTimeCodec,
       new LemonLabsAbsoluteUrlCodec,
       new LemonLabsRelativeUrlCodec,
-      new LemonLabsUrlCodec
+      new LemonLabsUrlCodec,
+      new MetaValueCodec,
     ),
     DEFAULT_CODEC_REGISTRY
   )
