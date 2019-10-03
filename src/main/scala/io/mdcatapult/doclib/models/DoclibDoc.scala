@@ -21,7 +21,7 @@ case class DoclibDoc(
                       created: LocalDateTime,
                       updated: LocalDateTime,
                       mimetype: String,
-                      attrs: FileAttrs,
+                      attrs: Option[FileAttrs] = None,
                       doclib: List[DoclibFlag] = List(),
                       tags: Option[List[String]] = None,
                       derivatives: Option[List[Derivative]] = None,
