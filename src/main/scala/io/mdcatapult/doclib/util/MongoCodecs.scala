@@ -23,7 +23,7 @@ object MongoCodecs {
       classOf[MetaDouble],
       classOf[MetaBoolean],
       classOf[MetaDateTime],
-      classOf[Derivative],
+      classOf[Derivative]
     ),
     CodecRegistries.fromCodecs(
       new LocalDateTimeCodec,
@@ -31,7 +31,7 @@ object MongoCodecs {
       new LemonLabsRelativeUrlCodec,
       new LemonLabsUrlCodec,
       new LemonLabsUriCodec,
-      new MetaValueCodec,
+      new MetaValueCodec
     ),
     DEFAULT_CODEC_REGISTRY
   )
