@@ -5,4 +5,7 @@ trait MetaValue[T] {
   def getValue: T
 }
 
-trait MetaValueUntyped {}
+trait MetaValueUntyped {
+  def getKey: String
+  def getValue: Any
+}
