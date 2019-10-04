@@ -6,13 +6,13 @@ import io.mdcatapult.doclib.models.metadata._
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.{BsonReader, BsonType, BsonWriter, Document}
 
-class MetaValueCodec extends Codec[MetaValue[_]] {
+class MetaValueCodec extends Codec[MetaValueUntyped] {
 
   /**
     * decode Bson MetaValue Document to relevant MetaValue based on supported value types
     * read the document and assigned to key/value variables as we cannot guarantee ordering of properties
     */
-  override def decode(bsonReader: BsonReader, decoderContext: DecoderContext): MetaValue[_] = {
+  override def decode(bsonReader: BsonReader, decoderContext: DecoderContext): MetaValueUntyped = {
     val document = new Document
 
     var key: Option[String] = None
@@ -48,10 +48,18 @@ class MetaValueCodec extends Codec[MetaValue[_]] {
 
   }
 
-  override def encode(bsonWriter: BsonWriter, t: MetaValue[_], encoderContext: EncoderContext): Unit = {
+  override def encode(bsonWriter: BsonWriter, t: MetaValueUntyped, encoderContext: EncoderContext): Unit = {
+
+    val typed: MetaValue[_] = t match {
+      case v: MetaString ⇒ v.asInstanceOf[MetaString]
+      case v: MetaDateTime ⇒ v.asInstanceOf[MetaDateTime]
+      case v: MetaDouble ⇒ v.asInstanceOf[MetaDouble]
+      case v: MetaInt ⇒ v.asInstanceOf[MetaInt]
+      case v: MetaString ⇒ v.asInstanceOf[MetaString]
+    }
     bsonWriter.writeStartDocument()
-    bsonWriter.writeName(t.getKey)
-    t.getValue match {
+    bsonWriter.writeName(typed.getKey)
+    typed.getValue match {
       case v: LocalDateTime ⇒ bsonWriter.writeDateTime(v.toInstant(ZoneOffset.UTC).toEpochMilli)
       case v: Boolean ⇒ bsonWriter.writeBoolean(v)
       case v: Int ⇒ bsonWriter.writeInt32(v)
@@ -61,5 +69,5 @@ class MetaValueCodec extends Codec[MetaValue[_]] {
     bsonWriter.writeEndDocument()
   }
 
-  override def getEncoderClass: Class[MetaValue[_]] = classOf[MetaValue[_]]
+  override def getEncoderClass: Class[MetaValueUntyped] = classOf[MetaValueUntyped]
 }

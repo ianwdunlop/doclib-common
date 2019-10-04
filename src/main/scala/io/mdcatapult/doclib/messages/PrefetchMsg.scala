@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.messages
 
 import io.mdcatapult.doclib.json.{BsonDocumentJson, MetaValueJson}
 import io.mdcatapult.doclib.models.Origin
-import io.mdcatapult.doclib.models.metadata.MetaValue
+import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
 import io.mdcatapult.klein.queue.Envelope
 import play.api.libs.json._
 
@@ -16,7 +16,7 @@ case class PrefetchMsg(
                         source: String,
                         origin: Option[List[Origin]],
                         tags: Option[List[String]],
-                        metadata: Option[List[MetaValue[_]]],
+                        metadata: Option[List[MetaValueUntyped]],
                         derivative: Option[Boolean]
                       ) extends Envelope
 

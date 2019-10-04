@@ -6,7 +6,7 @@ object MetaDouble {
   implicit val msgWriter: Writes[MetaDouble] = Json.writes[MetaDouble]
   implicit val msgFormatter: Format[MetaDouble] = Json.format[MetaDouble]
 }
-case class MetaDouble(key: String, value: Double) extends MetaValue[Double] {
+case class MetaDouble(key: String, value: Double) extends MetaValue[Double] with MetaValueUntyped{
   def getKey: String = key
   def getValue: Double = value
 }
