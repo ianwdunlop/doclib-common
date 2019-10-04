@@ -9,11 +9,11 @@ trait MetaValueJson {
   implicit val metaValueReader: Reads[MetaValueUntyped] = (jv: JsValue) =>
     JsSuccess(jv match {
       case JsObject(fields: collection.Map[String, JsValue]) ⇒ fields("value") match {
-        case JsBoolean(b) ⇒ MetaBoolean(fields("key").toString(), b)
-        case JsString(s) ⇒ MetaString(fields("key").toString(), s)
+        case JsBoolean(b) ⇒ MetaBoolean(fields("key").asInstanceOf[JsString].value, b)
+        case JsString(s) ⇒ MetaString(fields("key").asInstanceOf[JsString].value, s)
         case JsNumber(n) ⇒ Try(n.toBigIntExact()) match {
-          case Success(value) ⇒ MetaDouble(fields("key").toString(), value.get.toDouble)
-          case Failure(_) ⇒ MetaDouble(fields("key").toString(), n.toDouble)
+          case Success(value) ⇒ MetaDouble(fields("key").asInstanceOf[JsString].value, value.get.toDouble)
+          case Failure(_) ⇒ MetaDouble(fields("key").asInstanceOf[JsString].value, n.toDouble)
         }
         case _ ⇒ throw new IllegalArgumentException("Unable to convert value")
       }

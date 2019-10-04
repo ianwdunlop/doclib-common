@@ -12,7 +12,7 @@ class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 
-  "DoclibDoc" should "be able to be encoded and decoded successfully to BSON" in {
+  "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(DoclibDoc(
         _id = new ObjectId("5d970056b3e8083540798f90"),
         source = "/path/to/file.txt",

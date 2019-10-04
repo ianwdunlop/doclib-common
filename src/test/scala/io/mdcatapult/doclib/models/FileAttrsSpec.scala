@@ -12,7 +12,7 @@ class FileAttrsSpec extends FlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 
-  "FileAttrs" should "be able to be encoded and decoded successfully to BSON" in {
+  "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(FileAttrs(
       path = "/path/to/",
       name = "file.txt",
