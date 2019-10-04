@@ -19,5 +19,4 @@ class LemonLabsUriCodec extends Codec[Uri] {
 
   override def getEncoderClass: Class[Uri] = classOf[Uri]
 
-
 }
