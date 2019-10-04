@@ -1,9 +1,7 @@
 package io.mdcatapult.doclib.models
 
-import java.time.LocalDateTime
-
 import io.lemonlabs.uri.Uri
-import io.mdcatapult.doclib.models.metadata.MetaString
+import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
@@ -17,7 +15,7 @@ class OriginSpec extends FlatSpec with Matchers with BsonCodecCompatible {
     roundTrip(Origin(
       scheme = "https",
       uri = Some(Uri.parse("https://new.bbc.co.uk")),
-      metadata = Some(List(MetaString("key", "value"))),
+      metadata = Some(List(MetaString("key", "value"), MetaInt("a-value", 1))),
       headers = None
     ),
       """{
@@ -27,7 +25,12 @@ class OriginSpec extends FlatSpec with Matchers with BsonCodecCompatible {
         |"metadata": [{
         |   "key": "key",
         |   "value": "value"
-        |}]}""".stripMargin, classOf[Origin])
+        |},
+        |{
+        |   "key" : "a-value",
+        |   "value": 1
+        |}
+        |]}""".stripMargin, classOf[Origin])
 
   }
 
