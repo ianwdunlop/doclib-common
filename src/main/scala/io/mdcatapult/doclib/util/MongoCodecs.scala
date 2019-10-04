@@ -21,6 +21,7 @@ object MongoCodecs {
       classOf[MetaString],
       classOf[MetaDouble],
       classOf[MetaBoolean],
+      classOf[MetaDateTime],
       classOf[Derivative]
     ),
     CodecRegistries.fromCodecs(
@@ -28,7 +29,8 @@ object MongoCodecs {
       new LemonLabsAbsoluteUrlCodec,
       new LemonLabsRelativeUrlCodec,
       new LemonLabsUrlCodec,
-      new LemonLabsUriCodec
+      new LemonLabsUriCodec,
+      new MetaValueCodec
     ),
     DEFAULT_CODEC_REGISTRY
   )
