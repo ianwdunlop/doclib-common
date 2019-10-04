@@ -11,7 +11,7 @@ class OriginSpec extends FlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 
-  "Origin" should "be able to be encoded and decoded successfully to BSON" in {
+  "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(Origin(
       scheme = "https",
       uri = Some(Uri.parse("https://new.bbc.co.uk")),
