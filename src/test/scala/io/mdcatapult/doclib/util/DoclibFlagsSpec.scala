@@ -19,142 +19,142 @@ import scala.collection.JavaConverters._
 
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 
-  implicit val config: Config = ConfigFactory.parseMap(Map[String, Any](
-    "version.number" → 0.1,
-    "version.hash" → "test",
-    "doclib.flags" → "doclib"
-  ).asJava)
-
-  val wrappedCollection: JMongoCollection[Document] = mock[JMongoCollection[Document]]
-  implicit val collection: MongoCollection[Document] = MongoCollection[Document](wrappedCollection)
-
-  val codecs: CodecRegistry = MongoCodecs.get
-  val started: Long = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-
-  val newDoc = Document(List(
-    "_id" → BsonObjectId(),
-    "doclib" → BsonArray()
-  ))
-
-  val startedDoc = Document(List(
-    "_id" → BsonObjectId(),
-    "doclib" → BsonArray(Document(
-      "key" → BsonString("test"),
-      "version" → BsonDouble(0.1),
-      "hash" → BsonString("1234567890"),
-      "started" → BsonDateTime(started),
-      "ended" → BsonNull(),
-      "errored" → BsonNull()
-    ))
-  ))
-
-  "A 'started' document" should "return true when testing for the flag" in {
-    assert(DoclibFlags.hasFlag("test", startedDoc, "doclib"))
-  }
-
-  it should "get a valid flag" in {
-    val flag = DoclibFlags.getFlag("test", startedDoc, "doclib")
-    assert(flag.length == 1)
-    assert(flag.head.started.toEpochSecond(ZoneOffset.UTC) == started)
-  }
-
-  it should "fail to get an invalid flag" in {
-    val flag = DoclibFlags.getFlag("dummy", startedDoc, "doclib")
-    assert(flag.isEmpty)
-  }
-
-  it should "restart the document" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(f.containsKey("doclib.key"))
-        assert(f.getString("doclib.key").getValue == "test")
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$currentDate"))
-        assert(u.getDocument("$currentDate").containsKey("doclib.$.started"))
-        assert(u.getDocument("$set").containsKey("doclib.$.version"))
-        assert(u.getDocument("$set").get("doclib.$.version").isDouble)
-        assert(u.getDocument("$set").getDouble("doclib.$.version").getValue == config.getDouble("version.number"))
-        assert(u.getDocument("$set").containsKey("doclib.$.hash"))
-        assert(u.getDocument("$set").get("doclib.$.hash").isString)
-        assert(u.getDocument("$set").getString("doclib.$.hash").getValue == config.getString("version.hash"))
-        assert(u.getDocument("$set").containsKey("doclib.$.ended"))
-        assert(u.getDocument("$set").get("doclib.$.ended").isNull)
-        assert(u.getDocument("$set").containsKey("doclib.$.errored"))
-        assert(u.getDocument("$set").get("doclib.$.errored").isNull)
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.start(startedDoc)
-  }
-
-  it should "end the document cleanly" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY)
-        assert(f.containsKey("doclib.key"))
-        assert(f.getString("doclib.key").getValue == "test")
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$currentDate"))
-        assert(u.getDocument("$currentDate").containsKey("doclib.$.ended"))
-        assert(u.getDocument("$set").get("doclib.$.errored").isNull)
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.end(startedDoc)
-  }
-
-  it should "error the document cleanly" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(f.containsKey("doclib.key"))
-        assert(f.getString("doclib.key").getValue == "test")
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$currentDate"))
-        assert(u.getDocument("$currentDate").containsKey("doclib.$.errored"))
-        assert(u.getDocument("$set").get("doclib.$.ended").isNull)
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.error(startedDoc)
-  }
-
-
-  "A 'new' document" should "return false when testing for the flag" in {
-    val flags = new DoclibFlags("missing")
-    assert(!DoclibFlags.hasFlag("test", newDoc, "doclib"))
-  }
-
-  it should "start the document cleanly" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(f.containsKey("_id"))
-        assert(f.get("_id").isObjectId)
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$addToSet"))
-        assert(u.getDocument("$addToSet").containsKey("doclib"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").containsKey("key"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").getString("key").getValue == "test")
-        assert(u.getDocument("$addToSet").getDocument("doclib").getDouble("version").getValue == config.getDouble("version.number"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").getString("hash").getValue == config.getString("version.hash"))
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.start(newDoc)
-  }
+//  implicit val config: Config = ConfigFactory.parseMap(Map[String, Any](
+//    "version.number" → 0.1,
+//    "version.hash" → "test",
+//    "doclib.flags" → "doclib"
+//  ).asJava)
+//
+//  val wrappedCollection: JMongoCollection[Document] = mock[JMongoCollection[Document]]
+//  implicit val collection: MongoCollection[Document] = MongoCollection[Document](wrappedCollection)
+//
+//  val codecs: CodecRegistry = MongoCodecs.get
+//  val started: Long = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+//
+//  val newDoc = Document(List(
+//    "_id" → BsonObjectId(),
+//    "doclib" → BsonArray()
+//  ))
+//
+//  val startedDoc = Document(List(
+//    "_id" → BsonObjectId(),
+//    "doclib" → BsonArray(Document(
+//      "key" → BsonString("test"),
+//      "version" → BsonDouble(0.1),
+//      "hash" → BsonString("1234567890"),
+//      "started" → BsonDateTime(started),
+//      "ended" → BsonNull(),
+//      "errored" → BsonNull()
+//    ))
+//  ))
+//
+//  "A 'started' document" should "return true when testing for the flag" in {
+//    assert(DoclibFlags.hasFlag("test", startedDoc, "doclib"))
+//  }
+//
+//  it should "get a valid flag" in {
+//    val flag = DoclibFlags.getFlag("test", startedDoc, "doclib")
+//    assert(flag.length == 1)
+//    assert(flag.head.started.toEpochSecond(ZoneOffset.UTC) == started)
+//  }
+//
+//  it should "fail to get an invalid flag" in {
+//    val flag = DoclibFlags.getFlag("dummy", startedDoc, "doclib")
+//    assert(flag.isEmpty)
+//  }
+//
+//  it should "restart the document" in {
+//    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
+//      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
+//
+//        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(f.containsKey("doclib.key"))
+//        assert(f.getString("doclib.key").getValue == "test")
+//
+//        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(u.containsKey("$currentDate"))
+//        assert(u.getDocument("$currentDate").containsKey("doclib.$.started"))
+//        assert(u.getDocument("$set").containsKey("doclib.$.version"))
+//        assert(u.getDocument("$set").get("doclib.$.version").isDouble)
+//        assert(u.getDocument("$set").getDouble("doclib.$.version").getValue == config.getDouble("version.number"))
+//        assert(u.getDocument("$set").containsKey("doclib.$.hash"))
+//        assert(u.getDocument("$set").get("doclib.$.hash").isString)
+//        assert(u.getDocument("$set").getString("doclib.$.hash").getValue == config.getString("version.hash"))
+//        assert(u.getDocument("$set").containsKey("doclib.$.ended"))
+//        assert(u.getDocument("$set").get("doclib.$.ended").isNull)
+//        assert(u.getDocument("$set").containsKey("doclib.$.errored"))
+//        assert(u.getDocument("$set").get("doclib.$.errored").isNull)
+//        true
+//      }
+//    ))
+//    val flags = new DoclibFlags("test")
+//    flags.start(startedDoc)
+//  }
+//
+//  it should "end the document cleanly" in {
+//    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
+//      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
+//
+//        val f = filter.toBsonDocument(classOf[BsonDocument], org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY)
+//        assert(f.containsKey("doclib.key"))
+//        assert(f.getString("doclib.key").getValue == "test")
+//
+//        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(u.containsKey("$currentDate"))
+//        assert(u.getDocument("$currentDate").containsKey("doclib.$.ended"))
+//        assert(u.getDocument("$set").get("doclib.$.errored").isNull)
+//        true
+//      }
+//    ))
+//    val flags = new DoclibFlags("test")
+//    flags.end(startedDoc)
+//  }
+//
+//  it should "error the document cleanly" in {
+//    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
+//      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
+//
+//        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(f.containsKey("doclib.key"))
+//        assert(f.getString("doclib.key").getValue == "test")
+//
+//        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(u.containsKey("$currentDate"))
+//        assert(u.getDocument("$currentDate").containsKey("doclib.$.errored"))
+//        assert(u.getDocument("$set").get("doclib.$.ended").isNull)
+//        true
+//      }
+//    ))
+//    val flags = new DoclibFlags("test")
+//    flags.error(startedDoc)
+//  }
+//
+//
+//  "A 'new' document" should "return false when testing for the flag" in {
+//    val flags = new DoclibFlags("missing")
+//    assert(!DoclibFlags.hasFlag("test", newDoc, "doclib"))
+//  }
+//
+//  it should "start the document cleanly" in {
+//    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
+//      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
+//
+//        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(f.containsKey("_id"))
+//        assert(f.get("_id").isObjectId)
+//
+//        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
+//        assert(u.containsKey("$addToSet"))
+//        assert(u.getDocument("$addToSet").containsKey("doclib"))
+//        assert(u.getDocument("$addToSet").getDocument("doclib").containsKey("key"))
+//        assert(u.getDocument("$addToSet").getDocument("doclib").getString("key").getValue == "test")
+//        assert(u.getDocument("$addToSet").getDocument("doclib").getDouble("version").getValue == config.getDouble("version.number"))
+//        assert(u.getDocument("$addToSet").getDocument("doclib").getString("hash").getValue == config.getString("version.hash"))
+//        true
+//      }
+//    ))
+//    val flags = new DoclibFlags("test")
+//    flags.start(newDoc)
+//  }
 
 }

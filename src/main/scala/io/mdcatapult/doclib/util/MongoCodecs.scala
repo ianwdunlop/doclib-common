@@ -30,6 +30,7 @@ object MongoCodecs {
       new LemonLabsAbsoluteUrlCodec,
       new LemonLabsRelativeUrlCodec,
       new LemonLabsUrlCodec,
+      new LemonLabsUriCodec,
       new MetaValueCodec,
     ),
     DEFAULT_CODEC_REGISTRY
