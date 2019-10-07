@@ -13,8 +13,6 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
     * read the document and assigned to key/value variables as we cannot guarantee ordering of properties
     */
   override def decode(bsonReader: BsonReader, decoderContext: DecoderContext): MetaValueUntyped = {
-    val document = new Document
-
     var key: Option[String] = None
     var value: Option[Any] = None
 
@@ -33,40 +31,35 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
           case BsonType.DATE_TIME ⇒ LocalDateTime.ofEpochSecond(bsonReader.readDateTime(), 0, ZoneOffset.UTC)
           case _ ⇒ throw new Exception("Unsupported BSON type for MetaValue")
         })
+        case _ ⇒ throw new Exception("Invalid property name detected for MetaValue")
       }
+    }
+    if (key.isEmpty || value.isEmpty) {
+      throw new Exception("MetaValue must consist of both key and value properties")
     }
     bsonReader.readEndDocument()
 
     value match {
-      case Some(v: Int) ⇒ MetaInt(key.get, v)
-      case Some(v: Double) ⇒ MetaDouble(key.get, v)
-      case Some(v: String) ⇒ MetaString(key.get, v)
-      case Some(v: Int) ⇒ MetaInt(key.get, v)
-      case Some(v: Boolean) ⇒ MetaBoolean(key.get, v)
-      case Some(v: LocalDateTime) ⇒ MetaDateTime(key.get, v)
-      case None ⇒ throw new Exception("Unable to decode MetaValue value")
+      case Some(scalarVal: Boolean) ⇒ MetaBoolean(key.get, scalarVal)
+      case Some(scalarVal: Int) ⇒ MetaInt(key.get, scalarVal)
+      case Some(scalarVal: Double) ⇒ MetaDouble(key.get, scalarVal)
+      case Some(scalarVal: LocalDateTime) ⇒ MetaDateTime(key.get, scalarVal)
+      case Some(scalarVal: String) ⇒ MetaString(key.get, scalarVal)
+      case _ ⇒ throw new Exception("Unable to decode MetaValue value")
     }
 
   }
 
   override def encode(bsonWriter: BsonWriter, t: MetaValueUntyped, encoderContext: EncoderContext): Unit = {
-
-    val typed: MetaValue[_] = t match {
-      case v: MetaString ⇒ v
-      case v: MetaDateTime ⇒ v
-      case v: MetaDouble ⇒ v
-      case v: MetaInt ⇒ v
-      case v: MetaString ⇒ v
-      case _ ⇒ throw new Exception("Unsupported MetaValue type for detection")
-    }
+    val typed: MetaValue[_] = t.asInstanceOf[MetaValue[_]]
     bsonWriter.writeStartDocument()
     bsonWriter.writeName(typed.getKey)
     typed.getValue match {
-      case v: LocalDateTime ⇒ bsonWriter.writeDateTime(v.toInstant(ZoneOffset.UTC).toEpochMilli)
-      case v: Boolean ⇒ bsonWriter.writeBoolean(v)
-      case v: Int ⇒ bsonWriter.writeInt32(v)
-      case v: Double ⇒ bsonWriter.writeDouble(v)
-      case v: String ⇒ bsonWriter.writeString(v)
+      case scalarVal: Boolean ⇒ bsonWriter.writeBoolean(scalarVal)
+      case scalarVal: Int ⇒ bsonWriter.writeInt32(scalarVal)
+      case scalarVal: Double ⇒ bsonWriter.writeDouble(scalarVal)
+      case scalarVal: LocalDateTime ⇒ bsonWriter.writeDateTime(scalarVal.toInstant(ZoneOffset.UTC).toEpochMilli)
+      case scalarVal: String ⇒ bsonWriter.writeString(scalarVal)
       case _ ⇒ throw new Exception("Unsupported Value type for encoding")
     }
     bsonWriter.writeEndDocument()
