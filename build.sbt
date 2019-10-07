@@ -7,15 +7,18 @@ lazy val catsVersion = "2.0.0"
 lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
 
-lazy val root = (project in file(".")).
-  settings(
+lazy val root = (project in file("."))
+  .settings(
     name              := "common",
     organization := "io.mdcatapult.doclib",
     version           := "0.0.17-SNAPSHOT",
     scalaVersion      := "2.12.8",
+    coverageEnabled   := true,
     crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
     scalacOptions     ++= Seq("-Ypartial-unification"),
-    resolvers         ++= Seq("MDC Nexus" at "http://nexus.mdcatapult.io/repository/maven-releases/"),
+    resolvers         ++= Seq(
+      "MDC Nexus Releases" at "http://nexus.mdcatapult.io/repository/maven-releases/",
+      "MDC Nexus Snapshots" at "http://nexus.mdcatapult.io/repository/maven-snapshots/"),
     credentials       += {
       val nexusPassword = sys.env.get("NEXUS_PASSWORD")
       if ( nexusPassword.nonEmpty ) {
@@ -45,8 +48,8 @@ lazy val root = (project in file(".")).
       "com.github.jai-imageio" % "jai-imageio-jpeg2000" % "1.3.0",
       "org.xerial" % "sqlite-jdbc"                      % "3.25.2"
     )
-  ).
-  settings(
+  )
+  .settings(
     publishSettings: _*
   )
 

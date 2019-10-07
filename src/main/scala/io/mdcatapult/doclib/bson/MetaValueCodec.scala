@@ -31,6 +31,7 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
           case BsonType.DOUBLE ⇒ bsonReader.readDouble()
           case BsonType.BOOLEAN ⇒ bsonReader.readBoolean()
           case BsonType.DATE_TIME ⇒ LocalDateTime.ofEpochSecond(bsonReader.readDateTime(), 0, ZoneOffset.UTC)
+          case _ ⇒ throw new Exception("Unsupported BSON type for MetaValue")
         })
       }
     }
@@ -51,11 +52,12 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
   override def encode(bsonWriter: BsonWriter, t: MetaValueUntyped, encoderContext: EncoderContext): Unit = {
 
     val typed: MetaValue[_] = t match {
-      case v: MetaString ⇒ v.asInstanceOf[MetaString]
-      case v: MetaDateTime ⇒ v.asInstanceOf[MetaDateTime]
-      case v: MetaDouble ⇒ v.asInstanceOf[MetaDouble]
-      case v: MetaInt ⇒ v.asInstanceOf[MetaInt]
-      case v: MetaString ⇒ v.asInstanceOf[MetaString]
+      case v: MetaString ⇒ v
+      case v: MetaDateTime ⇒ v
+      case v: MetaDouble ⇒ v
+      case v: MetaInt ⇒ v
+      case v: MetaString ⇒ v
+      case _ ⇒ throw new Exception("Unsupported MetaValue type for detection")
     }
     bsonWriter.writeStartDocument()
     bsonWriter.writeName(typed.getKey)
@@ -65,6 +67,7 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
       case v: Int ⇒ bsonWriter.writeInt32(v)
       case v: Double ⇒ bsonWriter.writeDouble(v)
       case v: String ⇒ bsonWriter.writeString(v)
+      case _ ⇒ throw new Exception("Unsupported Value type for encoding")
     }
     bsonWriter.writeEndDocument()
   }
