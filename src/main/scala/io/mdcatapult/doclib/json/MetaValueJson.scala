@@ -39,10 +39,9 @@ trait MetaValueJson {
   implicit val metaValueWriter: Writes[MetaValueUntyped] = (value: MetaValueUntyped) => {
     val typed: MetaValue[_] = value match {
       case v: MetaBoolean ⇒ v.asInstanceOf[MetaBoolean]
-      case v: MetaString ⇒ v.asInstanceOf[MetaString]
-      case v: MetaDateTime ⇒ v.asInstanceOf[MetaDateTime]
-      case v: MetaDouble ⇒ v.asInstanceOf[MetaDouble]
       case v: MetaInt ⇒ v.asInstanceOf[MetaInt]
+      case v: MetaDouble ⇒ v.asInstanceOf[MetaDouble]
+      case v: MetaDateTime ⇒ v.asInstanceOf[MetaDateTime]
       case v: MetaString ⇒ v.asInstanceOf[MetaString]
     }
 
