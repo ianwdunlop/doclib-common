@@ -27,7 +27,7 @@ test:
   stage: test
   image: openjdk:11
   script:
-    - sbt text coverageReport
+    - sbt test coverageReport
 
 publish-snapshot:
   stage: publish
