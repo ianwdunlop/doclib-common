@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .settings(
     name              := "common",
     organization := "io.mdcatapult.doclib",
-    version           := "0.0.17-SNAPSHOT",
+//    version           := "0.0.17-SNAPSHOT",
     scalaVersion      := "2.12.8",
     coverageEnabled   := true,
     crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
