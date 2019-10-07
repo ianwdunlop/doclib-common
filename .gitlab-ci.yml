@@ -1,5 +1,5 @@
 stages:
-  - - test
+  - test
   - publish
 
 variables:
@@ -7,7 +7,7 @@ variables:
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
-  untracked: false
+  untracked: true
   paths:
     - "sbt-cache/.ivy/cache"
     - "sbt-cache/.boot"
@@ -29,11 +29,18 @@ test:
   script:
     - sbt text coverageReport
 
-publish:
+publish-snapshot:
   stage: publish
   image: openjdk:11
   script:
     - sbt publish
   only:
-    - master
     - develop
+
+release-master:
+  stage: publish
+  image: openjdk:11
+  script:
+    - sbt "release with-defaults"
+  only:
+    - master
