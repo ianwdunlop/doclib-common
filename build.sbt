@@ -6,6 +6,7 @@ lazy val configVersion = "1.3.2"
 lazy val catsVersion = "2.0.0"
 lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
+lazy val betterFilesVersion = "3.8.0"
 
 lazy val root = (project in file(".")).
   settings(
@@ -43,7 +44,9 @@ lazy val root = (project in file(".")).
       "org.apache.tika" % "tika-langdetect"           % tikaVersion,
       "org.apache.pdfbox" % "jbig2-imageio"           % "3.0.2",
       "com.github.jai-imageio" % "jai-imageio-jpeg2000" % "1.3.0",
-      "org.xerial" % "sqlite-jdbc"                      % "3.25.2"
+      "org.xerial" % "sqlite-jdbc"                      % "3.25.2",
+      "com.github.pathikrit"  %% "better-files"       % betterFilesVersion
+
     )
   ).
   settings(
