@@ -21,11 +21,6 @@ class NerOccurrenceCodec extends Codec[Occurrence] {
 
     val values: mutable.Map[String, Any] = mutable.Map[String, Any]()
 
-    val toOption: List[String] = List(
-      "correctedValue", "correctedValueHash",
-      "resolvedEntity", "resolvedEntityHash"
-    )
-
     r.readStartDocument()
     while ({
       r.readBsonType ne BsonType.END_OF_DOCUMENT
