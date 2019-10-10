@@ -12,7 +12,7 @@ class DerivativeSpec extends FlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 
-  "Model" should "be able to be encoded and decoded successfully to BSON" in {
+  "Derivative" can "be encoded and decoded successfully to BSON" in {
     roundTrip(Derivative(
       `type` = "test",
       path = "/path/to/file/txt",

@@ -40,6 +40,7 @@ lazy val root = (project in file("."))
       "io.mdcatapult.klein" %% "queue"                % "0.0.9",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.3",
       "commons-io" % "commons-io"                     % "2.6",
+      "com.chuusai" %% "shapeless"                    % "2.3.3",
       "org.apache.commons" % "commons-compress"       % "1.18",
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,

@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.models.ner
 
 import java.time.LocalDateTime
 
-case class NerSchema(
+case class Schema(
                  key: String,
                  tool: String,
                  config: String,
