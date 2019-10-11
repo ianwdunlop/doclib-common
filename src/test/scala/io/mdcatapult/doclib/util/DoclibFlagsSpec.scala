@@ -1,20 +1,19 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 
 import com.mongodb.async.SingleResultCallback
-import org.mongodb.scala.{ClientSession, Document, MongoCollection}
-import org.scalatest.FlatSpec
 import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag}
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.conversions.Bson
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson._
 import org.mongodb.scala.result.UpdateResult
-import org.scalamock.matchers.ArgCapture.{CaptureAll, CaptureOne}
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.FlatSpec
 
 import scala.collection.JavaConverters._
 

@@ -8,15 +8,18 @@ lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
 
-lazy val root = (project in file(".")).
-  settings(
+lazy val root = (project in file("."))
+  .settings(
     name              := "common",
     organization := "io.mdcatapult.doclib",
-    version           := "0.0.17-SNAPSHOT",
+//    version           := "0.0.17-SNAPSHOT",
     scalaVersion      := "2.12.8",
+    coverageEnabled   := true,
     crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
     scalacOptions     ++= Seq("-Ypartial-unification"),
-    resolvers         ++= Seq("MDC Nexus Releases" at "http://nexus.mdcatapult.io/repository/maven-releases/", "MDC Nexus Snapshots" at "http://nexus.mdcatapult.io/repository/maven-snapshots/"),
+    resolvers         ++= Seq(
+      "MDC Nexus Releases" at "http://nexus.mdcatapult.io/repository/maven-releases/",
+      "MDC Nexus Snapshots" at "http://nexus.mdcatapult.io/repository/maven-snapshots/"),
     credentials       += {
       val nexusPassword = sys.env.get("NEXUS_PASSWORD")
       if ( nexusPassword.nonEmpty ) {
@@ -38,6 +41,7 @@ lazy val root = (project in file(".")).
       "io.mdcatapult.klein" %% "queue"                % "0.0.9",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.3",
       "commons-io" % "commons-io"                     % "2.6",
+      "com.chuusai" %% "shapeless"                    % "2.3.3",
       "org.apache.commons" % "commons-compress"       % "1.18",
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,
@@ -48,8 +52,8 @@ lazy val root = (project in file(".")).
       "com.github.pathikrit"  %% "better-files"       % betterFilesVersion
 
     )
-  ).
-  settings(
+  )
+  .settings(
     publishSettings: _*
   )
 

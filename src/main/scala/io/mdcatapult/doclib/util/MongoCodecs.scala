@@ -2,7 +2,9 @@ package io.mdcatapult.doclib.util
 
 import io.mdcatapult.doclib.bson._
 import io.mdcatapult.doclib.models._
+import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
+import io.mdcatapult.doclib.models.ner.{DocumentOccurrence, FragmentOccurrence, NerDocument, Schema, Stats}
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.bson.codecs.configuration.{CodecRegistries, CodecRegistry}
 import org.bson.codecs.jsr310.LocalDateTimeCodec
@@ -22,15 +24,22 @@ object MongoCodecs {
       classOf[MetaDouble],
       classOf[MetaBoolean],
       classOf[MetaDateTime],
-      classOf[Derivative]
+      classOf[Derivative],
+      classOf[NerDocument],
+      classOf[DocumentOccurrence],
+      classOf[FragmentOccurrence],
+      classOf[Schema],
+      classOf[Stats],
+      classOf[TextFragment]
     ),
     CodecRegistries.fromCodecs(
-      new LocalDateTimeCodec,
+//      new LocalDateTimeCodec,
       new LemonLabsAbsoluteUrlCodec,
       new LemonLabsRelativeUrlCodec,
       new LemonLabsUrlCodec,
       new LemonLabsUriCodec,
-      new MetaValueCodec
+      new MetaValueCodec,
+      new NerOccurrenceCodec
     ),
     DEFAULT_CODEC_REGISTRY
   )
