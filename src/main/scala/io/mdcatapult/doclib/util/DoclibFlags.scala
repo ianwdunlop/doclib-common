@@ -17,7 +17,7 @@ import scala.concurrent.Future
 
 class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config) {
 
-  protected val flags: String = config.getString("doclib.flags")
+  protected val flags: String = "doclib"
   protected val flagKey = s"$flags.key"
   protected val flagVersion = s"$flags.$$.version"
   protected val flagHash = s"$flags.$$.hash"
