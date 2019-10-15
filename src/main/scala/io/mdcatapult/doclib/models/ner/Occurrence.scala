@@ -2,8 +2,6 @@ package io.mdcatapult.doclib.models.ner
 
 import org.mongodb.scala.bson.ObjectId
 
-import scala.runtime.BoxedUnit
-
 abstract class Occurrence {
   val entityType: String
   val schema: String
@@ -24,7 +22,7 @@ object Occurrence {
       if (!values.exists(_._1 == key)) None
       else values(key).asInstanceOf[T] match {
         case None ⇒ None
-        case v: T ⇒ Some(v)
+        case v ⇒ Some(v)
       }
     }
 
