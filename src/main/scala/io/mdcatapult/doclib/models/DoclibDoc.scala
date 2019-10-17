@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.models
 import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.json.MetaValueJson
-import io.mdcatapult.doclib.models.metadata.MetaValue
+import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
 import org.mongodb.scala.bson.ObjectId
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
@@ -17,16 +17,16 @@ case class DoclibDoc(
                       _id: ObjectId,
                       source: String,
                       hash: String,
-                      derivative: Boolean = false,
+                      mimetype: String,
                       created: LocalDateTime,
                       updated: LocalDateTime,
-                      mimetype: String,
-                      attrs: FileAttrs,
+                      derivative: Boolean = false,
+                      attrs: Option[FileAttrs] = None,
                       doclib: List[DoclibFlag] = List(),
                       tags: Option[List[String]] = None,
                       derivatives: Option[List[Derivative]] = None,
                       origin: Option[List[Origin]] = None,
-                      metadata: Option[List[MetaValue[_]]] = None
+                      metadata: Option[List[MetaValueUntyped]] = None
                     ) {
 
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)

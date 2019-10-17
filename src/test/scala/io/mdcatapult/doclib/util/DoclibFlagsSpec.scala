@@ -1,19 +1,19 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 
 import com.mongodb.async.SingleResultCallback
-import org.mongodb.scala.{ClientSession, Document, MongoCollection}
-import org.scalatest.FlatSpec
 import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
+import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag}
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.conversions.Bson
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson._
 import org.mongodb.scala.result.UpdateResult
-import org.scalamock.matchers.ArgCapture.{CaptureAll, CaptureOne}
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.FlatSpec
 
 import scala.collection.JavaConverters._
 
@@ -25,41 +25,43 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
     "doclib.flags" → "doclib"
   ).asJava)
 
-  val wrappedCollection: JMongoCollection[Document] = mock[JMongoCollection[Document]]
-  implicit val collection: MongoCollection[Document] = MongoCollection[Document](wrappedCollection)
+  val wrappedCollection: JMongoCollection[DoclibDoc] = mock[JMongoCollection[DoclibDoc]]
+  implicit val collection: MongoCollection[DoclibDoc] = MongoCollection[DoclibDoc](wrappedCollection)
 
   val codecs: CodecRegistry = MongoCodecs.get
-  val started: Long = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+  val now: LocalDateTime = LocalDateTime.now()
 
-  val newDoc = Document(List(
-    "_id" → BsonObjectId(),
-    "doclib" → BsonArray()
-  ))
+  val newDoc: DoclibDoc = DoclibDoc(
+    _id = new ObjectId,
+    source = "/path/to/file.txt",
+    hash = "0123456789",
+    mimetype =  "text/plain",
+    created =  now,
+    updated =  now,
+  )
 
-  val startedDoc = Document(List(
-    "_id" → BsonObjectId(),
-    "doclib" → BsonArray(Document(
-      "key" → BsonString("test"),
-      "version" → BsonDouble(0.1),
-      "hash" → BsonString("1234567890"),
-      "started" → BsonDateTime(started),
-      "ended" → BsonNull(),
-      "errored" → BsonNull()
+  val startedDoc: DoclibDoc = newDoc.copy(
+    doclib = List(DoclibFlag(
+      key = "test",
+      version = 0.1,
+      hash = "1234567890",
+      started = now,
     ))
-  ))
+  )
+
 
   "A 'started' document" should "return true when testing for the flag" in {
-    assert(DoclibFlags.hasFlag("test", startedDoc, "doclib"))
+    assert(startedDoc.hasFlag("test"))
   }
 
   it should "get a valid flag" in {
-    val flag = DoclibFlags.getFlag("test", startedDoc, "doclib")
+    val flag = startedDoc.getFlag("test")
     assert(flag.length == 1)
-    assert(flag.head.started.toEpochSecond(ZoneOffset.UTC) == started)
+    assert(flag.head.started == now)
   }
 
   it should "fail to get an invalid flag" in {
-    val flag = DoclibFlags.getFlag("dummy", startedDoc, "doclib")
+    val flag = startedDoc.getFlag("dummy")
     assert(flag.isEmpty)
   }
 
@@ -132,7 +134,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 
   "A 'new' document" should "return false when testing for the flag" in {
     val flags = new DoclibFlags("missing")
-    assert(!DoclibFlags.hasFlag("test", newDoc, "doclib"))
+    assert(!newDoc.hasFlag("test"))
   }
 
   it should "start the document cleanly" in {

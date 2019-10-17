@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.models
 
 import io.lemonlabs.uri.Uri
 import io.mdcatapult.doclib.json._
-import io.mdcatapult.doclib.models.metadata.MetaValue
+import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
 import io.mdcatapult.doclib.util._
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
@@ -16,7 +16,7 @@ case class Origin(
                            scheme: String,
                            uri: Option[Uri] = None,
                            headers: Option[Map[String, Seq[String]]] = None,
-                           metadata: Option[List[MetaValue[_]]] = None
+                           metadata: Option[List[MetaValueUntyped]] = None
                          )
 
 
