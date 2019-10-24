@@ -14,6 +14,7 @@ object Origin extends StringAnyMapJson with LemonLabsUriJson with MetaValueJson 
 
 case class Origin(
                            scheme: String,
+                           hostname: Option[String],
                            uri: Option[Uri] = None,
                            headers: Option[Map[String, Seq[String]]] = None,
                            metadata: Option[List[MetaValueUntyped]] = None
