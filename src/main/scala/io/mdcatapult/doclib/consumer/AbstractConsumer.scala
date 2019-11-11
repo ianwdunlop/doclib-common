@@ -30,7 +30,7 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
   val optConfig = getOptConfig
   implicit val config: Config = optConfig.config.withFallback(consumerVersion)
 
-  logger.debug(config.root().render(ConfigRenderOptions.defaults()))
+  logger.debug(config.root().render(ConfigRenderOptions.concise()))
 
   def getOptConfig: ConsumerConfig = {
     val optBuilder = OParser.builder[ConsumerConfig]
