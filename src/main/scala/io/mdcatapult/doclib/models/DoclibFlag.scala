@@ -12,14 +12,12 @@ object DoclibFlag  {
 /**
   * Flag Object for
   * @param version version number
-  * @param hash git short hash
   * @param started when consumer started
   * @param ended when consumer ended
   */
 case class DoclibFlag(
                        key: String,
-                       version: Double,
-                       hash: String,
+                       version: ConsumerVersion,
                        started: LocalDateTime,
                        ended: Option[LocalDateTime] = None,
                        errored: Option[LocalDateTime] = None

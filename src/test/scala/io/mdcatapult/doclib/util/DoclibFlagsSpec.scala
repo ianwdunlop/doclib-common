@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import com.mongodb.async.SingleResultCallback
 import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag}
+import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
@@ -19,11 +19,16 @@ import scala.collection.JavaConverters._
 
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 
-  implicit val config: Config = ConfigFactory.parseMap(Map[String, Any](
-    "version.number" → 0.1,
-    "version.hash" → "test",
-    "doclib.flags" → "doclib"
-  ).asJava)
+  implicit val config: Config = ConfigFactory.parseString(
+    """
+      |version {
+      |  number = "/test"
+      |  major = 0
+      |  minor = 0
+      |  patch = 1
+      |  hash = "test"
+      |}
+    """.stripMargin)
 
   val wrappedCollection: JMongoCollection[DoclibDoc] = mock[JMongoCollection[DoclibDoc]]
   implicit val collection: MongoCollection[DoclibDoc] = MongoCollection[DoclibDoc](wrappedCollection)
@@ -43,8 +48,12 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
   val startedDoc: DoclibDoc = newDoc.copy(
     doclib = List(DoclibFlag(
       key = "test",
-      version = 0.1,
-      hash = "1234567890",
+      version = ConsumerVersion(
+        number = "0.0.1",
+        major = 0,
+        minor = 0,
+        patch = 1,
+        hash = "1234567890"),
       started = now,
     ))
   )
@@ -76,16 +85,24 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         val u = update.toBsonDocument(classOf[BsonDocument], codecs)
         assert(u.containsKey("$currentDate"))
         assert(u.getDocument("$currentDate").containsKey("doclib.$.started"))
-        assert(u.getDocument("$set").containsKey("doclib.$.version"))
-        assert(u.getDocument("$set").get("doclib.$.version").isDouble)
-        assert(u.getDocument("$set").getDouble("doclib.$.version").getValue == config.getDouble("version.number"))
-        assert(u.getDocument("$set").containsKey("doclib.$.hash"))
-        assert(u.getDocument("$set").get("doclib.$.hash").isString)
-        assert(u.getDocument("$set").getString("doclib.$.hash").getValue == config.getString("version.hash"))
         assert(u.getDocument("$set").containsKey("doclib.$.ended"))
         assert(u.getDocument("$set").get("doclib.$.ended").isNull)
         assert(u.getDocument("$set").containsKey("doclib.$.errored"))
         assert(u.getDocument("$set").get("doclib.$.errored").isNull)
+
+        assert(u.getDocument("$set").containsKey("doclib.$.version"))
+        val version = u.getDocument("$set").getDocument("doclib.$.version")
+        assert(version.get("number").isString)
+        assert(version.getString("number").getValue == config.getString("version.number"))
+        assert(version.get("major").isInt32)
+        assert(version.getInt32("major").getValue == config.getInt("version.major"))
+        assert(version.get("minor").isInt32)
+        assert(version.getInt32("minor").getValue == config.getInt("version.minor"))
+        assert(version.get("patch").isInt32)
+        assert(version.getInt32("patch").getValue == config.getInt("version.patch"))
+        assert(version.containsKey("hash"))
+        assert(version.get("hash").isString)
+        assert(version.getString("hash").getValue == config.getString("version.hash"))
         true
       }
     ))
@@ -150,8 +167,8 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         assert(u.getDocument("$addToSet").containsKey("doclib"))
         assert(u.getDocument("$addToSet").getDocument("doclib").containsKey("key"))
         assert(u.getDocument("$addToSet").getDocument("doclib").getString("key").getValue == "test")
-        assert(u.getDocument("$addToSet").getDocument("doclib").getDouble("version").getValue == config.getDouble("version.number"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").getString("hash").getValue == config.getString("version.hash"))
+        assert(u.getDocument("$addToSet").getDocument("doclib").getDocument("version").getString("number").getValue == config.getString("version.number"))
+        assert(u.getDocument("$addToSet").getDocument("doclib").getDocument("version").getString("hash").getValue == config.getString("version.hash"))
         true
       }
     ))
