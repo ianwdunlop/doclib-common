@@ -30,7 +30,8 @@ object MongoCodecs {
       classOf[FragmentOccurrence],
       classOf[Schema],
       classOf[Stats],
-      classOf[TextFragment]
+      classOf[TextFragment],
+      classOf[ConsumerVersion]
     ),
     CodecRegistries.fromCodecs(
 //      new LocalDateTimeCodec,

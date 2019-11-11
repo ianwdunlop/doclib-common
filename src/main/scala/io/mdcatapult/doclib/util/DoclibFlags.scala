@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.util
 import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.Config
-import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag}
+import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
 import org.bson.BsonDocument
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.Document
@@ -25,6 +25,13 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
 
+  protected def getVersion(ver: Config) = ConsumerVersion(
+    number = ver.getString("number"),
+    major =  ver.getInt("major"),
+    minor = ver.getInt("minor"),
+    patch = ver.getInt("patch"),
+    hash = ver.getString("hash"))
+
   /**
     * the document to start
     * @param doc
@@ -38,8 +45,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
         equal("_id", doc._id),
         addToSet(flags, DoclibFlag(
           key = key,
-          version = config.getDouble("version.number"),
-          hash = config.getString("version.hash"),
+          version = getVersion(config.getConfig("version")),
           started = LocalDateTime.now()
         ))
       ).toFutureOption()
@@ -59,8 +65,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           equal(flagKey, key)),
         combine(
           currentDate(flagStarted),
-          set(flagVersion, config.getDouble("version.number")),
-          set(flagHash, config.getString("version.hash")),
+          set(flagVersion, getVersion(config.getConfig("version"))),
           set(flagEnded, BsonNull()),
           set(flagErrored, BsonNull())
         )).toFutureOption()
