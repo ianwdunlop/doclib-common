@@ -5,7 +5,7 @@ import java.io.File
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.spingo.op_rabbit.SubscriptionRef
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.doclib.util.MongoCodecs
@@ -29,6 +29,8 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
   val consumerVersion: Config = ConfigFactory.load("version")
   val optConfig = getOptConfig
   implicit val config: Config = optConfig.config.withFallback(consumerVersion)
+
+  logger.debug(config.root().render(ConfigRenderOptions.defaults()))
 
   def getOptConfig: ConsumerConfig = {
     val optBuilder = OParser.builder[ConsumerConfig]
