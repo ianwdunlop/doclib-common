@@ -22,6 +22,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
     ),
       """{
         |"entityType": "entityType",
+        |"entityGroup": null,
         |"schema": "schema",
         |"characterStart": 1,
         |"characterEnd": 2,

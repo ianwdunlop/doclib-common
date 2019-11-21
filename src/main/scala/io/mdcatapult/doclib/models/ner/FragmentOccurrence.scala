@@ -5,6 +5,7 @@ import org.mongodb.scala.bson.ObjectId
 
 case class FragmentOccurrence(
                               entityType: String,
+                              entityGroup: Option[String] = None,
                               schema: String,
                               characterStart: Int,
                               characterEnd: Int,
