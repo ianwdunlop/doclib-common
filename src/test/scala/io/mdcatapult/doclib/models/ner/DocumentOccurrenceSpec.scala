@@ -30,6 +30,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
         |"correctedValue": null,
         |"correctedValueHash": null,
         |"resolvedEntity": null,
+        |"type": "Document",
         |"resolvedEntityHash": null}""".stripMargin, classOf[DocumentOccurrence])
   }
 }

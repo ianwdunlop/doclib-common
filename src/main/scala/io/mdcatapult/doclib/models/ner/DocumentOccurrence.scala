@@ -13,7 +13,8 @@ case class DocumentOccurrence(
                                correctedValueHash: Option[String] = None,
                                resolvedEntity: Option[String] = None,
                                resolvedEntityHash: Option[String] = None,
+                               `type`: String = "Document"
 ) extends Occurrence {
 
-  val `type`: String = "document"
+  //val `type`: String = "document"
 }
