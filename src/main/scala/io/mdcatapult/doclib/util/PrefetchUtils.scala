@@ -2,11 +2,15 @@ package io.mdcatapult.doclib.util
 
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.messages.PrefetchMsg
-import io.mdcatapult.doclib.models.{DoclibDoc, Origin}
+import io.mdcatapult.doclib.models.{Derivative, DoclibDoc, Origin}
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
 import io.mdcatapult.klein.queue.Sendable
-
 import cats.syntax.option._
+import org.bson.types.ObjectId
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Updates.addToSet
+import org.mongodb.scala.result.UpdateResult
 
 import scala.concurrent.Future
 
@@ -15,6 +19,7 @@ trait PrefetchUtils {
   val doclibConfig: Config
   val prefetchQueue: Sendable[PrefetchMsg]
   val derivativeType: String
+  val doclibCollection: MongoCollection[DoclibDoc]
 
   def enqueue(source: List[String], doc: DoclibDoc): List[String] = {
     // Let prefetch know that it is an unarchived derivative
@@ -36,4 +41,13 @@ trait PrefetchUtils {
     })
     source
   }
+
+  def persist(doc: DoclibDoc, newFilePath: String): Future[Option[UpdateResult]] = {
+    doclibCollection.updateOne(equal("_id", doc._id),
+      addToSet("derivatives", Derivative(derivativeType, newFilePath)),
+    ).toFutureOption()
+  }
+
+  def fetch(id: String): Future[Option[DoclibDoc]] =
+    doclibCollection.find(equal("_id", new ObjectId(id))).first().toFutureOption()
 }
