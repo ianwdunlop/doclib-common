@@ -15,6 +15,5 @@ case class FragmentOccurrence(
                               correctedValueHash: Option[String] = None,
                               resolvedEntity: Option[String] = None,
                               resolvedEntityHash: Option[String] = None,
-) extends Occurrence {
-  val `type`: String = "fragment"
-}
+                              `type`: String = "fragment"
+) extends Occurrence
