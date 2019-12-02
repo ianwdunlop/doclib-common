@@ -4,6 +4,7 @@ import org.mongodb.scala.bson.ObjectId
 
 abstract class Occurrence {
   val entityType: String
+  val entityGroup: Option[String]
   val schema: String
   val characterStart: Int
   val characterEnd: Int
@@ -27,6 +28,7 @@ object Occurrence {
     }
 
     val entityType: String = getVal[String]("entityType").getOrElse(throw new Exception("entityType must be provided"))
+    val entityGroup: Option[String] = getVal[String]("entityGroup")
     val schema: String = getVal[String]("schema").getOrElse(throw new Exception("schema must be provided"))
     val characterStart: Int = getVal[Int]("characterStart").getOrElse(throw new Exception("characterStart must be provided"))
     val characterEnd: Int = getVal[Int]("characterEnd").getOrElse(throw new Exception("characterEnd must be provided"))
@@ -40,6 +42,7 @@ object Occurrence {
     values("type").toString.toLowerCase match {
       case "document" ⇒ DocumentOccurrence(
         entityType = entityType,
+        entityGroup = entityGroup,
         schema = schema,
         characterStart = characterStart,
         characterEnd = characterEnd,
@@ -51,6 +54,7 @@ object Occurrence {
       )
       case "fragment" ⇒ FragmentOccurrence(
         entityType = entityType,
+        entityGroup = entityGroup,
         schema = schema,
         characterStart = characterStart,
         characterEnd = characterEnd,

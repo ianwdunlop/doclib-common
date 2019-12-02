@@ -4,6 +4,7 @@ import org.mongodb.scala.bson.ObjectId
 
 case class DocumentOccurrence(
                                entityType: String,
+                               entityGroup: Option[String] = None,
                                schema: String,
                                characterStart: Int,
                                characterEnd: Int,
@@ -12,7 +13,5 @@ case class DocumentOccurrence(
                                correctedValueHash: Option[String] = None,
                                resolvedEntity: Option[String] = None,
                                resolvedEntityHash: Option[String] = None,
-) extends Occurrence {
-
-  val `type`: String = "document"
-}
+                               `type`: String = "document"
+) extends Occurrence

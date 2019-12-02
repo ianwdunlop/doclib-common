@@ -21,6 +21,7 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
     ),
       """{
         |"entityType": "entityType",
+        |"entityGroup": null,
         |"schema": "schema",
         |"characterStart": 1,
         |"characterEnd": 2,
@@ -29,6 +30,7 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
         |"correctedValue": null,
         |"correctedValueHash": null,
         |"resolvedEntity": null,
-        |"resolvedEntityHash": null}""".stripMargin, classOf[FragmentOccurrence])
+        |"resolvedEntityHash": null,
+        |"type": "fragment"}""".stripMargin, classOf[FragmentOccurrence])
   }
 }

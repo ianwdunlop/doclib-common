@@ -12,7 +12,7 @@ class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 
-  "Model" can "be encoded and decoded successfully to BSON" in {
+  "NerDocument" can "be encoded and decoded successfully to BSON" in {
     roundTrip(NerDocument(
       _id =  new ObjectId("5d9f0662679b3e75b2781c93"),
       value = "value",
@@ -28,7 +28,6 @@ class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
         |"document": {"$oid": "5d9f0662679b3e75b2781c94"},
         |"fragment": null,
         |"occurrences": null,
-        |"stats": null,
         |"schemas": null,
         |"type": "document"}""".stripMargin, classOf[NerDocument])
   }
