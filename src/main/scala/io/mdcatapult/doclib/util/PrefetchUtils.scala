@@ -9,7 +9,7 @@ import cats.syntax.option._
 import org.bson.types.ObjectId
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.equal
-import org.mongodb.scala.model.Updates.addToSet
+import org.mongodb.scala.model.Updates.addEachToSet
 import org.mongodb.scala.result.UpdateResult
 
 import scala.concurrent.Future
@@ -42,9 +42,9 @@ trait PrefetchUtils {
     source
   }
 
-  def persist(doc: DoclibDoc, newFilePath: String): Future[Option[UpdateResult]] = {
+  def persist(doc: DoclibDoc, files: List[String]): Future[Option[UpdateResult]] = {
     doclibCollection.updateOne(equal("_id", doc._id),
-      addToSet("derivatives", Derivative(derivativeType, newFilePath)),
+      addEachToSet("derivatives", files.map(path ⇒ Derivative(derivativeType, path)):_*),
     ).toFutureOption()
   }
 
