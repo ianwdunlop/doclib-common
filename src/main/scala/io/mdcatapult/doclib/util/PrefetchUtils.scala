@@ -21,8 +21,17 @@ trait PrefetchUtils {
   val derivativeType: String
   val doclibCollection: MongoCollection[DoclibDoc]
 
+  /**
+   * Filter out existing derivative.type metadata from
+   * a [[io.mdcatapult.doclib.models.DoclibDoc]]
+   * @param doc The [[io.mdcatapult.doclib.models.DoclibDoc]] to be filtered
+   * @return Filtered metadata list
+   */
+  def filterDerivatives(doc: DoclibDoc): List[MetaValueUntyped] = {
+    doc.metadata.getOrElse(Nil).filter(_.getKey != "derivative.type")
+  }
+
   def enqueue(source: List[String], doc: DoclibDoc): List[String] = {
-    // Let prefetch know that it is an unarchived derivative
     val derivativeMetadata = List[MetaValueUntyped](MetaString("derivative.type", derivativeType))
     source.foreach(path ⇒ {
       prefetchQueue.send(PrefetchMsg(
@@ -35,7 +44,7 @@ trait PrefetchUtils {
             MetaString("_id", doc._id.toHexString)).some
         ))),
         tags = doc.tags,
-        metadata = (doc.metadata.getOrElse(Nil) ::: derivativeMetadata).some,
+        metadata = (filterDerivatives(doc)::: derivativeMetadata).some,
         derivative =  true.some
       ))
     })

@@ -7,9 +7,14 @@ lazy val catsVersion = "2.0.0"
 lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
+lazy val akkaVersion = "2.5.25"
 
-lazy val root = (project in file("."))
+lazy val IntegrationTest = config("it") extend(Test)
+
+lazy val root = (project in file(".")).
+  configs(IntegrationTest)
   .settings(
+    Defaults.itSettings,
     name              := "common",
     organization := "io.mdcatapult.doclib",
 //    version           := "0.0.17-SNAPSHOT",
@@ -30,8 +35,9 @@ lazy val root = (project in file("."))
     },
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic"                  % "3.0.5",
-      "org.scalatest" %% "scalatest"                  % "3.0.5" % "test",
-      "org.scalamock" %% "scalamock"                  % "4.3.0" % Test,
+      "org.scalatest" %% "scalatest"                  % "3.0.5" % "it, test",
+      "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
+      "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
       "com.typesafe.play" %% "play-json"              % playVersion,
       "com.typesafe" % "config"                       % configVersion,
       "org.typelevel" %% "cats-macros"                % catsVersion,
