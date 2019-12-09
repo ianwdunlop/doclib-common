@@ -6,7 +6,6 @@ import com.typesafe.config.Config
 
 trait TargetPath {
 
-  val consumerPath: String
   val doclibConfig: Config
   /**
    * determines common root paths for two path string
@@ -29,14 +28,14 @@ trait TargetPath {
    * @param source String
    * @return String full path to new target
    */
-  def getTargetPath(source: String, base: String, prefix: Option[String] = None): String = {
-    val targetRoot = base.replaceAll("/+$", "")
+  def getTargetPath(source: String, target: String, prefix: Option[String] = None): String = {
+    val targetRoot = target.replaceAll("/+$", "")
     val regex = """(.*)/(.*)$""".r
     source match {
       case regex(path, file) ⇒
         val c = commonPath(List(targetRoot, path))
         val targetPath  = scrub(path.replaceAll(s"^$c", "").replaceAll("^/+|/+$", ""))
-        Paths.get(doclibConfig.getString("doclib.local.temp-dir"), targetRoot, targetPath, s"${prefix.getOrElse("")}-$file").toString
+        Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
       case _ ⇒ source
     }
   }
@@ -47,11 +46,17 @@ trait TargetPath {
    * @param path
    * @return
    */
-  protected def scrub(path: String):String  = path match {
-    case path if path.startsWith(doclibConfig.getString("doclib.local.target-dir")) ⇒
-      scrub(path.replaceFirst(s"^${doclibConfig.getString("doclib.local.target-dir")}/*", ""))
-    case path if path.startsWith(doclibConfig.getString(consumerPath))  ⇒
-      scrub(path.replaceFirst(s"^${doclibConfig.getString(consumerPath)}/*", ""))
-    case _ ⇒ path
+  protected def scrub(path: String):String  = {
+    val ingressPath = s"^${doclibConfig.getString("doclib.local.temp-dir")}/?(.*)$$".r
+    val localPath = s"^${doclibConfig.getString("doclib.local.target-dir")}/?(.*)$$".r
+    val d = doclibConfig.getString("doclib.derivative.target-dir")
+    val doubleDerivatives = s"^$d/($d/.*)$$".r
+
+    path match {
+      case ingressPath(remainder) ⇒ scrub(remainder)
+      case localPath(remainder) ⇒ scrub(remainder)
+      case doubleDerivatives(remainder) ⇒ scrub(remainder)
+      case _ ⇒ path
+    }
   }
 }
