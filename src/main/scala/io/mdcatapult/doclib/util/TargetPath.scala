@@ -49,7 +49,7 @@ trait TargetPath {
   protected def scrub(path: String):String  = {
     val ingressPath = s"^${doclibConfig.getString("doclib.local.temp-dir")}/?(.*)$$".r
     val localPath = s"^${doclibConfig.getString("doclib.local.target-dir")}/?(.*)$$".r
-    val d = doclibConfig.getString("doclib.derivative.target-dir")
+    val d = doclibConfig.getString("doclib.derivatives.target-dir")
     val doubleDerivatives = s"^$d/($d/.*)$$".r
 
     path match {
