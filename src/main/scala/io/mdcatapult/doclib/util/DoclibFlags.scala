@@ -13,7 +13,7 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config) {
 
@@ -32,24 +32,64 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     patch = ver.getInt("patch"),
     hash = ver.getString("hash"))
 
+
   /**
-    * the document to start
-    * @param doc
+   * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
+   * retains that while removing flags with older started timestamps
+   * @param doc DoclibDoc
+   * @param ex ExecutionContext
+   * @return
+   */
+  def deDuplicate(doc: DoclibDoc)(implicit ex: ExecutionContext):Future[Option[Any]] = {
+    implicit val localDateOrdering: Ordering[LocalDateTime] =
+      Ordering.by(
+        ldt =>
+          ldt.toInstant(ZoneOffset.UTC).toEpochMilli
+      )
+    doc.getFlag(key).sortBy(_.started).reverse match {
+      case _ :: Nil => Future.successful(None)
+      case _ :: old =>
+        collection.updateOne(
+          equal("_id", doc._id),
+          pullByFilter(combine(
+            equal("doclib",
+              combine(
+                equal("key", key),
+                in("started", old.map(d => d.started) )
+              )
+            )
+          ))).toFutureOption()
+      case _ => Future.successful(None)
+    }
+
+  }
+
+
+  /**
+    * the document to start, assumes that if flag is present in DoclibDoc requires restart
+    * ensures only one flag exists be making sure the update conditionally checks flagKey is not already present to
+    * eliminate race condition for multiple instances of the same document being in flight
+    * @param doc DoclibDoc
+    * @param ex ExecutionContext
     * @return
     */
-  def start(doc: DoclibDoc): Future[Option[UpdateResult]] = {
-    if (doc.hasFlag(key)) {
-      restart(doc)
-    } else {
-      collection.updateOne(
-        equal("_id", doc._id),
-        addToSet(flags, DoclibFlag(
-          key = key,
-          version = getVersion(config.getConfig("version")),
-          started = LocalDateTime.now()
-        ))
-      ).toFutureOption()
-    }
+  def start(doc: DoclibDoc)(implicit ex: ExecutionContext): Future[Option[UpdateResult]] = {
+    deDuplicate(doc).flatMap( _ =>
+      if (doc.hasFlag(key)) {
+        restart(doc)
+      } else {
+        collection.updateOne(
+          combine(
+            equal("_id", doc._id),
+            nin(flagKey,List(key))),
+          push(flags, DoclibFlag(
+            key = key,
+            version = getVersion(config.getConfig("version")),
+            started = LocalDateTime.now()
+          ))
+        ).toFutureOption()
+      }
+    )
   }
 
   /**

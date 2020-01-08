@@ -1,9 +1,9 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 
 import com.mongodb.async.SingleResultCallback
-import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
+import com.mongodb.async.client.{MongoCollection => JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
 import org.bson.codecs.configuration.CodecRegistry
@@ -16,8 +16,11 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
+
+  import ExecutionContext.Implicits.global
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -30,11 +33,14 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
       |}
     """.stripMargin)
 
+
   val wrappedCollection: JMongoCollection[DoclibDoc] = mock[JMongoCollection[DoclibDoc]]
   implicit val collection: MongoCollection[DoclibDoc] = MongoCollection[DoclibDoc](wrappedCollection)
 
   val codecs: CodecRegistry = MongoCodecs.get
   val now: LocalDateTime = LocalDateTime.now()
+  val earlier: LocalDateTime = now.minusHours(1)
+  val later: LocalDateTime = now.plusHours(1)
 
   val newDoc: DoclibDoc = DoclibDoc(
     _id = new ObjectId,
@@ -56,6 +62,41 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         hash = "1234567890"),
       started = now,
     ))
+  )
+
+  val dupeDoc: DoclibDoc = newDoc.copy(
+    doclib = List(
+      DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.2",
+          major = 0,
+          minor = 0,
+          patch = 2,
+          hash = "1234567890"),
+        started = now,
+      ),
+      DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.1",
+          major = 0,
+          minor = 0,
+          patch = 1,
+          hash = "1234567891"),
+        started = later,
+      ),
+      DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.2",
+          major = 0,
+          minor = 0,
+          patch = 2,
+          hash = "1234567890"),
+        started = earlier,
+      ),
+    )
   )
 
 
@@ -161,19 +202,51 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
         assert(f.containsKey("_id"))
         assert(f.get("_id").isObjectId)
+        assert(f.get("doclib.key").isDocument)
+        assert(f.getDocument("doclib.key").containsKey("$nin"))
 
         val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$addToSet"))
-        assert(u.getDocument("$addToSet").containsKey("doclib"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").containsKey("key"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").getString("key").getValue == "test")
-        assert(u.getDocument("$addToSet").getDocument("doclib").getDocument("version").getString("number").getValue == config.getString("version.number"))
-        assert(u.getDocument("$addToSet").getDocument("doclib").getDocument("version").getString("hash").getValue == config.getString("version.hash"))
+        assert(u.containsKey("$push"))
+        assert(u.getDocument("$push").containsKey("doclib"))
+        assert(u.getDocument("$push").getDocument("doclib").containsKey("key"))
+        assert(u.getDocument("$push").getDocument("doclib").getString("key").getValue == "test")
+        assert(u.getDocument("$push").getDocument("doclib").getDocument("version").getString("number").getValue == config.getString("version.number"))
+        assert(u.getDocument("$push").getDocument("doclib").getDocument("version").getString("hash").getValue == config.getString("version.hash"))
         true
       }
     ))
     val flags = new DoclibFlags("test")
     flags.start(newDoc)
   }
+
+
+  "An existing doc with duplicate flags" should "deduplicate successfully " in {
+
+    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
+      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
+
+        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
+        assert(f.containsKey("_id"))
+        assert(f.get("_id").isObjectId)
+
+        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
+        assert(u.containsKey("$pull"))
+        assert(u.getDocument("$pull").containsKey("doclib"))
+        assert(u.getDocument("$pull").getDocument("doclib").containsKey("key"))
+        assert(u.getDocument("$pull").getDocument("doclib").getString("key").getValue == "test")
+        assert(u.getDocument("$pull").getDocument("doclib").containsKey("started"))
+        assert(u.getDocument("$pull").getDocument("doclib").getDocument("started").containsKey("$in"))
+        val started = u.getDocument("$pull").getDocument("doclib").getDocument("started").getArray("$in").get(0).asArray()
+        assert(started.get(0).asDateTime().getValue == now.toInstant(ZoneOffset.UTC).toEpochMilli )
+        assert(started.get(1).asDateTime().getValue == earlier.toInstant(ZoneOffset.UTC).toEpochMilli )
+
+        true
+      }
+    ))
+
+    val flags = new DoclibFlags("test")
+    flags.deDuplicate(dupeDoc)
+  }
+
 
 }
