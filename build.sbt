@@ -9,7 +9,7 @@ lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
 lazy val akkaVersion = "2.5.25"
 
-lazy val IntegrationTest = config("it") extend(Test)
+lazy val IntegrationTest = config("it") extend Test
 
 lazy val root = (project in file(".")).
   configs(IntegrationTest)
@@ -65,10 +65,8 @@ lazy val root = (project in file(".")).
 
 lazy val publishSettings = Seq(
   publishTo := {
-    if (isSnapshot.value)
-      Some("MDC Maven Repo" at "https://nexus.mdcatapult.io/repository/maven-snapshots/")
-    else
-      Some("MDC Maven Repo" at "https://nexus.mdcatapult.io/repository/maven-releases/")
+    val version = if (isSnapshot.value) "snapshots" else "releases"
+    Some("MDC Maven Repo" at s"https://nexus.mdcatapult.io/repository/maven-$version/")
   },
   credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 )
