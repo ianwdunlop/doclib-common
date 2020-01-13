@@ -13,14 +13,15 @@ import org.mongodb.scala.bson._
 import org.mongodb.scala.result.UpdateResult
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
+import org.scalatest.{AsyncFlatSpec, FlatSpec}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
-
-  import ExecutionContext.Implicits.global
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -115,41 +116,6 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
     assert(flag.isEmpty)
   }
 
-  it should "restart the document" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(f.containsKey("doclib.key"))
-        assert(f.getString("doclib.key").getValue == "test")
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$currentDate"))
-        assert(u.getDocument("$currentDate").containsKey("doclib.$.started"))
-        assert(u.getDocument("$set").containsKey("doclib.$.ended"))
-        assert(u.getDocument("$set").get("doclib.$.ended").isNull)
-        assert(u.getDocument("$set").containsKey("doclib.$.errored"))
-        assert(u.getDocument("$set").get("doclib.$.errored").isNull)
-
-        assert(u.getDocument("$set").containsKey("doclib.$.version"))
-        val version = u.getDocument("$set").getDocument("doclib.$.version")
-        assert(version.get("number").isString)
-        assert(version.getString("number").getValue == config.getString("version.number"))
-        assert(version.get("major").isInt32)
-        assert(version.getInt32("major").getValue == config.getInt("version.major"))
-        assert(version.get("minor").isInt32)
-        assert(version.getInt32("minor").getValue == config.getInt("version.minor"))
-        assert(version.get("patch").isInt32)
-        assert(version.getInt32("patch").getValue == config.getInt("version.patch"))
-        assert(version.containsKey("hash"))
-        assert(version.get("hash").isString)
-        assert(version.getString("hash").getValue == config.getString("version.hash"))
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.start(startedDoc)
-  }
 
   it should "end the document cleanly" in {
     (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
@@ -167,7 +133,12 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
       }
     ))
     val flags = new DoclibFlags("test")
-    flags.end(startedDoc)
+    flags.end(startedDoc).onComplete({
+      case Success(value) => assert(true)
+      case Failure(err) =>
+        fail("unknown failure", err)
+    })
+
   }
 
   it should "error the document cleanly" in {
@@ -186,37 +157,17 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
       }
     ))
     val flags = new DoclibFlags("test")
-    flags.error(startedDoc)
+    flags.error(startedDoc).onComplete({
+      case Success(value) => assert(true)
+      case Failure(err) =>
+        fail("unknown failure", err)
+    })
   }
 
 
   "A 'new' document" should "return false when testing for the flag" in {
     val flags = new DoclibFlags("missing")
     assert(!newDoc.hasFlag("test"))
-  }
-
-  it should "start the document cleanly" in {
-    (wrappedCollection.updateOne(_:Bson, _:Bson, _: SingleResultCallback[UpdateResult])).expects(where(
-      (filter:Bson, update:Bson, _: SingleResultCallback[UpdateResult]) ⇒ {
-
-        val f = filter.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(f.containsKey("_id"))
-        assert(f.get("_id").isObjectId)
-        assert(f.get("doclib.key").isDocument)
-        assert(f.getDocument("doclib.key").containsKey("$nin"))
-
-        val u = update.toBsonDocument(classOf[BsonDocument], codecs)
-        assert(u.containsKey("$push"))
-        assert(u.getDocument("$push").containsKey("doclib"))
-        assert(u.getDocument("$push").getDocument("doclib").containsKey("key"))
-        assert(u.getDocument("$push").getDocument("doclib").getString("key").getValue == "test")
-        assert(u.getDocument("$push").getDocument("doclib").getDocument("version").getString("number").getValue == config.getString("version.number"))
-        assert(u.getDocument("$push").getDocument("doclib").getDocument("version").getString("hash").getValue == config.getString("version.hash"))
-        true
-      }
-    ))
-    val flags = new DoclibFlags("test")
-    flags.start(newDoc)
   }
 
 
@@ -236,7 +187,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         assert(u.getDocument("$pull").getDocument("doclib").getString("key").getValue == "test")
         assert(u.getDocument("$pull").getDocument("doclib").containsKey("started"))
         assert(u.getDocument("$pull").getDocument("doclib").getDocument("started").containsKey("$in"))
-        val started = u.getDocument("$pull").getDocument("doclib").getDocument("started").getArray("$in").get(0).asArray()
+        val started = u.getDocument("$pull").getDocument("doclib").getDocument("started").getArray("$in")
         assert(started.get(0).asDateTime().getValue == now.toInstant(ZoneOffset.UTC).toEpochMilli )
         assert(started.get(1).asDateTime().getValue == earlier.toInstant(ZoneOffset.UTC).toEpochMilli )
 

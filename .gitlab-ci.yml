@@ -1,3 +1,9 @@
+services:
+  - name: mongo:latest
+    alias: mongo
+  - name: rabbitmq:management
+    alias: rabbitmq
+
 stages:
   - test
   - publish
@@ -25,19 +31,28 @@ before_script:
 
 test:
   stage: test
+  image: openjdk:14
+  variables:
+    MONGO_HOST: mongo
+    MONGO_DATABASE: prefetch-test
+    MONGO_COLLECTION: documents
+    MONGO_USERNAME: admin
+    MONGO_PASSWORD: admin
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USERNAME: guest
+    RABBITMQ_PASSWORD: guest
+  script:
+    - sbt clean coverage test it:test coverageReport coverageOff
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
-  script:
-    - sbt clean coverage test coverageReport coverageOff
 
 publish-snapshot:
   stage: publish
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
+  image: openjdk:14
   script:
     - sbt publish
   only:
@@ -48,7 +63,7 @@ release-master:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
+  image: openjdk:14
   before_script:
     - apt-get update -yqq
     - apt-get install -yqq apt-transport-https ca-certificates
