@@ -31,7 +31,7 @@ before_script:
 
 test:
   stage: test
-  image: openjdk:14
+  image: openjdk:14-buster
   variables:
     MONGO_HOST: mongo
     MONGO_DATABASE: prefetch-test
@@ -63,7 +63,7 @@ release-master:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:14
+  image: openjdk:14-buster
   before_script:
     - apt-get update -yqq
     - apt-get install -yqq apt-transport-https ca-certificates
