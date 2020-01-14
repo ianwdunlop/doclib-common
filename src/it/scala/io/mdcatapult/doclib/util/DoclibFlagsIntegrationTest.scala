@@ -176,6 +176,16 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     })
   }
 
+  it should "not be restartable" in {
+    import flags.NotStarted
+    flags.restart(newDoc).onComplete({
+      case Success(_) => fail()
+      case Failure(e) =>
+        assert(e.isInstanceOf[NotStarted])
+        assert(e.getMessage == "Cannot 'restart' as flag 'test' has not been started")
+    })
+  }
+
   "A doc with duplicate flags" should "deduplicate when starting" in {
     val f = flags.start(dupeDoc)
     f map { result => {
