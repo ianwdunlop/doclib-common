@@ -102,6 +102,16 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           hash = "1234567890"),
         started = earlier,
       ),
+      DoclibFlag(
+        key = "keep",
+        version = ConsumerVersion(
+          number = "0.0.2",
+          major = 0,
+          minor = 0,
+          patch = 2,
+          hash = "1234567890"),
+        started = current,
+      ),
     )
   )
 
@@ -193,8 +203,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       assert(result.get.getModifiedCount == 1)
     }}
     collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.started == later)
+      assert(doc.doclib.size == 2)
+      assert(doc.doclib.filter(_.key == "test").head.started == later)
+      assert(doc.doclib.exists(_.key == "keep"))
+      assert(doc.doclib.exists(_.key == "test"))
     })
   }
 
@@ -205,8 +217,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       assert(result.get.getModifiedCount == 1)
     }}
     collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.started == later)
+      assert(doc.doclib.size == 2)
+      assert(doc.doclib.filter(_.key == "test").head.started == later)
+      assert(doc.doclib.exists(_.key == "keep"))
+      assert(doc.doclib.exists(_.key == "test"))
     })
   }
 
@@ -217,8 +231,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       assert(result.get.getModifiedCount == 1)
     }}
     collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.started == later)
+      assert(doc.doclib.size == 2)
+      assert(doc.doclib.filter(_.key == "test").head.started == later)
+      assert(doc.doclib.exists(_.key == "keep"))
+      assert(doc.doclib.exists(_.key == "test"))
     })
   }
 

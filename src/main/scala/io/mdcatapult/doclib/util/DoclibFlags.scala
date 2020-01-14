@@ -76,23 +76,24 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     * @return
     */
   def start(doc: DoclibDoc): Future[Option[UpdateResult]] =
-    for {
-        _ <- deDuplicate(doc)
-        result <- if (doc.hasFlag(key)) {
+    if (doc.hasFlag(key)) {
           restart(doc)
         } else {
-          collection.updateOne(
-            combine(
-              equal("_id", doc._id),
-              nin(flagKey,List(key))),
-            push(flags, DoclibFlag(
-              key = key,
-              version = getVersion(config.getConfig("version")),
-              started = LocalDateTime.now()
-            ))
-          ).toFutureOption()
+          for {
+            _ <- deDuplicate(doc)
+            result <- collection.updateOne(
+              combine(
+                equal("_id", doc._id),
+                nin(flagKey,List(key))),
+              push(flags, DoclibFlag(
+                key = key,
+                version = getVersion(config.getConfig("version")),
+                started = LocalDateTime.now()
+              ))
+            ).toFutureOption()
+          } yield result
         }
-    } yield result
+
 
   /**
     *
@@ -101,17 +102,20 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def restart(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
-      collection.updateOne(
-        and(
-          equal("_id", doc._id),
-          equal(flagKey, key)),
-        combine(
-          currentDate(flagStarted),
-          set(flagVersion, getVersion(config.getConfig("version"))),
-          set(flagEnded, BsonNull()),
-          set(flagErrored, BsonNull())
-        )
-      ).toFutureOption()
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          and(
+            equal("_id", doc._id),
+            equal(flagKey, key)),
+          combine(
+            currentDate(flagStarted),
+            set(flagVersion, getVersion(config.getConfig("version"))),
+            set(flagEnded, BsonNull()),
+            set(flagErrored, BsonNull())
+          )
+        ).toFutureOption()
+      } yield result
     } else Future.failed(new NotStarted("restart", doc))
 
 
