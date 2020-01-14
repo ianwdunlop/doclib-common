@@ -3,6 +3,7 @@ package io.mdcatapult.doclib.util
 import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.Config
+import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
 import org.bson.BsonDocument
 import org.mongodb.scala.MongoCollection
@@ -13,9 +14,12 @@ import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config) {
+class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config, ex: ExecutionContext) {
+
+  final class NotStarted(flag: String, doc: DoclibDoc, cause: Throwable = None.orNull)
+    extends DoclibDocException(doc, f"Cannot '$flag' as flag '$key' has not been started", cause)
 
   protected val flags: String = "doclib"
   protected val flagKey = s"$flags.key"
@@ -32,25 +36,64 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     patch = ver.getInt("patch"),
     hash = ver.getString("hash"))
 
+
   /**
-    * the document to start
-    * @param doc
+   * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
+   * retains that while removing flags with older started timestamps
+   * @param doc DoclibDoc
+   * @return
+   */
+  def deDuplicate(doc: DoclibDoc):Future[Option[UpdateResult]] = {
+    implicit val localDateOrdering: Ordering[LocalDateTime] =
+      Ordering.by(
+        ldt =>
+          ldt.toInstant(ZoneOffset.UTC).toEpochMilli
+      )
+    doc.getFlag(key).sortBy(_.started).reverse match {
+      case _ :: Nil => Future.successful(None)
+      case _ :: old =>
+        collection.updateOne(
+          equal("_id", doc._id),
+          pullByFilter(combine(
+            equal("doclib",
+              combine(
+                equal("key", key),
+                in("started", old.map(d => d.started):_*)
+              )
+            )
+          ))).toFutureOption()
+      case _ => Future.successful(None)
+    }
+
+  }
+
+
+  /**
+    * the document to start, assumes that if flag is present in DoclibDoc requires restart
+    * ensures only one flag exists be making sure the update conditionally checks flagKey is not already present to
+    * eliminate race condition for multiple instances of the same document being in flight
+    * @param doc DoclibDoc
     * @return
     */
-  def start(doc: DoclibDoc): Future[Option[UpdateResult]] = {
+  def start(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
-      restart(doc)
-    } else {
-      collection.updateOne(
-        equal("_id", doc._id),
-        addToSet(flags, DoclibFlag(
-          key = key,
-          version = getVersion(config.getConfig("version")),
-          started = LocalDateTime.now()
-        ))
-      ).toFutureOption()
-    }
-  }
+          restart(doc)
+        } else {
+          for {
+            _ <- deDuplicate(doc)
+            result <- collection.updateOne(
+              combine(
+                equal("_id", doc._id),
+                nin(flagKey,List(key))),
+              push(flags, DoclibFlag(
+                key = key,
+                version = getVersion(config.getConfig("version")),
+                started = LocalDateTime.now()
+              ))
+            ).toFutureOption()
+          } yield result
+        }
+
 
   /**
     *
@@ -59,17 +102,21 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def restart(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
-      collection.updateOne(
-        and(
-          equal("_id", doc._id),
-          equal(flagKey, key)),
-        combine(
-          currentDate(flagStarted),
-          set(flagVersion, getVersion(config.getConfig("version"))),
-          set(flagEnded, BsonNull()),
-          set(flagErrored, BsonNull())
-        )).toFutureOption()
-    } else Future.failed(new Exception(s"Cannot 'restart' as flag '$key' has not been started"))
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          and(
+            equal("_id", doc._id),
+            equal(flagKey, key)),
+          combine(
+            currentDate(flagStarted),
+            set(flagVersion, getVersion(config.getConfig("version"))),
+            set(flagEnded, BsonNull()),
+            set(flagErrored, BsonNull())
+          )
+        ).toFutureOption()
+      } yield result
+    } else Future.failed(new NotStarted("restart", doc))
 
 
   /**
@@ -80,15 +127,19 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def end(doc: DoclibDoc, noCheck: Boolean = false): Future[Option[UpdateResult]] =
     if (noCheck || doc.hasFlag(key)) {
-      collection.updateOne(
-        and(
-          equal("_id", doc._id),
-          equal(flagKey, key)),
-        combine(
-          currentDate(flagEnded),
-          set(flagErrored, BsonNull())
-        )).toFutureOption()
-    } else Future.failed(new Exception(s"Cannot 'end' as flag '$key' has not been started"))
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          and(
+            equal("_id", doc._id),
+            equal(flagKey, key)),
+          combine(
+            currentDate(flagEnded),
+            set(flagErrored, BsonNull())
+          )).toFutureOption()
+      } yield result
+
+    } else Future.failed(new NotStarted("end", doc))
 
   /**
     *
@@ -98,7 +149,9 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def error(doc: DoclibDoc, noCheck: Boolean = false): Future[Option[UpdateResult]] =
     if (noCheck || doc.hasFlag(key)) {
-      collection.updateOne(
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
         and(
           equal("_id", doc._id),
           equal(flagKey, key)),
@@ -106,5 +159,6 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           set(flagEnded, BsonNull()),
           currentDate(flagErrored)
         )).toFutureOption()
-    } else Future.failed(new Exception(s"Cannot 'error' as flag '$key' has not been started"))
+      } yield result
+    } else Future.failed(new NotStarted("error", doc))
 }
