@@ -1,9 +1,19 @@
+services:
+  - name: mongo:latest
+    alias: mongo
+  - name: rabbitmq:management
+    alias: rabbitmq
+
 stages:
   - test
   - publish
 
 variables:
   SBT_OPTS: "-Dsbt.global.base=sbt-cache/.sbtboot -Dsbt.boot.directory=sbt-cache/.boot -Dsbt.ivy.home=sbt-cache/.ivy"
+  MONGO_INITDB_ROOT_USERNAME: admin
+  MONGO_INITDB_ROOT_PASSWORD: admin
+  RABBITMQ_DEFAULT_USER: guest
+  RABBITMQ_DEFAULT_PASS: guest
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
@@ -16,7 +26,7 @@ cache:
 
 before_script:
   - apt-get update -yqq
-  - apt-get install -yqq apt-transport-https ca-certificates
+  - apt-get install -yqq apt-transport-https ca-certificates gnupg
   - echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
   - apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
   - apt-get update -yqq
@@ -25,19 +35,28 @@ before_script:
 
 test:
   stage: test
+  image: openjdk:14-slim
+  variables:
+    MONGO_HOST: mongo
+    MONGO_DATABASE: prefetch-test
+    MONGO_COLLECTION: documents
+    MONGO_USERNAME: admin
+    MONGO_PASSWORD: admin
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USERNAME: guest
+    RABBITMQ_PASSWORD: guest
+  script:
+    - sbt clean coverage test it:test coverageReport coverageOff
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
-  script:
-    - sbt clean coverage test coverageReport coverageOff
 
 publish-snapshot:
   stage: publish
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
+  image: openjdk:14-slim
   script:
     - sbt publish
   only:
@@ -48,10 +67,10 @@ release-master:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-  image: openjdk:11
+  image: openjdk:14-slim
   before_script:
     - apt-get update -yqq
-    - apt-get install -yqq apt-transport-https ca-certificates
+    - apt-get install -yqq apt-transport-https ca-certificates gnupg
     - echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
     - apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
     - apt-get update -yqq

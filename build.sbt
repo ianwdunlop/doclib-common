@@ -1,6 +1,4 @@
-lazy val Scala212 = "2.12.8"
-lazy val Scala211 = "2.11.12"
-lazy val Scala210 = "2.10.7"
+lazy val Scala212 = "2.12.10"
 
 lazy val configVersion = "1.3.2"
 lazy val catsVersion = "2.0.0"
@@ -19,7 +17,7 @@ lazy val root = (project in file(".")).
     organization := "io.mdcatapult.doclib",
     scalaVersion      := "2.12.10",
     coverageEnabled   := false,
-    crossScalaVersions  := Scala212 :: Scala211 :: Scala210 :: Nil,
+    crossScalaVersions  := Scala212 :: Nil,
     scalacOptions     ++= Seq("-Ypartial-unification"),
     resolvers         ++= Seq(
       "MDC Nexus Releases" at "http://nexus.mdcatapult.io/repository/maven-releases/",
