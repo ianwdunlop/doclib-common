@@ -16,4 +16,6 @@ case class FragmentOccurrence(
                               resolvedEntity: Option[String] = None,
                               resolvedEntityHash: Option[String] = None,
                               `type`: String = "fragment"
-) extends Occurrence
+) extends Occurrence {
+  override def toMap: Map[String, Any] = super.toMap + ("wordIndex" -> wordIndex)
+}
