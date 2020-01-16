@@ -64,4 +64,8 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
       md5(xsWithIndexedRemoved) != md5(xs)
     }
   }}
+
+  property("md5 of list of occurrences always the same length") = forAll(listOf(genOccurrence), listOf(genOccurrence)) { (xs, ys) => {
+    md5(xs).length == md5(ys).length
+  }}
 }
