@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.models.ner
 
-import io.mdcatapult.doclib.util.HashUtils.md5HashString
+import io.mdcatapult.doclib.util.HashUtils
 import org.mongodb.scala.bson.ObjectId
 
 abstract class Occurrence {
@@ -96,6 +96,6 @@ object Occurrence {
 
     val allOccurrencesAsText = allPairedKeyValues.sorted.mkString(",")
 
-    md5HashString(allOccurrencesAsText)
+    HashUtils.md5(allOccurrencesAsText)
   }
 }

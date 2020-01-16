@@ -26,11 +26,20 @@ object HashUtils {
   }
 
   /**
+    * Generates an md5 hash of a string
+    * @param value raw text to be hashed
+    * @return
+    */
+  def md5(value : String): String =
+    MessageDigest.getInstance("MD5").digest(value.getBytes).map("%02x".format(_)).mkString
+
+  /**
    * Generates an md5 hash of a string
    * @param s text to hash
    * @return
    */
-  def md5HashString(s: String): String = {
+  @deprecated("can give spurious matches, use md5(String) instead")
+  def md5VariableLengthHashString(s: String): String = {
     val md = MessageDigest.getInstance("MD5")
     val digest = md.digest(s.getBytes)
 
