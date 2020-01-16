@@ -1,7 +1,7 @@
 lazy val Scala212 = "2.12.10"
 
 lazy val configVersion = "1.3.2"
-lazy val catsVersion = "2.0.0"
+lazy val catsVersion = "2.1.0"
 lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
@@ -34,6 +34,7 @@ lazy val root = (project in file(".")).
       "org.scalactic" %% "scalactic"                  % "3.0.5",
       "org.scalatest" %% "scalatest"                  % "3.0.5" % "it, test",
       "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
+      "org.scalacheck" %% "scalacheck"                % "1.14.1" % Test,
       "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
       "com.typesafe.play" %% "play-json"              % playVersion,
       "com.typesafe" % "config"                       % configVersion,
