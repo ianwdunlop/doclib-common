@@ -1,5 +1,6 @@
 package io.mdcatapult.doclib.models.ner
 
+import io.mdcatapult.doclib.util.HashUtils
 import org.mongodb.scala.bson.ObjectId
 
 abstract class Occurrence {
@@ -14,6 +15,19 @@ abstract class Occurrence {
   val resolvedEntity: Option[String]
   val resolvedEntityHash: Option[String]
   val `type`: String
+
+  def toMap: Map[String,Any] =
+    Map(
+      "entityType" -> entityType,
+      "entityGroup" -> entityGroup,
+      "schema" -> schema,
+      "characterStart" -> characterStart,
+      "characterEnd" -> characterEnd,
+      "fragment" -> fragment,
+      "correctedValue" -> correctedValue,
+      "resolvedEntity" -> resolvedEntity,
+      "type" -> `type`
+    ).filter(_._2 != None)
 }
 
 object Occurrence {
@@ -66,5 +80,22 @@ object Occurrence {
         resolvedEntityHash = resolvedEntityHash
       )
     }
+  }
+
+  def md5(occurrences: Seq[Occurrence]): String = {
+    def keyValuesPairsAsText(o: Occurrence): Seq[String] =
+      for {
+        (key, value) <- o.toMap.toSeq.sortBy(_._1)
+      } yield s"$key:$value"
+
+    val allPairedKeyValues =
+      for {
+        o <- occurrences
+        keyValue = keyValuesPairsAsText(o).mkString(",")
+      } yield keyValue
+
+    val allOccurrencesAsText = allPairedKeyValues.sorted.mkString(",")
+
+    HashUtils.md5(allOccurrencesAsText)
   }
 }
