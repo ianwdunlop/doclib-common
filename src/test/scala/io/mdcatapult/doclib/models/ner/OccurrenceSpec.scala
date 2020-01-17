@@ -42,9 +42,12 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
     md5(xs) == "d41d8cd98f00b204e9800998ecf8427e"
   }
 
-  property("individual occurrences are unique") = forAll(genOccurrence, genOccurrence) { (a, b) =>
-    md5(Seq(a)) != md5(Seq(b))
-  }
+  property("different occurrences are unique") = forAll(genOccurrence, genOccurrence) { (a, b) => {
+    val equality = a == b
+    val hashesMatch = md5(Seq(a)) == md5(Seq(b))
+
+    equality == hashesMatch
+  }}
 
   property("individual occurrences are reproducible") = forAll(genOccurrence) { x =>
     md5(Seq(x)) == md5(Seq(x))
