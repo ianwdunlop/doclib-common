@@ -4,10 +4,9 @@ import io.mdcatapult.doclib.bson._
 import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
-import io.mdcatapult.doclib.models.ner.{DocumentOccurrence, FragmentOccurrence, NerDocument, Schema}
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.bson.codecs.configuration.{CodecRegistries, CodecRegistry}
-import org.bson.codecs.jsr310.LocalDateTimeCodec
+import io.mdcatapult.doclib.models.ner.{Count, DocumentOccurrence, FragmentOccurrence, NerDocument, Schema, Stats}
+import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
+import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
 
@@ -30,16 +29,17 @@ object MongoCodecs {
       classOf[FragmentOccurrence],
       classOf[Schema],
       classOf[TextFragment],
-      classOf[ConsumerVersion]
+      classOf[ConsumerVersion],
+      classOf[Count],
+      classOf[Stats],
     ),
-    CodecRegistries.fromCodecs(
-//      new LocalDateTimeCodec,
+    fromCodecs(
       new LemonLabsAbsoluteUrlCodec,
       new LemonLabsRelativeUrlCodec,
       new LemonLabsUrlCodec,
       new LemonLabsUriCodec,
       new MetaValueCodec,
-      new NerOccurrenceCodec
+      new NerOccurrenceCodec,
     ),
     DEFAULT_CODEC_REGISTRY
   )
