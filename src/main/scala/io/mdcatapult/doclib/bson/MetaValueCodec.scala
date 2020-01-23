@@ -4,7 +4,7 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 import io.mdcatapult.doclib.models.metadata._
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
-import org.bson.{BsonReader, BsonType, BsonWriter, Document}
+import org.bson.{BsonReader, BsonType, BsonWriter}
 
 class MetaValueCodec extends Codec[MetaValueUntyped] {
 
@@ -34,7 +34,7 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
             LocalDateTime.ofInstant(Instant.ofEpochMilli(tmpv), ZoneOffset.UTC)
           case _ ⇒ throw new Exception("Unsupported BSON type for MetaValue")
         })
-        case v ⇒ throw new Exception(s"Invalid property name detected for MetaValue -> ${v}")
+        case v ⇒ throw new Exception(s"Invalid property name detected for MetaValue -> $v")
       }
     }
     bsonReader.readEndDocument()

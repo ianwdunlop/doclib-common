@@ -1,6 +1,5 @@
 package io.mdcatapult.doclib.models
 
-import java.time.LocalDateTime
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
 object ConsumerVersion  {

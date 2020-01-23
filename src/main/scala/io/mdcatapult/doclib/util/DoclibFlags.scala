@@ -5,15 +5,12 @@ import java.time.{LocalDateTime, ZoneOffset}
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
-import org.bson.BsonDocument
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.Document
 import org.mongodb.scala.bson.BsonNull
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config, ex: ExecutionContext) {
@@ -29,7 +26,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
 
-  protected def getVersion(ver: Config) = ConsumerVersion(
+  protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
     number = ver.getString("number"),
     major =  ver.getInt("major"),
     minor = ver.getInt("minor"),
@@ -47,8 +44,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     implicit val localDateOrdering: Ordering[LocalDateTime] =
       Ordering.by(
         ldt =>
-          ldt.toInstant(ZoneOffset.UTC).toEpochMilli
+          if (ldt == null) // scalastyle:ignore
+            0
+          else
+            ldt.toInstant(ZoneOffset.UTC).toEpochMilli
       )
+
     doc.getFlag(key).sortBy(_.started).reverse match {
       case _ :: Nil => Future.successful(None)
       case _ :: old =>

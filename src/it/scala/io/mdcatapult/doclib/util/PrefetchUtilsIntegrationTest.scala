@@ -108,15 +108,15 @@ class PrefetchUtilsIntegrationTest extends TestKit(ActorSystem("PrefetchUtilsInt
     attrs = Some(fileAttrs),
     metadata = Some(metadata)
   )
-  val prefetchUtls = new MyPrefetchUtils
+  val prefetchUtils = new MyPrefetchUtils
 
   "Existing derivative.type metadata" should "be removed when message is sent" in {
-    val source = prefetchUtls.enqueue(List("first/path", "second/path"), doc)
+    val source = prefetchUtils.enqueue(List("first/path", "second/path"), doc)
     assert(source.length == 2)
     // In theory this might not have happened in time so....eventually
     eventually {
-      prefetchQ.messages.length == 4
-      prefetchQ.messages.distinct == 2
+      prefetchQ.messages.length == 4 &&
+      prefetchQ.messages.distinct.length == 2
     }
   }
 
