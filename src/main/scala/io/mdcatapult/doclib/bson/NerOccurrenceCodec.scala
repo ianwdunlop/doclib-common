@@ -2,12 +2,10 @@ package io.mdcatapult.doclib.bson
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-import io.mdcatapult.doclib.models.metadata._
-import io.mdcatapult.doclib.models.ner.{DocumentOccurrence, FragmentOccurrence, Occurrence}
+import io.mdcatapult.doclib.models.ner.{FragmentOccurrence, Occurrence}
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.types.ObjectId
 import org.bson.{BsonReader, BsonType, BsonWriter}
-import org.mongodb.scala.bson.BsonNull
 
 import scala.collection.mutable
 
@@ -37,7 +35,7 @@ class NerOccurrenceCodec extends Codec[Occurrence] {
           case BsonType.NULL ⇒
             r.readNull()
             None
-          case _ ⇒ throw new Exception(s"Unsupported BSON type for ${name}")
+          case _ ⇒ throw new Exception(s"Unsupported BSON type for $name")
         }
       values(name) = value
     }

@@ -6,6 +6,7 @@ import java.util.Date
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import io.mdcatapult.klein.mongo.Mongo
+import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries}
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
@@ -17,7 +18,6 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-
 
 class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfter {
 
@@ -32,8 +32,11 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       |}
     """.stripMargin).withFallback(ConfigFactory.load())
 
-  implicit val codecs: CodecRegistry = MongoCodecs.get
+  val coreCodecs: CodecRegistry = MongoCodecs.get
+  implicit val codecs: CodecRegistry = fromRegistries(fromCodecs(new NullWritableLocalDateTime(coreCodecs)), coreCodecs)
+
   implicit val mongo: Mongo = new Mongo()
+
   implicit val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibflags")
 
@@ -80,6 +83,16 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           patch = 2,
           hash = "1234567890"),
         started = current,
+      ),
+      DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.2",
+          major = 0,
+          minor = 0,
+          patch = 2,
+          hash = "1234567890"),
+        started = null,
       ),
       DoclibFlag(
         key = "test",
@@ -272,7 +285,6 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   it should "not update the flag state if None" in {
-    val updateTime = LocalDateTime.now()
     val f = flags.end(dupeDoc, noCheck = Some(false), None)
     f map { result => {
       assert(result.isDefined)

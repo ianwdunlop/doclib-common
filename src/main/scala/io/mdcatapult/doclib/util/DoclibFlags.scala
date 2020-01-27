@@ -28,7 +28,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagErrored = s"$flags.$$.errored"
   protected val flagState = s"$flags.$$.state"
 
-  protected def getVersion(ver: Config) = ConsumerVersion(
+  protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
     number = ver.getString("number"),
     major =  ver.getInt("major"),
     minor = ver.getInt("minor"),
@@ -46,8 +46,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     implicit val localDateOrdering: Ordering[LocalDateTime] =
       Ordering.by(
         ldt =>
-          ldt.toInstant(ZoneOffset.UTC).toEpochMilli
+          if (ldt == null) // scalastyle:ignore
+            0
+          else
+            ldt.toInstant(ZoneOffset.UTC).toEpochMilli
       )
+
     doc.getFlag(key).sortBy(_.started).reverse match {
       case _ :: Nil => Future.successful(None)
       case _ :: old =>
