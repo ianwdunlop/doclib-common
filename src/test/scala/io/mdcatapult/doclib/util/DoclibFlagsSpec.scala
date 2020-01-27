@@ -1,25 +1,16 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 
-import com.mongodb.async.SingleResultCallback
 import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.bson.codecs.configuration.CodecRegistry
-import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson._
-import org.mongodb.scala.result.UpdateResult
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{AsyncFlatSpec, FlatSpec}
-
-import scala.collection.JavaConverters._
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
-import scala.util.{Failure, Success, Try}
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.FlatSpec
 
 class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
 

@@ -4,16 +4,14 @@ import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
-import org.bson.BsonDocument
+import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.Document
 import org.mongodb.scala.bson.BsonNull
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], config: Config, ex: ExecutionContext) {
@@ -28,6 +26,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagStarted = s"$flags.$$.started"
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
+  protected val flagState = s"$flags.$$.state"
 
   protected def getVersion(ver: Config) = ConsumerVersion(
     number = ver.getString("number"),
@@ -120,7 +119,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
 
 
   /**
-    *
+    * Update the ended flag in the doc.
     * @param doc mongo document to update
     * @param noCheck should this be done without checking if the flag exists
     * @return
@@ -142,6 +141,32 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     } else Future.failed(new NotStarted("end", doc))
 
   /**
+   * Update ended flag
+   * @param doc mongo document to update
+   * @param noCheck should this be done without checking if the flag exists
+   * @param state an optional DoclibFlagState object. If present then the state on the flag
+   *              will be updated
+   *
+   * @return
+   */
+  def end(doc: DoclibDoc, noCheck: Option[Boolean], state: Option[DoclibFlagState]): Future[Option[UpdateResult]] = {
+    // Note: 'noCheck' is an option here since the scala compiler doesn't allow overloaded methods with default args.
+    // TODO Should we deprecate the original 'end' method?
+    if (noCheck.getOrElse(false) || doc.hasFlag(key)) {
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          and(
+            equal("_id", doc._id),
+            equal(flagKey, key)),
+          getStateUpdate(state)
+        ).toFutureOption()
+      } yield result
+
+    } else Future.failed(new NotStarted("end", doc))
+  }
+
+  /**
     *
     * @param doc mongo document to update
     * @param noCheck should this be done without checking if the flag exists
@@ -161,4 +186,25 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
         )).toFutureOption()
       } yield result
     } else Future.failed(new NotStarted("error", doc))
+
+  /**
+   * Create Bson update statement for a DoclibFlagState
+   * @param state DoclibFlagState
+   * @return
+   */
+  def getStateUpdate(state: Option[DoclibFlagState]): Bson = {
+    state match {
+      case None ⇒
+        combine(
+          currentDate(flagEnded),
+          set(flagErrored, BsonNull())
+        )
+      case Some(state) ⇒
+        combine(
+          currentDate(flagEnded),
+          set(flagErrored, BsonNull()),
+          set(flagState, state)
+        )
+    }
+  }
 }
