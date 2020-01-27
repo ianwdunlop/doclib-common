@@ -1,22 +1,21 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneId}
+import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
+import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import io.mdcatapult.klein.mongo.Mongo
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.model.Filters.{equal => Mequal}
+import org.mongodb.scala.model.Filters.{equal ⇒ Mequal}
 import org.mongodb.scala.model.Updates._
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 
@@ -91,6 +90,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           patch = 1,
           hash = "1234567891"),
         started = later,
+        state = Some(DoclibFlagState(value = "12345", updated = current))
       ),
       DoclibFlag(
         key = "test",
@@ -238,5 +238,21 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     })
   }
 
+  it should "save the doclib flag state if it exists in the flag" in {
+    val f = flags.start(dupeDoc)
+    f map { result => {
+      assert(result.isDefined)
+      assert(result.get.getModifiedCount == 1)
+    }}
+    // Note: the assertions always seem to pass inside a subscribe so using await instead.
+    val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 2)
+    assert(doc.doclib.exists(_.key == "test"))
+    assert(doc.doclib.exists(_.key == "keep"))
+    assert(doc.doclib.filter(_.key == "test").head.state != None)
+    assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
+    // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
+    assert(Date.from(doc.doclib.filter(_.key == "test").head.state.get.updated.atZone(ZoneId.systemDefault).toInstant) == (Date.from(current.atZone(ZoneId.systemDefault).toInstant)))
+  }
 
 }

@@ -3,9 +3,9 @@ package io.mdcatapult.doclib.util
 import java.time.{LocalDateTime, ZoneOffset}
 
 import com.mongodb.async.SingleResultCallback
-import com.mongodb.async.client.{MongoCollection => JMongoCollection}
+import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag}
+import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
@@ -114,6 +114,24 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
   it should "fail to get an invalid flag" in {
     val flag = startedDoc.getFlag("dummy")
     assert(flag.isEmpty)
+  }
+
+  it can "have a flag state" in {
+    val stateDoc: DoclibDoc = newDoc.copy(
+      doclib = List(DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.1",
+          major = 0,
+          minor = 0,
+          patch = 1,
+          hash = "1234567890"),
+        started = now,
+        state = Some(DoclibFlagState(value = "12345", updated = now))
+      ))
+    )
+    assert(stateDoc.getFlag("test").head.state.get.value == "12345")
+    assert(stateDoc.getFlag("test").head.state.get.updated == now)
   }
 
 

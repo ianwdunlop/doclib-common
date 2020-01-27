@@ -32,6 +32,7 @@ object MongoCodecs {
       classOf[ConsumerVersion],
       classOf[Count],
       classOf[Stats],
+      classOf[DoclibFlagState]
     ),
     fromCodecs(
       new LemonLabsAbsoluteUrlCodec,
