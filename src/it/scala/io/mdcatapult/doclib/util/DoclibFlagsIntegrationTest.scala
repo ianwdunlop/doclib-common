@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -281,7 +281,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
     // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
-    assert(Date.from(doc.doclib.filter(_.key == "test").head.state.get.updated.atZone(ZoneId.systemDefault).toInstant) == (Date.from(updateTime.atZone(ZoneId.systemDefault).toInstant)))
+    assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) >= updateTime.toEpochSecond(ZoneOffset.UTC))
   }
 
   it should "not update the flag state if None" in {
@@ -298,7 +298,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
     // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
-    assert(Date.from(doc.doclib.filter(_.key == "test").head.state.get.updated.atZone(ZoneId.systemDefault).toInstant) == (Date.from(current.atZone(ZoneId.systemDefault).toInstant)))
+    assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
 }
