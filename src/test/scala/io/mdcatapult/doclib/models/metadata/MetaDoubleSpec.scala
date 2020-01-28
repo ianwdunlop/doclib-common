@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.models.metadata
 
-import io.mdcatapult.doclib.models.{BsonCodecCompatible, Derivative}
+import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider

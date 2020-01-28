@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
-import org.bson.types.ObjectId
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.{FlatSpec, Matchers}
 

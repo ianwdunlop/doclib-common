@@ -1,8 +1,6 @@
 package io.mdcatapult.doclib.models
 
-import java.time.LocalDateTime
-
-import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
+import io.mdcatapult.doclib.models.metadata.MetaString
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider

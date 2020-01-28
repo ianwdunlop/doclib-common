@@ -6,7 +6,6 @@ import io.mdcatapult.doclib.json.MetaValueJson
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 

@@ -3,13 +3,17 @@ package io.mdcatapult.doclib.concurrency
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.time.{Seconds, Span}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
+
+  private val concurrentTestTimeout = Timeout(Span(1, Seconds))
 
   "A SemaphoreLimitedExecution" should "execute function when concurrency is available" in {
     val executor = SemaphoreLimitedExecution.create(1)
@@ -80,7 +84,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   it should "let at most 2 functions of weight 3 run concurrently when concurrency limit is 6" in {
     val executor = SemaphoreLimitedExecution.create(6)
 
-    whenReady(runFunctionsConcurrently(executor.weighted(3))) { maxConcurrency =>
+    whenReady(runFunctionsConcurrently(executor.weighted(3)), concurrentTestTimeout) { maxConcurrency =>
       maxConcurrency should be(2)
     }
   }
@@ -95,7 +99,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
    * @return a future holding the maximum number of functions that were concurrently running
    */
   def runFunctionsConcurrently(f: Int => (Int => Int) => Int): Future[Int] = {
-    val latch = new CountDownLatch(100)
+    val latch = new CountDownLatch(25)
 
     val running = new AtomicInteger(0)
 
