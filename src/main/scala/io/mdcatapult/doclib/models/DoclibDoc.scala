@@ -2,10 +2,8 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
-import io.mdcatapult.doclib.json.MetaValueJson
-import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
+import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import org.mongodb.scala.bson.ObjectId
-import play.api.libs.json.{Format, Json, Reads, Writes}
 
 //object DoclibDoc extends MetaValueJson {
 //  implicit val msgReader: Reads[DoclibDoc] = Json.reads[DoclibDoc]

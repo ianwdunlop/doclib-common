@@ -5,7 +5,7 @@ lazy val catsVersion = "2.1.0"
 lazy val playVersion = "2.7.2"
 lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
-lazy val akkaVersion = "2.5.25"
+lazy val akkaVersion = "2.5.26"
 
 lazy val IntegrationTest = config("it") extend Test
 
@@ -44,6 +44,8 @@ lazy val root = (project in file(".")).
       "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
       "org.scalacheck" %% "scalacheck"                % "1.14.1" % Test,
       "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
+      "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
       "com.typesafe.play" %% "play-json"              % playVersion,
       "com.typesafe" % "config"                       % configVersion,
       "org.typelevel" %% "cats-macros"                % catsVersion,
