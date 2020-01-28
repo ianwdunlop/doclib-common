@@ -2,8 +2,7 @@ package io.mdcatapult.doclib.models
 
 import io.lemonlabs.uri.Uri
 import io.mdcatapult.doclib.json._
-import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
-import io.mdcatapult.doclib.util._
+import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
 object Origin extends StringAnyMapJson with LemonLabsUriJson with MetaValueJson {

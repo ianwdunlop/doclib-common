@@ -7,14 +7,10 @@ import akka.stream.ActorMaterializer
 import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
-import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.doclib.util.MongoCodecs
 import io.mdcatapult.klein.mongo.Mongo
 import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.MongoCollection
 import scopt.OParser
-
-import scala.concurrent.ExecutionContextExecutor
 
 /**
   * default opt based config
@@ -67,7 +63,7 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
       /** initialise actor system **/
       implicit val system: ActorSystem = ActorSystem(name)
       implicit val materializer: ActorMaterializer = ActorMaterializer()
-      implicit val executor: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
+
       /** Initialise Mongo **/
       implicit val codecs: CodecRegistry = MongoCodecs.get
       implicit val mongo: Mongo = new Mongo()

@@ -6,7 +6,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.archivers._
 import org.apache.tika.Tika
 import org.apache.tika.metadata._
-import org.apache.tika.parser.{AutoDetectParser, ParseContext}
+import org.apache.tika.parser.ParseContext
 import org.apache.tika.sax.BodyContentHandler
 
 import scala.util.{Failure, Success, Try}

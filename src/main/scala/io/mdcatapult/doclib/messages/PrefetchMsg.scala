@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.messages
 
 import io.mdcatapult.doclib.json.{BsonDocumentJson, MetaValueJson}
 import io.mdcatapult.doclib.models.Origin
-import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
+import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import io.mdcatapult.klein.queue.Envelope
 import play.api.libs.json._
 
