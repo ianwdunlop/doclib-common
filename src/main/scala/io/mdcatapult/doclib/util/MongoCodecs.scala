@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.util
 
-import io.mdcatapult.doclib.bson._
+import io.mdcatapult.doclib.bson.{LemonLabsAbsoluteUrlCodec, _}
+import io.mdcatapult.doclib.messages._
 import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
@@ -30,7 +31,13 @@ object MongoCodecs {
       classOf[FragmentOccurrence],
       classOf[Schema],
       classOf[TextFragment],
-      classOf[ConsumerVersion]
+      classOf[ConsumerVersion],
+      classOf[PrefetchMsg],
+      classOf[ArchiveMsg],
+      classOf[EmptyMsg],
+      classOf[DoclibMsg],
+      classOf[NerMsg],
+      classOf[SupervisorMsg],
     ),
     CodecRegistries.fromCodecs(
 //      new LocalDateTimeCodec,
