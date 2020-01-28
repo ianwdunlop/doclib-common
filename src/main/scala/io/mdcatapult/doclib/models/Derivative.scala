@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.models
 
 import io.mdcatapult.doclib.json._
-import io.mdcatapult.doclib.models.metadata.{MetaValue, MetaValueUntyped}
+import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
 object Derivative extends MetaValueJson {

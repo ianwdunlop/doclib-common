@@ -1,6 +1,5 @@
 package io.mdcatapult.doclib.json
 
-import io.lemonlabs.uri.Uri
 import org.bson.types.ObjectId
 import play.api.libs.json._
 
