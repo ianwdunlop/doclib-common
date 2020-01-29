@@ -122,42 +122,17 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
       } yield result
     } else Future.failed(new NotStarted("restart", doc))
 
-
   /**
-    * Update the ended flag in the doc.
-    * @param doc mongo document to update
-    * @param noCheck should this be done without checking if the flag exists
-    * @return
-    */
-  def end(doc: DoclibDoc, noCheck: Boolean = false): Future[Option[UpdateResult]] =
-    if (noCheck || doc.hasFlag(key)) {
-      for {
-        _ <- deDuplicate(doc)
-        result <- collection.updateOne(
-          and(
-            equal("_id", doc._id),
-            equal(flagKey, key)),
-          combine(
-            currentDate(flagEnded),
-            set(flagErrored, BsonNull())
-          )).toFutureOption()
-      } yield result
-
-    } else Future.failed(new NotStarted("end", doc))
-
-  /**
-   * Update ended flag
-   * @param doc mongo document to update
-   * @param noCheck should this be done without checking if the flag exists
+   * Update ended flag. Updates the state if provided.
+   *
+   * @param doc   mongo document to update
    * @param state an optional DoclibFlagState object. If present then the state on the flag
    *              will be updated
-   *
+   * @param noCheck should this be done without checking if the flag exists
    * @return
    */
-  def end(doc: DoclibDoc, noCheck: Option[Boolean], state: Option[DoclibFlagState]): Future[Option[UpdateResult]] = {
-    // Note: 'noCheck' is an option here since the scala compiler doesn't allow overloaded methods with default args.
-    // TODO Should we deprecate the original 'end' method?
-    if (noCheck.getOrElse(false) || doc.hasFlag(key)) {
+  def end(doc: DoclibDoc, state: Option[DoclibFlagState] = None, noCheck: Boolean = false): Future[Option[UpdateResult]] = {
+    if (noCheck || doc.hasFlag(key)) {
       for {
         _ <- deDuplicate(doc)
         result <- collection.updateOne(

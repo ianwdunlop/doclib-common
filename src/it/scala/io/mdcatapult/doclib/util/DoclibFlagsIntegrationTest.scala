@@ -269,7 +269,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   it should "update the flag state if provided" in {
     val updateTime = LocalDateTime.now()
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
-    val flagUpdateResult = Await.result(flags.end(dupeDoc, noCheck = Some(false), state = state), 5.seconds)
+    val flagUpdateResult = Await.result(flags.end(dupeDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
     assert(flagUpdateResult.get.getModifiedCount == 1)
 
@@ -285,7 +285,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   it should "not update the flag state if None" in {
-    val f = flags.end(dupeDoc, noCheck = Some(false), None)
+    val f = flags.end(dupeDoc)
     f map { result => {
       assert(result.isDefined)
       assert(result.get.getModifiedCount == 1)
