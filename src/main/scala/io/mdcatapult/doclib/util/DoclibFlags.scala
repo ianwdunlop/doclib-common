@@ -26,8 +26,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagStarted = s"$flags.$$.started"
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
-  protected val flagStateValue = s"$flags.$$.state.value"
-  protected val flagStateUpdated = s"$flags.$$.state.updated"
+  protected val flagState = s"$flags.$$.state"
 
   protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
     number = ver.getString("number"),
@@ -185,8 +184,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
         combine(
           currentDate(flagEnded),
           set(flagErrored, BsonNull()),
-          set(flagStateValue, state.value),
-          currentDate(flagStateUpdated)
+          set(flagState, state)
         )
     }
   }
