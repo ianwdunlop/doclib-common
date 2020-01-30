@@ -20,5 +20,6 @@ case class DoclibFlag(
                        version: ConsumerVersion,
                        started: LocalDateTime,
                        ended: Option[LocalDateTime] = None,
-                       errored: Option[LocalDateTime] = None
+                       errored: Option[LocalDateTime] = None,
+                       state: Option[DoclibFlagState] = None
                      )
