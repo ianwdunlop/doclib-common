@@ -40,6 +40,7 @@ object MongoCodecs {
       classOf[DoclibMsg],
       classOf[NerMsg],
       classOf[SupervisorMsg],
+      classOf[DoclibFlagState]
     ),
     fromCodecs(
       new LemonLabsAbsoluteUrlCodec,
