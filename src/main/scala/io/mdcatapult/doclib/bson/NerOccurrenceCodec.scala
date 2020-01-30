@@ -1,21 +1,15 @@
 package io.mdcatapult.doclib.bson
 
-import java.time.{LocalDateTime, ZoneOffset}
-
 import io.mdcatapult.doclib.bson.traits.Decodable
-import io.mdcatapult.doclib.models.metadata._
 import io.mdcatapult.doclib.models.ner._
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.types.ObjectId
-import org.bson.{BsonReader, BsonType, BsonWriter}
-
-import scala.collection.mutable
+import org.bson.{BsonReader, BsonWriter}
 
 class NerOccurrenceCodec extends Codec[Occurrence] with Decodable {
 
   /**
-    * decode Bson MetaValue Document to relevant MetaValue based on supported value types
-    * read the document and assigned to key/value variables as we cannot guarantee ordering of properties
+    * decode NerOccurence Bson document to the appropriate case class
     */
   override def decode(r: BsonReader, c: DecoderContext): Occurrence = {
     Occurrence(getMap(r, c))
