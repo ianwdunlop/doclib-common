@@ -60,11 +60,11 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
 
   optConfig.action match {
     case Some("start") ⇒
-      /** initialise actor system **/
+      // initialise actor system
       implicit val system: ActorSystem = ActorSystem(name)
       implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-      /** Initialise Mongo **/
+      // Initialise Mongo
       implicit val codecs: CodecRegistry = MongoCodecs.get
       implicit val mongo: Mongo = new Mongo()
       start
