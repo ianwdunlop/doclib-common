@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.util
 
 import io.mdcatapult.doclib.bson._
+import io.mdcatapult.doclib.messages._
 import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
@@ -32,6 +33,13 @@ object MongoCodecs {
       classOf[ConsumerVersion],
       classOf[Count],
       classOf[Stats],
+      classOf[ConsumerVersion],
+      classOf[PrefetchMsg],
+      classOf[ArchiveMsg],
+      classOf[EmptyMsg],
+      classOf[DoclibMsg],
+      classOf[NerMsg],
+      classOf[SupervisorMsg],
       classOf[DoclibFlagState]
     ),
     fromCodecs(
