@@ -1,19 +1,13 @@
 package io.mdcatapult.doclib.bson
 
-import java.time.{LocalDateTime, ZoneOffset}
-
+import io.mdcatapult.doclib.bson.traits.Decodable
 import io.mdcatapult.doclib.messages._
-import io.mdcatapult.doclib.models.ner.{FragmentOccurrence, Occurrence}
+import io.mdcatapult.doclib.models.Origin
+import io.mdcatapult.doclib.util.MongoCodecs
 import io.mdcatapult.klein.queue.Envelope
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.types.ObjectId
-import org.bson.{BsonReader, BsonType, BsonWriter}
-import io.mdcatapult.doclib.bson.MetaValueCodec
-import io.mdcatapult.doclib.bson.traits.Decodable
-import io.mdcatapult.doclib.models.Origin
-
-import scala.collection.mutable
-import io.mdcatapult.doclib.util.MongoCodecs
+import org.bson.{BsonReader, BsonWriter}
 
 class EnvelopeCodec extends Codec[Envelope] with Decodable {
 
@@ -72,6 +66,12 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
 
       case v: SupervisorMsg ⇒
         w.writeObjectId("id", new ObjectId(v.id))
+        if (v.reset.isDefined) {
+          w.writeName("reset")
+          w.writeStartArray()
+          v.reset.get.foreach(w.writeString)
+          w.writeEndArray()
+        }
       case _ ⇒ // do nothing
     }
     w.writeEndDocument()

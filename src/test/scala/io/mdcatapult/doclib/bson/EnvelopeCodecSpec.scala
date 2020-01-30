@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.bson
 
-import io.mdcatapult.doclib.messages.{ArchiveMsg, DoclibMsg, NerMsg, PrefetchMsg}
+import io.mdcatapult.doclib.messages.{ArchiveMsg, DoclibMsg, EmptyMsg, NerMsg, PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.models.Origin
 import io.mdcatapult.doclib.models.metadata._
 import io.mdcatapult.klein.queue.Envelope
@@ -8,7 +8,6 @@ import io.mdcatapult.klein.queue.Envelope
 class EnvelopeCodecSpec extends CodecSpec{
 
   "EnvelopeSpec" should "encode & decode a Prefetch Message" in {
-
     val original = PrefetchMsg(
       source = "path/to/file",
       origin = Some(List(Origin(scheme="file", hostname=Some("example.com")))),
@@ -47,6 +46,23 @@ class EnvelopeCodecSpec extends CodecSpec{
     )
     val decodedMsg = roundTrip[Envelope](original, new EnvelopeCodec())
     decodedMsg shouldBe a[NerMsg]
+    decodedMsg should equal(original)
+  }
+
+  it should "encode & decode a Supervisor Message" in {
+    val original = SupervisorMsg(
+      id = "5d970056b3e8083540798f90",
+      reset = Some(List("cheese"))
+    )
+    val decodedMsg = roundTrip[Envelope](original, new EnvelopeCodec())
+    decodedMsg shouldBe a[SupervisorMsg]
+    decodedMsg should equal(original)
+  }
+
+  it should "encode & decode an Empty Message" in {
+    val original = EmptyMsg()
+    val decodedMsg = roundTrip[Envelope](original, new EnvelopeCodec())
+    decodedMsg shouldBe a[EmptyMsg]
     decodedMsg should equal(original)
   }
 
