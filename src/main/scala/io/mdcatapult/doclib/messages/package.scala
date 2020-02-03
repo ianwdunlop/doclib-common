@@ -6,7 +6,6 @@ import io.lemonlabs.uri.Uri
 import io.mdcatapult.doclib.models.Origin
 import io.mdcatapult.doclib.models.metadata._
 import io.mdcatapult.klein.queue.Envelope
-import org.mongodb.scala.bson.ObjectId
 
 package object messages {
 
@@ -60,7 +59,7 @@ package object messages {
         reset = getValFrom[List[String]]("reset", values)
       )
     } else if (values.contains("id")) {
-      DoclibMsg(id = getValFrom[String]("id", values).get.toHexString)
+      DoclibMsg(id = getValFrom[String]("id", values).get)
     } else {
       EmptyMsg()
     }
