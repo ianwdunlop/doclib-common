@@ -11,8 +11,8 @@ import org.bson.{BsonReader, BsonWriter}
 
 class EnvelopeCodec extends Codec[Envelope] with Decodable {
 
-  val originCodec: Codec[Origin] = MongoCodecs.get.get[Origin](classOf[Origin])
-  val metaValueCodec: MetaValueCodec = new MetaValueCodec
+  lazy val originCodec: Codec[Origin] = MongoCodecs.get.get[Origin](classOf[Origin])
+  lazy val metaValueCodec: MetaValueCodec = new MetaValueCodec
 
 
   /**
@@ -27,12 +27,12 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
     w.writeStartDocument()
     t match {
       case v: ArchiveMsg ⇒
-        if (v.id.isDefined) w.writeObjectId("id", new ObjectId(v.id.get))
+        if (v.id.isDefined) w.writeString("id", v.id.get)
         if (v.source.isDefined) w.writeString("source", v.source.get)
       case v: DoclibMsg ⇒
-        w.writeObjectId("id", new ObjectId(v.id))
+        w.writeString("id", v.id)
       case v: NerMsg ⇒
-        w.writeObjectId("id", new ObjectId(v.id))
+        w.writeString("id", v.id)
         if (v.requires.isDefined) {
           w.writeName("requires")
           w.writeStartArray()
@@ -65,7 +65,7 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
         }
 
       case v: SupervisorMsg ⇒
-        w.writeObjectId("id", new ObjectId(v.id))
+        w.writeString("id", v.id)
         if (v.reset.isDefined) {
           w.writeName("reset")
           w.writeStartArray()
