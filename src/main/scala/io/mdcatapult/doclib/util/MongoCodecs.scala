@@ -49,6 +49,7 @@ object MongoCodecs {
       new LemonLabsUriCodec,
       new MetaValueCodec,
       new NerOccurrenceCodec,
+      new EnvelopeCodec,
     ),
     DEFAULT_CODEC_REGISTRY
   )
