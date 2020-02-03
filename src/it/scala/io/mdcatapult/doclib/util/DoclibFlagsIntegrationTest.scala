@@ -195,7 +195,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       case Success(_) => fail()
       case Failure(e) =>
         assert(e.isInstanceOf[NotStarted])
-        assert(e.getMessage == "Cannot 'error' as flag 'test' has not been started")
+        assert(e.getMessage == "Cannot 'end' as flag 'test' has not been started")
     })
   }
 
