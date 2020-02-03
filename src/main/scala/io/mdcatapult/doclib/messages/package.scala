@@ -6,7 +6,6 @@ import io.lemonlabs.uri.Uri
 import io.mdcatapult.doclib.models.Origin
 import io.mdcatapult.doclib.models.metadata._
 import io.mdcatapult.klein.queue.Envelope
-import org.mongodb.scala.bson.ObjectId
 
 package object messages {
 
@@ -32,7 +31,7 @@ package object messages {
 
     if (values.contains("source") && values.contains("id")) {
       ArchiveMsg(
-        id = getValFrom[ObjectId]("id", values).map(_.toHexString),
+        id = getValFrom[String]("id", values),
         source = getValFrom[String]("source", values)
       )
     } else if (values.contains("source")) {
@@ -51,16 +50,16 @@ package object messages {
       )
     } else if (values.contains("id") && values.contains("requires")) {
       NerMsg(
-        id = getValFrom[ObjectId]("id", values).get.toHexString,
+        id = getValFrom[String]("id", values).get,
         requires = getValFrom[List[String]]("requires", values)
       )
     } else if (values.contains("id") && values.contains("reset")) {
       SupervisorMsg(
-        id = getValFrom[ObjectId]("id", values).get.toHexString,
+        id = getValFrom[String]("id", values).get,
         reset = getValFrom[List[String]]("reset", values)
       )
     } else if (values.contains("id")) {
-      DoclibMsg(id = getValFrom[ObjectId]("id", values).get.toHexString)
+      DoclibMsg(id = getValFrom[String]("id", values).get)
     } else {
       EmptyMsg()
     }
