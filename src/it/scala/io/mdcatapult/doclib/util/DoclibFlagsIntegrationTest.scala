@@ -82,7 +82,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current,
+        started = current
       ),
       DoclibFlag(
         key = "test",
@@ -92,7 +92,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = null,
+        started = null
       ),
       DoclibFlag(
         key = "test",
@@ -113,7 +113,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = earlier,
+        started = earlier
       ),
       DoclibFlag(
         key = "keep",
@@ -123,14 +123,31 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current,
-      ),
+        started = current
+      )
+    )
+  )
+
+  val resetDoc: DoclibDoc = newDoc.copy(
+    _id = new ObjectId,
+    source = "/path/to/reset.txt",
+    doclib = List(
+      DoclibFlag(
+        key = "test",
+        version = ConsumerVersion(
+          number = "0.0.2",
+          major = 0,
+          minor = 0,
+          patch = 2,
+          hash = "1234567890"),
+        started = current
+      )
     )
   )
 
   before  {
     Await.result(collection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
-    Await.result(collection.insertMany(List(newDoc, startedDoc, dupeDoc)).toFuture(), Duration.Inf)
+    Await.result(collection.insertMany(List(newDoc, startedDoc, dupeDoc, resetDoc)).toFuture(), Duration.Inf)
   }
 
   "A 'started' document" should "be restarted successfully" in {
@@ -272,33 +289,35 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     val flagUpdateResult = Await.result(flags.end(dupeDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
     assert(flagUpdateResult.get.getModifiedCount == 1)
-
-    // Note: the assertions always seem to pass inside a subscribe so using await instead.
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
-    // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
     assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) >= updateTime.toEpochSecond(ZoneOffset.UTC))
   }
 
   it should "not update the flag state if None" in {
-    val f = flags.end(dupeDoc)
-    f map { result => {
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }}
-    // Note: the assertions always seem to pass inside a subscribe so using await instead.
+    val result = Await.result(flags.end(dupeDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
-    // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
     assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+  }
+
+  "A doc" can "be reset" in {
+    val result = Await.result(flags.reset(resetDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", resetDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.exists(_.key == "test"))
+    assert(doc.doclib.filter(_.key == "test").head.reset.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.started == null)
   }
 
 }

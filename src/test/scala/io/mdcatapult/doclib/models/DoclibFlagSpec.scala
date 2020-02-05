@@ -23,6 +23,7 @@ class DoclibFlagSpec extends FlatSpec with Matchers with BsonCodecCompatible {
       started = LocalDateTime.parse("2019-10-01T12:00:00"),
       ended = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
       errored = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
+      reset = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
       state = Some(DoclibFlagState(value = "12345", updated = LocalDateTime.parse("2019-10-01T12:00:00")))
     ),
       """{
@@ -31,6 +32,7 @@ class DoclibFlagSpec extends FlatSpec with Matchers with BsonCodecCompatible {
         |"started": {"$date": 1569931200000},
         |"ended": {"$date": 1569931200000},
         |"errored": {"$date": 1569931200000},
+        |"reset": {"$date": 1569931200000},
         |"state": {"value": "12345", "updated": {"$date": 1569931200000}}
         |}""".stripMargin, classOf[DoclibFlag])
 
