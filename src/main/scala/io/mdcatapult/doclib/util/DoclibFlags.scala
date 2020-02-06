@@ -140,7 +140,10 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           and(
             equal("_id", doc._id),
             equal(flagKey, key)),
-          getStateUpdate(state)
+          combine(
+            set(flagReset, BsonNull()),
+            getStateUpdate(state)
+          )
         ).toFutureOption()
       } yield result
 
@@ -163,6 +166,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           equal(flagKey, key)),
         combine(
           set(flagEnded, BsonNull()),
+          set(flagReset, BsonNull()),
           currentDate(flagErrored)
         )).toFutureOption()
       } yield result
