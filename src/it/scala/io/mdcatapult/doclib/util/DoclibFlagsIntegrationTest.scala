@@ -373,4 +373,22 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
+  "The reset flag" should "be reset when ending and state is provided" in {
+    val updateTime = LocalDateTime.now()
+    val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
+    val flagUpdateResult = Await.result(flags.end(endOrErrorDoc, state = state), 5.seconds)
+    assert(flagUpdateResult.isDefined)
+    assert(flagUpdateResult.get.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.exists(_.key == "test"))
+    assert(doc.doclib.filter(_.key == "test").head.state != None)
+    assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
+    assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) >= updateTime.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.ended != None)
+    assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.reset == None)
+
+  }
+
 }
