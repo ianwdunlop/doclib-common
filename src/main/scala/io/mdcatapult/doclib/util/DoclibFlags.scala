@@ -185,10 +185,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             equal(flagKey, key)),
           combine(
             currentDate(flagReset),
-            set(flagVersion, getVersion(config.getConfig("version"))),
-            set(flagStarted, BsonNull()),
-            set(flagEnded, BsonNull()),
-            set(flagErrored, BsonNull())
+            set(flagVersion, getVersion(config.getConfig("version")))
           )
         ).toFutureOption()
       } yield result

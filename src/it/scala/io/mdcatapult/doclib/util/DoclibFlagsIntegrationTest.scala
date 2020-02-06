@@ -140,7 +140,9 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current
+        started = current,
+        ended = Some(current),
+        errored = Some(current)
       )
     )
   )
@@ -310,14 +312,19 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
-  "A doc" can "be reset" in {
+  "A doc" can "be reset and existing flags remain as before" in {
     val result = Await.result(flags.reset(resetDoc), 5.seconds).get
     assert(result.getModifiedCount == 1)
     val doc = Await.result(collection.find(Mequal("_id", resetDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.filter(_.key == "test").head.reset.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.started == null)
+    assert(doc.doclib.filter(_.key == "test").head.started != null)
+    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.ended != null)
+    assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.errored != null)
+    assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
 }
