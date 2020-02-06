@@ -147,7 +147,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     )
   )
 
-  val endingDoc: DoclibDoc = newDoc.copy(
+  val endOrErrorDoc: DoclibDoc = newDoc.copy(
     _id = new ObjectId,
     source = "/path/to/ending.txt",
     doclib = List(
@@ -164,9 +164,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       )
     )
   )
+
   before  {
     Await.result(collection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
-    Await.result(collection.insertMany(List(newDoc, startedDoc, dupeDoc, resetDoc, endingDoc)).toFuture(), Duration.Inf)
+    Await.result(collection.insertMany(List(newDoc, startedDoc, dupeDoc, resetDoc, endOrErrorDoc)).toFuture(), Duration.Inf)
   }
 
   "A 'started' document" should "be restarted successfully" in {
@@ -345,15 +346,29 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   "Ending a flag" should "clear the reset timestamp" in {
-    val result = Await.result(flags.end(endingDoc), 5.seconds).get
+    val result = Await.result(flags.end(endOrErrorDoc), 5.seconds).get
     assert(result.getModifiedCount == 1)
-    val doc = Await.result(collection.find(Mequal("_id", endingDoc._id)).toFuture(), 5.seconds).head
+    val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.filter(_.key == "test").head.reset == None)
     assert(doc.doclib.filter(_.key == "test").head.ended != None)
     assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
     assert(doc.doclib.filter(_.key == "test").head.errored == None)
+    assert(doc.doclib.filter(_.key == "test").head.started != None)
+    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+  }
+
+  "Erroring a flag" should "clear the reset timestamp" in {
+    val result = Await.result(flags.error(endOrErrorDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.exists(_.key == "test"))
+    assert(doc.doclib.filter(_.key == "test").head.reset == None)
+    assert(doc.doclib.filter(_.key == "test").head.errored != None)
+    assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.ended == None)
     assert(doc.doclib.filter(_.key == "test").head.started != None)
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
