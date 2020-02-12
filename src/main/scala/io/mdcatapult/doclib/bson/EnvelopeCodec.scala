@@ -6,7 +6,6 @@ import io.mdcatapult.doclib.models.Origin
 import io.mdcatapult.doclib.util.MongoCodecs
 import io.mdcatapult.klein.queue.Envelope
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
-import org.bson.types.ObjectId
 import org.bson.{BsonReader, BsonWriter}
 
 class EnvelopeCodec extends Codec[Envelope] with Decodable {
