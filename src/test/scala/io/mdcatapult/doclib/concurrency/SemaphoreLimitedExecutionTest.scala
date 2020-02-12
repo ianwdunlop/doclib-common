@@ -4,12 +4,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.time.{Seconds, Span}
+import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
 
@@ -18,43 +18,61 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   "A SemaphoreLimitedExecution" should "execute function when concurrency is available" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    executor("run") { "has " + _ } should be("has run")
+    whenReady(executor("run") { x => Future.successful("has " + x) }) {
+      _ should be("has run")
+    }
   }
 
   it should "allow additional call once an earlier one has finished" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    executor("run") { "has " + _ }
-    executor("run later") { "has " + _ } should be("has run later")
+    executor("run") { x => Future.successful("has " + x) }
+
+    whenReady(executor("run later") { x => Future.successful("has " + x) }) {
+      _ should be("has run later")
+    }
   }
 
   it should "execute with a weight a function when sufficient concurrency is available" in {
     val executor = SemaphoreLimitedExecution.create(5)
 
-    executor.weighted(5)("run") { "has " + _ } should be("has run")
+    whenReady(executor.weighted(5)("run") { x => Future.successful("has " + x) }) {
+      _ should be("has run")
+    }
   }
 
   it should "allow additional weighted call once an earlier one has finished" in {
     val executor = SemaphoreLimitedExecution.create(5)
 
-    executor.weighted(5)("run") { "has " + _ }
-    executor.weighted(5)("run later") { "has " + _ } should be("has run later")
+    executor.weighted(5)("run") { x => Future.successful("has " + x) }
+
+    whenReady(executor.weighted(5)("run later") { x => Future.successful("has " + x) }) {
+      _ should be("has run later")
+    }
   }
 
   it should "unlimited call does not affect concurrency" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    executor.unlimited("unlimited") { x => {
-      executor("run after") { y => s"has $y $x" }
-    }} should be("has run after unlimited")
+    whenReady(
+      executor.unlimited("unlimited") { x => {
+        executor("run after") { y => Future.successful(s"has $y $x") }
+      }}
+    ) {
+      _ should be("has run after unlimited")
+    }
   }
 
   it should "allow unlimited call run even if concurrency is exhausted" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    executor("run") { x => {
-      executor.unlimited("no concurrency left") { y => s"has $x with $y" }
-    }} should be("has run with no concurrency left")
+    whenReady(
+      executor("run") { x => {
+        executor.unlimited("no concurrency left") { y => Future.successful(s"has $x with $y") }
+      }}
+    ) {
+      _ should be("has run with no concurrency left")
+    }
   }
 
   it should "let at most 1 function run concurrently when concurrency limit is 1" in {
@@ -98,25 +116,25 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
    * @param f a function of SemaphoreLimitedExecution that is to run a function, such as apply() or weighted()
    * @return a future holding the maximum number of functions that were concurrently running
    */
-  def runFunctionsConcurrently(f: Int => (Int => Int) => Int): Future[Int] = {
+  def runFunctionsConcurrently(f: Int => (Int => Future[Int]) => Future[Int]): Future[Int] = {
     val latch = new CountDownLatch(25)
 
     val running = new AtomicInteger(0)
 
     val concurrentRunningCounts: Seq[Future[Int]] =
-      0.to(latch.getCount.toInt).map( _ =>
-        Future {
-            latch.countDown()
-            f(0)( (_: Int) => {
-              try {
-                running.incrementAndGet()
-              } finally {
-                Thread.sleep(1, 0)
-                running.decrementAndGet()
-              }
-            })
+      0.to(latch.getCount.toInt).map( _ => {
+        latch.countDown()
+        f(0)((_: Int) =>
+          Future {
+            val currentlyRunningCount = running.incrementAndGet()
+
+            Thread.sleep(1, 0)
+            running.decrementAndGet()
+
+            currentlyRunningCount
           }
-      )
+        )
+      })
 
     Future.sequence(concurrentRunningCounts).map(_.max)
   }
