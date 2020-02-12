@@ -2,6 +2,8 @@ package io.mdcatapult.doclib.concurrency
 
 import java.util.concurrent.Semaphore
 
+import scala.concurrent.{ExecutionContext, Future}
+
 object SemaphoreLimitedExecution extends LimitedExecutionFactory {
 
   /** Create a SemaphoreLimitedExecution that controls concurrency using an encapsulated Semaphore that is fair.
@@ -30,25 +32,19 @@ object SemaphoreLimitedExecution extends LimitedExecutionFactory {
 class SemaphoreLimitedExecution private (s: Semaphore) extends LimitedExecution {
 
   /** @inheritdoc */
-  override def apply[C, T](c: C)(f: C => T): T = {
-    s.acquire()
-    try {
-      f(c)
-    } finally {
-      s.release()
-    }
-  }
-
-  /** @inheritdoc */
-  override def weighted[C, T](weight: Int)(c: C)(f: C => T): T = {
+  override def weighted[C, T](weight: Int)(c: C)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
     s.acquire(weight)
     try {
-      f(c)
-    } finally {
-      s.release(weight)
+      val result = f(c)
+      result.onComplete(_ => s.release(weight))
+      result
+    } catch {
+      case e: Exception =>
+        s.release(weight)
+        throw e
     }
   }
 
   /** @inheritdoc */
-  override def unlimited[C, T](c: C)(f: C => T): T = f(c)
+  override def unlimited[C, T](c: C)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = f(c)
 }
