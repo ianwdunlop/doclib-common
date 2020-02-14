@@ -180,7 +180,6 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def reset(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
-      println("RESETTING")
       for {
         _ <- deDuplicate(doc)
         result <- collection.updateOne(
