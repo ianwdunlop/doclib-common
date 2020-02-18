@@ -26,6 +26,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagStarted = s"$flags.$$.started"
   protected val flagEnded = s"$flags.$$.ended"
   protected val flagErrored = s"$flags.$$.errored"
+  protected val flagReset = s"$flags.$$.reset"
   protected val flagState = s"$flags.$$.state"
 
   protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
@@ -99,7 +100,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
 
 
   /**
-    *
+    * Set the started timestamp to the current time. Clear the
+    * ended and errored timestamps.
     * @param doc the document to restart
     * @return
     */
@@ -138,7 +140,10 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           and(
             equal("_id", doc._id),
             equal(flagKey, key)),
-          getStateUpdate(state)
+          combine(
+            set(flagReset, BsonNull()),
+            getStateUpdate(state)
+          )
         ).toFutureOption()
       } yield result
 
@@ -161,10 +166,33 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           equal(flagKey, key)),
         combine(
           set(flagEnded, BsonNull()),
+          set(flagReset, BsonNull()),
           currentDate(flagErrored)
         )).toFutureOption()
       } yield result
     } else Future.failed(new NotStarted("error", doc))
+
+  /**
+    * Set the started and restart timestamp to the current time. Clear the
+    * ended and errored timestamps.
+    * @param doc the document to restart
+    * @return
+    */
+  def reset(doc: DoclibDoc): Future[Option[UpdateResult]] =
+    if (doc.hasFlag(key)) {
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          and(
+            equal("_id", doc._id),
+            equal(flagKey, key)),
+          combine(
+            currentDate(flagReset),
+            set(flagVersion, getVersion(config.getConfig("version")))
+          )
+        ).toFutureOption()
+      } yield result
+    } else Future.failed(new NotStarted("reset", doc))
 
   /**
    * Create Bson update statement for a DoclibFlagState. If the state is
