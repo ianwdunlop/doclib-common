@@ -144,4 +144,23 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
     assert(resetDoc.getFlag("test").head.reset.get == now)
   }
 
+  it can "have a summary state property" in {
+    val resetDoc: DoclibDoc = newDoc.copy(
+      doclib = List(
+        DoclibFlag(
+          key = "test",
+          version = ConsumerVersion(
+            number = "0.0.2",
+            major = 0,
+            minor = 0,
+            patch = 2,
+            hash = "1234567890"),
+          started = now,
+          summary = Some("started")
+        )
+      )
+    )
+    assert(resetDoc.getFlag("test").head.summary.get == "started")
+  }
+
 }

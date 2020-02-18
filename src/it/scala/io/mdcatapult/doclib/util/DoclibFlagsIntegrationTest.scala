@@ -10,7 +10,7 @@ import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.model.Filters.{equal ⇒ Mequal}
+import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
@@ -67,6 +67,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
         patch = 1,
         hash = "1234567890"),
       started = current,
+      summary = Some("started")
     ))
   )
 
@@ -179,6 +180,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.started.isAfter(current))
+      assert(doc.doclib.head.summary.contains("started"))
     })
   }
 
@@ -204,6 +206,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.errored.isDefined)
+      assert(doc.doclib.head.summary.contains("errored"))
       assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started))
     })
   }
@@ -356,6 +359,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
     assert(doc.doclib.filter(_.key == "test").head.errored == None)
     assert(doc.doclib.filter(_.key == "test").head.started != None)
+    assert(doc.doclib.filter(_.key == "test").head.summary == Some("ended"))
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
@@ -370,6 +374,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
     assert(doc.doclib.filter(_.key == "test").head.ended == None)
     assert(doc.doclib.filter(_.key == "test").head.started != None)
+    assert(doc.doclib.filter(_.key == "test").head.summary == Some("errored"))
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
