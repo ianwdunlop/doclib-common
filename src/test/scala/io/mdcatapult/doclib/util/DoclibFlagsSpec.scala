@@ -52,7 +52,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
         minor = 0,
         patch = 1,
         hash = "1234567890"),
-      started = now,
+      started = now
     ))
   )
 
@@ -66,7 +66,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = now,
+        started = now
       ),
       DoclibFlag(
         key = "test",
@@ -76,7 +76,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 1,
           hash = "1234567891"),
-        started = later,
+        started = later
       ),
       DoclibFlag(
         key = "test",
@@ -86,8 +86,8 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = earlier,
-      ),
+        started = earlier
+      )
     )
   )
 
@@ -125,6 +125,23 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
     assert(stateDoc.getFlag("test").head.state.get.updated == now)
   }
 
-
+  it can "have a reset property" in {
+    val resetDoc: DoclibDoc = newDoc.copy(
+      doclib = List(
+        DoclibFlag(
+          key = "test",
+          version = ConsumerVersion(
+            number = "0.0.2",
+            major = 0,
+            minor = 0,
+            patch = 2,
+            hash = "1234567890"),
+          started = now,
+          reset = Some(now)
+        )
+      )
+    )
+    assert(resetDoc.getFlag("test").head.reset.get == now)
+  }
 
 }
