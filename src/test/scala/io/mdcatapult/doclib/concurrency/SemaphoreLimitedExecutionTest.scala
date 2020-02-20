@@ -18,7 +18,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   "A SemaphoreLimitedExecution" should "execute function when concurrency is available" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    whenReady(executor("run") { x => Future.successful("has " + x) }) {
+    whenReady(executor("run", "label 1") { x => Future.successful("has " + x) }) {
       _ should be("has run")
     }
   }
@@ -26,9 +26,19 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   it should "allow additional call once an earlier one has finished" in {
     val executor = SemaphoreLimitedExecution.create(1)
 
-    executor("run") { x => Future.successful("has " + x) }
+    executor("run", "label 2a") { x => Future.successful("has " + x) }
 
-    whenReady(executor("run later") { x => Future.successful("has " + x) }) {
+    whenReady(executor("run later", "label 2b") { x => Future.successful("has " + x) }) {
+      _ should be("has run later")
+    }
+  }
+
+  it should "allow additional call once an earlier one has finished when first one fails" in {
+    val executor = SemaphoreLimitedExecution.create(1)
+
+    executor("run", "label 2a") { _ => Future.failed(new RuntimeException("error")) }
+
+    whenReady(executor("run later", "label 2b") { x => Future.successful("has " + x) }) {
       _ should be("has run later")
     }
   }
@@ -36,7 +46,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   it should "execute with a weight a function when sufficient concurrency is available" in {
     val executor = SemaphoreLimitedExecution.create(5)
 
-    whenReady(executor.weighted(5)("run") { x => Future.successful("has " + x) }) {
+    whenReady(executor.weighted(5)("run", "label 3") { x => Future.successful("has " + x) }) {
       _ should be("has run")
     }
   }
@@ -44,9 +54,9 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
   it should "allow additional weighted call once an earlier one has finished" in {
     val executor = SemaphoreLimitedExecution.create(5)
 
-    executor.weighted(5)("run") { x => Future.successful("has " + x) }
+    executor.weighted(5)("run", "label 4a") { x => Future.successful("has " + x) }
 
-    whenReady(executor.weighted(5)("run later") { x => Future.successful("has " + x) }) {
+    whenReady(executor.weighted(5)("run later", "label 4b") { x => Future.successful("has " + x) }) {
       _ should be("has run later")
     }
   }
@@ -55,8 +65,8 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
     val executor = SemaphoreLimitedExecution.create(1)
 
     whenReady(
-      executor.unlimited("unlimited") { x => {
-        executor("run after") { y => Future.successful(s"has $y $x") }
+      executor.unlimited("unlimited", "label 5") { x => {
+        executor("run after", "label 5") { y => Future.successful(s"has $y $x") }
       }}
     ) {
       _ should be("has run after unlimited")
@@ -67,8 +77,8 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
     val executor = SemaphoreLimitedExecution.create(1)
 
     whenReady(
-      executor("run") { x => {
-        executor.unlimited("no concurrency left") { y => Future.successful(s"has $x with $y") }
+      executor("run", "label") { x => {
+        executor.unlimited("no concurrency left", "label") { y => Future.successful(s"has $x with $y") }
       }}
     ) {
       _ should be("has run with no concurrency left")
@@ -116,7 +126,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
    * @param f a function of SemaphoreLimitedExecution that is to run a function, such as apply() or weighted()
    * @return a future holding the maximum number of functions that were concurrently running
    */
-  def runFunctionsConcurrently(f: Int => (Int => Future[Int]) => Future[Int]): Future[Int] = {
+  def runFunctionsConcurrently(f: (Int, String) => (Int => Future[Int]) => Future[Int]): Future[Int] = {
     val latch = new CountDownLatch(25)
 
     val running = new AtomicInteger(0)
@@ -124,7 +134,7 @@ class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
     val concurrentRunningCounts: Seq[Future[Int]] =
       0.to(latch.getCount.toInt).map( _ => {
         latch.countDown()
-        f(0)((_: Int) =>
+        f(0, "run functions concurrently")((_: Int) =>
           Future {
             val currentlyRunningCount = running.incrementAndGet()
 
