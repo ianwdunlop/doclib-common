@@ -83,23 +83,23 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     */
   def start(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
-          restart(doc)
-        } else {
-          for {
-            _ <- deDuplicate(doc)
-            result <- collection.updateOne(
-              combine(
-                equal("_id", doc._id),
-                nin(flagKey,List(key))),
-              combine(push(flags, DoclibFlag(
-                key = key,
-                version = getVersion(config.getConfig("version")),
-                started = LocalDateTime.now()
-              )),
-                set(flagSummary, "started")),
-            ).toFutureOption()
-          } yield result
-        }
+      restart(doc)
+    } else {
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          combine(
+            equal("_id", doc._id),
+            nin(flagKey,List(key))),
+          combine(push(flags, DoclibFlag(
+            key = key,
+            version = getVersion(config.getConfig("version")),
+            started = LocalDateTime.now(),
+            summary = Some("started")
+          )))
+        ).toFutureOption()
+      } yield result
+    }
 
 
   /**
