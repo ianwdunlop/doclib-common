@@ -28,6 +28,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagErrored = s"$flags.$$.errored"
   protected val flagReset = s"$flags.$$.reset"
   protected val flagState = s"$flags.$$.state"
+  protected val flagSummary = s"$flags.$$.summary"
+
 
   protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
     number = ver.getString("number"),
@@ -89,11 +91,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
               combine(
                 equal("_id", doc._id),
                 nin(flagKey,List(key))),
-              push(flags, DoclibFlag(
+              combine(push(flags, DoclibFlag(
                 key = key,
                 version = getVersion(config.getConfig("version")),
                 started = LocalDateTime.now()
-              ))
+              )),
+                set(flagSummary, "started")),
             ).toFutureOption()
           } yield result
         }
@@ -142,6 +145,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             equal(flagKey, key)),
           combine(
             set(flagReset, BsonNull()),
+            set(flagSummary, "ended"),
             getStateUpdate(state)
           )
         ).toFutureOption()
@@ -167,6 +171,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
         combine(
           set(flagEnded, BsonNull()),
           set(flagReset, BsonNull()),
+          set(flagSummary, "errored"),
           currentDate(flagErrored)
         )).toFutureOption()
       } yield result
