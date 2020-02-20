@@ -2,6 +2,8 @@ package io.mdcatapult.doclib.concurrency
 
 import java.util.concurrent.Semaphore
 
+import com.typesafe.scalalogging.LazyLogging
+
 import scala.concurrent.{ExecutionContext, Future}
 
 object SemaphoreLimitedExecution extends LimitedExecutionFactory {
@@ -29,22 +31,32 @@ object SemaphoreLimitedExecution extends LimitedExecutionFactory {
   *
   * @param s semaphore
   */
-class SemaphoreLimitedExecution private (s: Semaphore) extends LimitedExecution {
+class SemaphoreLimitedExecution private (s: Semaphore) extends LimitedExecution with LazyLogging  {
 
   /** @inheritdoc */
-  override def weighted[C, T](weight: Int)(c: C)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
+  override def weighted[C, T](weight: Int)(c: C, label: String)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    logger.debug("Acquire lock of weight {} for {}", weight, label)
     s.acquire(weight)
+    logger.debug("Lock acquired for {}", label)
+
     try {
       val result = f(c)
-      result.onComplete(_ => s.release(weight))
+      result.onComplete(_ =>  {
+        logger.debug("Release lock of weight {} for {}", weight, label)
+        s.release(weight)
+      })
       result
     } catch {
       case e: Exception =>
+        logger.debug("Release lock of weight {} for {} on error: {}", weight, label, e)
         s.release(weight)
         throw e
     }
   }
 
   /** @inheritdoc */
-  override def unlimited[C, T](c: C)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = f(c)
+  override def unlimited[C, T](c: C, label: String)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    logger.debug("Unlimited execution to run for {}", label)
+    f(c)
+  }
 }
