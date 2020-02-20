@@ -172,43 +172,45 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   "A 'started' document" should "be restarted successfully" in {
-    val f = flags.start(startedDoc)
-    f map { result =>
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
+    val result = Await.result(flags.start(startedDoc), 5.seconds).get
+      assert(result.getModifiedCount == 1)
+
+  val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.started.isAfter(current))
       assert(doc.doclib.head.summary.contains("started"))
-    })
+
   }
 
-  it should "end cleanly" in {
-    val f = flags.end(startedDoc)
-    f map { result =>
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
+  "A new document" can "be started " in {
+    val result = Await.result(flags.start(newDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.summary.contains("started"))
     }
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
+
+  it should "end cleanly" in {
+
+    val result = Await.result(flags.end(startedDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.ended.isDefined)
       assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started))
-    })
+
   }
 
   it should "error cleanly" in {
-    val f = flags.error(startedDoc)
-    f map { result =>
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
+    val result = Await.result(flags.error(startedDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.errored.isDefined)
       assert(doc.doclib.head.summary.contains("errored"))
       assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started))
-    })
   }
 
   "A 'new' document" should "start successfully" in {
@@ -250,45 +252,39 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   "A doc with duplicate flags" should "deduplicate when starting" in {
-    val f = flags.start(dupeDoc)
-    f map { result => {
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }}
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
+    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val result = Await.result(flags.start(dupeDoc), 5.seconds).get
+      assert(result.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      assert(doc.doclib.filter(_.key == "test").head.started == later)
+      assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) >= time)
       assert(doc.doclib.exists(_.key == "keep"))
       assert(doc.doclib.exists(_.key == "test"))
-    })
   }
 
   it should "deduplicate when ending" in {
-    val f = flags.end(dupeDoc)
-    f map { result => {
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }}
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
-      assert(doc.doclib.size == 2)
-      assert(doc.doclib.filter(_.key == "test").head.started == later)
+    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val result = Await.result(flags.start(dupeDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 2)
+    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) >= time)
       assert(doc.doclib.exists(_.key == "keep"))
       assert(doc.doclib.exists(_.key == "test"))
-    })
   }
 
   it should "deduplicate when erroring" in {
-    val f = flags.error(dupeDoc)
-    f map { result => {
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
-    }}
-    collection.find(Mequal("_id", dupeDoc._id)).subscribe((doc: DoclibDoc) => {
+    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val result = Await.result(flags.error(dupeDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      assert(doc.doclib.filter(_.key == "test").head.started == later)
+      assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == later.toEpochSecond(ZoneOffset.UTC))
+      assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) >= time)
       assert(doc.doclib.exists(_.key == "keep"))
       assert(doc.doclib.exists(_.key == "test"))
-    })
   }
 
   it should "save the doclib flag state if it exists in the flag" in {
