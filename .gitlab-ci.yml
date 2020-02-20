@@ -88,7 +88,7 @@ release-master:
     - git checkout master
     - git pull origin master
     - export PREVIOUS_TAG=$(git describe --tags --abbrev=0)
-    - export GIT_LOG=$(git log $PREVIOUS_TAG..HEAD --oneline --no-merges)
+    - export GIT_LOG=$(echo "$(git log $PREVIOUS_TAG..HEAD --oneline --no-merges)" | awk -v ORS='  \\n' '1'
     - sbt "release with-defaults"
     - export RELEASE_TAG=$(git describe --tags --abbrev=0)
     - >
