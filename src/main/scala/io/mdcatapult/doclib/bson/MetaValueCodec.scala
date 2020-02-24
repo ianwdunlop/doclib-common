@@ -32,7 +32,7 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
           case BsonType.DATE_TIME ⇒
             val tmpv = bsonReader.readDateTime()
             LocalDateTime.ofInstant(Instant.ofEpochMilli(tmpv), ZoneOffset.UTC)
-          case _ ⇒ throw new Exception("Unsupported BSON type for MetaValue")
+          case v ⇒ throw new Exception(s"Unsupported BSON '${v.getClass}' type for MetaValue")
         })
         case v ⇒ throw new Exception(s"Invalid property name detected for MetaValue -> $v")
       }
