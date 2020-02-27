@@ -6,6 +6,8 @@ import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
 import io.mdcatapult.doclib.models.ner.{Count, DocumentOccurrence, FragmentOccurrence, NerDocument, Schema, Stats}
+import org.bson.UuidRepresentation
+import org.bson.codecs.UuidCodec
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
@@ -50,6 +52,7 @@ object MongoCodecs {
       new MetaValueCodec,
       new NerOccurrenceCodec,
       new EnvelopeCodec,
+      new UuidCodec(UuidRepresentation.STANDARD),
     ),
     DEFAULT_CODEC_REGISTRY
   )

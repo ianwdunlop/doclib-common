@@ -1,15 +1,10 @@
 package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import org.mongodb.scala.bson.ObjectId
-
-//object DoclibDoc extends MetaValueJson {
-//  implicit val msgReader: Reads[DoclibDoc] = Json.reads[DoclibDoc]
-//  implicit val msgWriter: Writes[DoclibDoc] = Json.writes[DoclibDoc]
-//  implicit val msgFormatter: Format[DoclibDoc] = Json.format[DoclibDoc]
-//}
 
 case class DoclibDoc(
                       _id: ObjectId,
@@ -24,7 +19,8 @@ case class DoclibDoc(
                       tags: Option[List[String]] = None,
                       derivatives: Option[List[Derivative]] = None,
                       origin: Option[List[Origin]] = None,
-                      metadata: Option[List[MetaValueUntyped]] = None
+                      metadata: Option[List[MetaValueUntyped]] = None,
+                      uuid: Option[UUID] = None
                     ) {
 
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)
