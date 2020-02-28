@@ -36,7 +36,8 @@ class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
         |"tags": null,
         |"derivatives": null,
         |"origin": null,
-        |"metadata": null
+        |"metadata": null,
+        |"uuid": null
         |}""".stripMargin, classOf[DoclibDoc])
   }
 
