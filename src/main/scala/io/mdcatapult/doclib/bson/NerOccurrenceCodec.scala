@@ -1,12 +1,16 @@
 package io.mdcatapult.doclib.bson
 
+import java.util.UUID
+
 import io.mdcatapult.doclib.bson.traits.Decodable
 import io.mdcatapult.doclib.models.ner._
-import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
-import org.bson.types.ObjectId
-import org.bson.{BsonReader, BsonWriter}
+import org.bson.codecs.{Codec, DecoderContext, EncoderContext, UuidCodec}
+import org.bson.internal.UuidHelper
+import org.bson.{BsonBinary, BsonBinarySubType, BsonReader, BsonWriter, UuidRepresentation}
 
 class NerOccurrenceCodec extends Codec[Occurrence] with Decodable {
+
+  val uuidCodec = new UuidCodec(UuidRepresentation.STANDARD)
 
   /**
     * decode NerOccurence Bson document to the appropriate case class
@@ -25,8 +29,8 @@ class NerOccurrenceCodec extends Codec[Occurrence] with Decodable {
   override def encode(w: BsonWriter, t: Occurrence, encoderContext: EncoderContext): Unit = {
     w.writeStartDocument()
 
-    w.writeString("entityType", t.entityType)
-    w.writeString("schema", t.schema)
+    val uuidBinary: Array[Byte] = UuidHelper.encodeUuidToBinary(t._id, UuidRepresentation.STANDARD)
+    w.writeBinaryData("_id",new BsonBinary(BsonBinarySubType.UUID_STANDARD, uuidBinary))
     w.writeInt32("characterStart", t.characterStart)
     w.writeInt32("characterEnd", t.characterEnd)
 
@@ -36,7 +40,11 @@ class NerOccurrenceCodec extends Codec[Occurrence] with Decodable {
     }
 
     t.fragment match {
-      case Some(v: ObjectId) ⇒ w.writeObjectId("fragment", v)
+      case Some(v: UUID) ⇒ {
+        val uuidBinary: Array[Byte] = UuidHelper.encodeUuidToBinary(v, UuidRepresentation.STANDARD)
+        w.writeBinaryData("fragment",new BsonBinary(BsonBinarySubType.UUID_STANDARD, uuidBinary) )
+//        w.writeString("fragment", v.toString)
+      }
       case _ ⇒ w.writeNull("fragment")
     }
     writeOptionString(w, "correctedValue", t.correctedValue)

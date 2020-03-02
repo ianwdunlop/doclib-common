@@ -1,16 +1,13 @@
 package io.mdcatapult.doclib.models.ner
 
-import org.mongodb.scala.bson.ObjectId
-
+import java.util.UUID
 
 case class FragmentOccurrence(
-                              entityType: String,
-                              entityGroup: Option[String] = None,
-                              schema: String,
+                              _id: UUID,
                               characterStart: Int,
                               characterEnd: Int,
                               wordIndex: Int,
-                              fragment: Option[ObjectId] = None,
+                              fragment: Option[UUID] = None,
                               correctedValue: Option[String] = None,
                               correctedValueHash: Option[String] = None,
                               resolvedEntity: Option[String] = None,

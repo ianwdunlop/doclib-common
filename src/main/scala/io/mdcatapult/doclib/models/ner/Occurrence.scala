@@ -1,15 +1,15 @@
 package io.mdcatapult.doclib.models.ner
 
+import java.nio.ByteBuffer
+import java.util.UUID
+
 import io.mdcatapult.doclib.util.HashUtils
-import org.mongodb.scala.bson.ObjectId
 
 abstract class Occurrence {
-  val entityType: String
-  val entityGroup: Option[String]
-  val schema: String
+  val _id: UUID
   val characterStart: Int
   val characterEnd: Int
-  val fragment: Option[ObjectId]
+  val fragment: Option[UUID]
   val correctedValue: Option[String]
   val correctedValueHash: Option[String]
   val resolvedEntity: Option[String]
@@ -18,9 +18,7 @@ abstract class Occurrence {
 
   def toMap: Map[String,Any] =
     Map(
-      "entityType" -> entityType,
-      "entityGroup" -> entityGroup,
-      "schema" -> schema,
+      "_id" → _id,
       "characterStart" -> characterStart,
       "characterEnd" -> characterEnd,
       "fragment" -> fragment,
@@ -41,12 +39,21 @@ object Occurrence {
       }
     }
 
-    val entityType: String = getVal[String]("entityType").getOrElse(throw new Exception("entityType must be provided"))
-    val entityGroup: Option[String] = getVal[String]("entityGroup")
-    val schema: String = getVal[String]("schema").getOrElse(throw new Exception("schema must be provided"))
+    def decodeUUID(uuidBytes: Array[Byte]): Option[UUID] = {
+      uuidBytes match {
+        case bytes ⇒ {
+          val bb = ByteBuffer.wrap(bytes)
+          Some(new UUID(bb.getLong, bb.getLong))
+        }
+        case _ ⇒ None
+      }
+    }
+
+    getVal[Array[Byte]]("_id").getOrElse(throw new Exception("_id must be provided"))
+    val _id: UUID = decodeUUID(getVal[Array[Byte]]("_id").getOrElse(throw new Exception("_id must be provided"))).get
     val characterStart: Int = getVal[Int]("characterStart").getOrElse(throw new Exception("characterStart must be provided"))
     val characterEnd: Int = getVal[Int]("characterEnd").getOrElse(throw new Exception("characterEnd must be provided"))
-    val fragment: Option[ObjectId]  = getVal[ObjectId]("fragment")
+    val fragment: Option[UUID]  = decodeUUID(getVal[Array[Byte]]("fragment").get)
     val correctedValue: Option[String]  = getVal[String]("correctedValue")
     val correctedValueHash: Option[String]  = getVal[String]("correctedValueHash")
     val resolvedEntity: Option[String]  = getVal[String]("resolvedEntity")
@@ -55,9 +62,7 @@ object Occurrence {
 
     values("type").toString.toLowerCase match {
       case "document" ⇒ DocumentOccurrence(
-        entityType = entityType,
-        entityGroup = entityGroup,
-        schema = schema,
+        _id = _id,
         characterStart = characterStart,
         characterEnd = characterEnd,
         fragment = fragment,
@@ -67,9 +72,7 @@ object Occurrence {
         resolvedEntityHash = resolvedEntityHash
       )
       case "fragment" ⇒ FragmentOccurrence(
-        entityType = entityType,
-        entityGroup = entityGroup,
-        schema = schema,
+        _id = _id,
         characterStart = characterStart,
         characterEnd = characterEnd,
         wordIndex = getVal[Int]("characterStart").getOrElse(throw new Exception("wordIndex must be provided")),

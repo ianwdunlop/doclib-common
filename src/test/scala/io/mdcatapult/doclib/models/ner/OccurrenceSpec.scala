@@ -11,9 +11,7 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
   private val nonNegativeInt = oneOf(const(0), posNum[Int])
 
   private val genOccurrence: Gen[Occurrence] = for {
-    entityType <- asciiPrintableStr
-    entityGroup <- option(asciiPrintableStr)
-    schema <- asciiPrintableStr
+    uuid <- asciiPrintableStr
     characterStart <- nonNegativeInt
     characterEnd <- posNum[Int]
     fragment <- option(arbString)
@@ -24,9 +22,7 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
     occurrenceType <- oneOf("document", "fragment")
   } yield Occurrence(
     Map(
-      "entityType" -> entityType,
-      "entityGroup" -> entityGroup,
-      "schema" -> schema,
+      "uuid" -> uuid,
       "characterStart" -> characterStart,
       "characterEnd" -> characterEnd,
       "fragment" -> fragment,
