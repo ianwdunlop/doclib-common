@@ -14,14 +14,14 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
   val registry: CodecRegistry = MongoCodecs.get
 
   "Model" can "be encoded and decoded successfully to BSON" in {
-    val uuid = UUID.randomUUID()
+    val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
     roundTrip(DocumentOccurrence(
       _id = uuid,
       characterStart = 1,
       characterEnd = 2,
     ),
-      s"""{
-        |"uuid": $uuid,
+      """{
+        |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
         |"characterStart": 1,
         |"characterEnd": 2,
         |"fragment": null,
@@ -45,7 +45,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = Option("5e1860510268642a0fcbc965")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "fadf63a5ad1a02540a878848950c308a")
+    assert(Occurrence.md5(Seq(doc)) == "b4e4b69f7759a52b15fc4b07e23b7980")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
@@ -61,6 +61,6 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "fff7b4fd597cc7c39b1a34faf70696c7")
+    assert(Occurrence.md5(Seq(doc)) == "12033638b60d0f0873487fdf88e5f13c")
   }
 }
