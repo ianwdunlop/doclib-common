@@ -15,13 +15,16 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
 
   "Model" can "be encoded and decoded successfully to BSON" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
+    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     roundTrip(Occurrence(
       _id = uuid,
+      nerDocument = docUUID,
       characterStart = 1,
       characterEnd = 2
     ),
       """{
         |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
+        |"nerDocument": {"$binary": "YAApuszqTkaepX9UmWlU3Q==", "$type": "04"},
         |"characterStart": 1,
         |"characterEnd": 2,
         |"fragment": null,
@@ -36,8 +39,10 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
 
   it can "give old known hash for same document occurrence" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
+    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     val doc = Occurrence(
       _id = uuid,
+      nerDocument = docUUID,
       characterStart = 12,
       characterEnd = 15,
       fragment = Option(UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")),
@@ -47,13 +52,15 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = Option("5e1860510268642a0fcbc965")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "b4e4b69f7759a52b15fc4b07e23b7980")
+    assert(Occurrence.md5(Seq(doc)) == "77390d4c2c32c36f86025c2b434454fb")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
+    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     val doc = Occurrence(
       _id = uuid,
+      nerDocument = docUUID,
       characterStart = 12,
       characterEnd = 15,
       fragment = None,
@@ -63,6 +70,6 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "12033638b60d0f0873487fdf88e5f13c")
+    assert(Occurrence.md5(Seq(doc)) == "1e90907efd5d78061aafd5e48bc908e5")
   }
 }

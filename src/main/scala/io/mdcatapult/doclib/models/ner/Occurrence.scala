@@ -6,6 +6,7 @@ import io.mdcatapult.doclib.util.HashUtils
 
 case class Occurrence(
                        _id: UUID,
+                       nerDocument: UUID,
                        characterStart: Int,
                        characterEnd: Int,
                        fragment: Option[UUID],
@@ -19,6 +20,7 @@ case class Occurrence(
   def toMap: Map[String, Any] =
     Map(
       "_id" → _id,
+      "nerDocument" → nerDocument,
       "characterStart" -> characterStart,
       "characterEnd" -> characterEnd,
       "fragment" -> fragment,
@@ -34,6 +36,7 @@ object Occurrence {
 
   def apply(
             _id: UUID,
+            nerDocument: UUID,
             characterStart: Int,
             characterEnd: Int,
             fragment: Option[UUID] = None,
@@ -43,10 +46,8 @@ object Occurrence {
             resolvedEntityHash: Option[String] = None,
             wordIndex: Option[Int] = None
           ): Occurrence = {
-    wordIndex match {
-      case None ⇒ this(_id, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, resolvedEntity, resolvedEntityHash, wordIndex, "document")
-      case Some(index) ⇒ this(_id, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, resolvedEntity, resolvedEntityHash, wordIndex, "fragment")
-    }
+    val docType = wordIndex.map(_ => "fragment").getOrElse("document")
+    this(_id, nerDocument, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, resolvedEntity, resolvedEntityHash, wordIndex, docType)
   }
 
   def md5(occurrences: Seq[Occurrence]): String = {

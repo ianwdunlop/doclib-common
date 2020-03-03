@@ -13,6 +13,7 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
 
   private val genOccurrence: Gen[Occurrence] = for {
     uuid <- org.scalacheck.Gen.uuid
+    nerUUID <- org.scalacheck.Gen.uuid
     characterStart <- nonNegativeInt
     characterEnd <- posNum[Int]
     fragment <- option(org.scalacheck.Gen.uuid)
@@ -23,6 +24,7 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
     wordIndex <- option(nonNegativeInt)
   } yield Occurrence(
     uuid,
+    nerUUID,
     characterStart,
     characterEnd,
     fragment,
