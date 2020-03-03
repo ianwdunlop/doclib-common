@@ -15,14 +15,14 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
 
   "Model" can "be encoded and decoded successfully to BSON" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    roundTrip(FragmentOccurrence(
+    roundTrip(Occurrence(
       _id = uuid,
       characterStart = 1,
       characterEnd = 2,
-      wordIndex = 3,
+      wordIndex = Some(3)
     ),
-      s"""{
-        |"_id": $uuid,
+      """{
+        |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
         |"characterStart": 1,
         |"characterEnd": 2,
         |"wordIndex": 3,
@@ -31,16 +31,16 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
         |"correctedValueHash": null,
         |"resolvedEntity": null,
         |"resolvedEntityHash": null,
-        |"type": "fragment"}""".stripMargin, classOf[FragmentOccurrence])
+        |"type": "fragment"}""".stripMargin, classOf[Occurrence])
   }
 
   it can "give old known hash for same document occurrence" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val doc = FragmentOccurrence(
+    val doc = Occurrence(
       _id = uuid,
       characterStart = 12,
       characterEnd = 15,
-      wordIndex = 10,
+      wordIndex = Some(10),
       fragment = Option(UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")),
       correctedValue = Option("fixed!"),
       correctedValueHash = Option("5e185e300268642a0fcbc964"),
@@ -48,16 +48,16 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = Option("5e1860510268642a0fcbc965")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "c65debc68f3b1fae18185e3e4c712725]")
+    assert(Occurrence.md5(Seq(doc)) == "e351a82ea876d29ee67a171e8d36bb1c")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val doc = FragmentOccurrence(
+    val doc = Occurrence(
       _id = uuid,
       characterStart = 12,
       characterEnd = 15,
-      wordIndex = 10,
+      wordIndex = Some(10),
       fragment = None,
       correctedValue = None,
       correctedValueHash = None,
@@ -65,6 +65,6 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       resolvedEntityHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "b2f751116bdf37d370f533539987f1f6")
+    assert(Occurrence.md5(Seq(doc)) == "7145e7097570f4ebda74b40d66ae4430")
   }
 }

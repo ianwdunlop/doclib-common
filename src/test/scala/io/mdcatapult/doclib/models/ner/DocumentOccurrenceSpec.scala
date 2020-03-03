@@ -15,10 +15,10 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
 
   "Model" can "be encoded and decoded successfully to BSON" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    roundTrip(DocumentOccurrence(
+    roundTrip(Occurrence(
       _id = uuid,
       characterStart = 1,
-      characterEnd = 2,
+      characterEnd = 2
     ),
       """{
         |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
@@ -28,13 +28,15 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
         |"correctedValue": null,
         |"correctedValueHash": null,
         |"resolvedEntity": null,
-        |"type": "document",
-        |"resolvedEntityHash": null}""".stripMargin, classOf[DocumentOccurrence])
+        |"resolvedEntityHash": null
+        |"wordIndex": null,
+        |"type": "document"
+        |}""".stripMargin, classOf[Occurrence])
   }
 
   it can "give old known hash for same document occurrence" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val doc = DocumentOccurrence(
+    val doc = Occurrence(
       _id = uuid,
       characterStart = 12,
       characterEnd = 15,
@@ -50,7 +52,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
 
   it can "give old known hash for same document occurrence with optionals are None" in {
     val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val doc = DocumentOccurrence(
+    val doc = Occurrence(
       _id = uuid,
       characterStart = 12,
       characterEnd = 15,

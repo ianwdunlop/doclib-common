@@ -1,7 +1,6 @@
 package io.mdcatapult.doclib.models.ner
 
 import io.mdcatapult.doclib.models.ner.Occurrence.md5
-import org.scalacheck.Arbitrary.arbString
 import org.scalacheck.Gen.{asciiPrintableStr, const, listOf, oneOf, option, posNum}
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Gen, Properties}
@@ -10,28 +9,28 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
 
   private val nonNegativeInt = oneOf(const(0), posNum[Int])
 
+  val strGen = (n: Int) => Gen.listOfN(n, Gen.alphaChar).map(_.mkString)
+
   private val genOccurrence: Gen[Occurrence] = for {
-    uuid <- asciiPrintableStr
+    uuid <- org.scalacheck.Gen.uuid
     characterStart <- nonNegativeInt
     characterEnd <- posNum[Int]
-    fragment <- option(arbString)
-    correctedValue <- option(arbString)
+    fragment <- option(org.scalacheck.Gen.uuid)
+    correctedValue <- option(strGen(5))
     correctedValueHash <- option(asciiPrintableStr)
-    resolvedEntity <- option(arbString)
+    resolvedEntity <- option(strGen(5))
     resolvedEntityHash <- option(asciiPrintableStr)
-    occurrenceType <- oneOf("document", "fragment")
+    wordIndex <- option(nonNegativeInt)
   } yield Occurrence(
-    Map(
-      "uuid" -> uuid,
-      "characterStart" -> characterStart,
-      "characterEnd" -> characterEnd,
-      "fragment" -> fragment,
-      "correctedValue" -> correctedValue,
-      "correctedValueHash" -> correctedValueHash,
-      "resolvedEntity" -> resolvedEntity,
-      "resolvedEntityHash" -> resolvedEntityHash,
-      "type" -> occurrenceType
-    )
+    uuid,
+    characterStart,
+    characterEnd,
+    fragment,
+    correctedValue,
+    correctedValueHash,
+    resolvedEntity,
+    resolvedEntityHash,
+    wordIndex
   )
 
   property("empty list of occurrences gives consistent value") = forAll(const(List[Occurrence]())) { xs =>

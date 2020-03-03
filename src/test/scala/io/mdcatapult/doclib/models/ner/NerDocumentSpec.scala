@@ -23,12 +23,10 @@ class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
       document = new ObjectId("5d9f0662679b3e75b2781c94"),
     ),
       """{
-        |"_id": "dc83cac6-4daa-4a0b-8e52-df1543af1e8f",
+        |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
         |"value": "value",
         |"hash": "01234567890",
         |"document": {"$oid": "5d9f0662679b3e75b2781c94"},
-        |"fragment": null,
-        |"occurrences": null,
         |"schema": null}""".stripMargin, classOf[NerDocument])
   }
 }
