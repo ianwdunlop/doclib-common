@@ -11,5 +11,7 @@ case class NerDocument(
                      document: ObjectId,
                      entityType: Option[String] = None,
                      entityGroup: Option[String] = None,
+                     resolvedEntity: Option[String] = None,
+                     resolvedEntityHash: Option[String] = None,
                      schema: Option[Schema] = None
                  )

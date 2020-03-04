@@ -12,8 +12,6 @@ case class Occurrence(
                        fragment: Option[UUID],
                        correctedValue: Option[String],
                        correctedValueHash: Option[String],
-                       resolvedEntity: Option[String],
-                       resolvedEntityHash: Option[String],
                        wordIndex: Option[Int],
                        `type`: String) {
 
@@ -25,7 +23,6 @@ case class Occurrence(
       "characterEnd" -> characterEnd,
       "fragment" -> fragment,
       "correctedValue" -> correctedValue,
-      "resolvedEntity" -> resolvedEntity,
       "wordIndex" → wordIndex,
       "type" -> `type`
     ).filter(_._2 != None)
@@ -42,12 +39,10 @@ object Occurrence {
             fragment: Option[UUID] = None,
             correctedValue: Option[String] = None,
             correctedValueHash: Option[String] = None,
-            resolvedEntity: Option[String] = None,
-            resolvedEntityHash: Option[String] = None,
             wordIndex: Option[Int] = None
           ): Occurrence = {
     val docType = wordIndex.map(_ => "fragment").getOrElse("document")
-    this(_id, nerDocument, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, resolvedEntity, resolvedEntityHash, wordIndex, docType)
+    this(_id, nerDocument, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, wordIndex, docType)
   }
 
   def md5(occurrences: Seq[Occurrence]): String = {

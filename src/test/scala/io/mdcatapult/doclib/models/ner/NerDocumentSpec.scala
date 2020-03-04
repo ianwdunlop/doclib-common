@@ -22,6 +22,8 @@ class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
       hash = "01234567890",
       entityType = Some("entity-type"),
       entityGroup = Some("entity-group"),
+      resolvedEntity = Some("resolved-entity"),
+      resolvedEntityHash = Some("resolved-entity-hash"),
       document = new ObjectId("5d9f0662679b3e75b2781c94"),
     ),
       """{
@@ -31,6 +33,8 @@ class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
         |"document": {"$oid": "5d9f0662679b3e75b2781c94"},
         |"entityType": "entity-type",
         |"entityGroup": "entity-group",
+        |"resolvedEntity": "resolved-entity",
+        |"resolvedEntityHash": "resolved-entity-hash",
         |"schema": null}""".stripMargin, classOf[NerDocument])
   }
 }
