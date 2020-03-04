@@ -5,7 +5,7 @@ import io.mdcatapult.doclib.messages._
 import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata._
-import io.mdcatapult.doclib.models.ner.{Count, DocumentOccurrence, FragmentOccurrence, NerDocument, Schema, Stats}
+import io.mdcatapult.doclib.models.ner.{Count, NerDocument, Occurrence, Schema, Stats}
 import org.bson.UuidRepresentation
 import org.bson.codecs.UuidCodec
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
@@ -28,8 +28,7 @@ object MongoCodecs {
       classOf[MetaDateTime],
       classOf[Derivative],
       classOf[NerDocument],
-      classOf[DocumentOccurrence],
-      classOf[FragmentOccurrence],
+      classOf[Occurrence],
       classOf[Schema],
       classOf[TextFragment],
       classOf[ConsumerVersion],
@@ -50,7 +49,6 @@ object MongoCodecs {
       new LemonLabsUrlCodec,
       new LemonLabsUriCodec,
       new MetaValueCodec,
-      new NerOccurrenceCodec,
       new EnvelopeCodec,
       new UuidCodec(UuidRepresentation.STANDARD),
     ),
