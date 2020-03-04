@@ -1,13 +1,13 @@
 package io.mdcatapult.doclib.models.ner
 
+import java.util.UUID
+
 import org.mongodb.scala.bson.ObjectId
 
 case class NerDocument(
-                     _id: ObjectId,
+                     _id: UUID,
                      value: String,
                      hash: String,
                      document: ObjectId,
-                     fragment: Option[ObjectId] = None,
-                     occurrences: Option[List[Occurrence]] = None,
                      schema: Option[Schema] = None
                  )
