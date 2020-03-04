@@ -41,6 +41,8 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
       _id =  UUID.randomUUID(),
       value = "value",
       hash = "01234567890",
+      entityType = Some("entity-type"),
+      entityGroup = Some("entity-group"),
       document = new ObjectId("5d9f0662679b3e75b2781c94")
     )
     val written = nerCollection.insertOne(nerDoc).toFutureOption()
@@ -48,6 +50,8 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
 
     whenReady(read) { doc =>
       doc.headOption.get._id should be(nerDoc._id)
+      doc.headOption.get.entityType.get should be(nerDoc.entityType.get)
+      doc.headOption.get.entityGroup.get should be(nerDoc.entityGroup.get)
     }
   }
 
