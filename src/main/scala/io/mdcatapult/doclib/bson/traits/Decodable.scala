@@ -20,7 +20,6 @@ trait Decodable {
       case BsonType.OBJECT_ID => r.readObjectId()
       case BsonType.ARRAY => getList(r, c)
       case BsonType.DOCUMENT => getMap(r, c)
-      case BsonType.BINARY ⇒ r.readBinaryData().getData()
       case BsonType.NULL =>
         r.readNull()
         None
