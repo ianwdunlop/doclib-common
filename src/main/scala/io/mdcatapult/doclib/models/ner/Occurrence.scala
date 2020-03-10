@@ -48,7 +48,7 @@ object Occurrence {
   def md5(occurrences: Seq[Occurrence]): String = {
     def keyValuesPairsAsText(o: Occurrence): Seq[String] =
       for {
-        (key, value) <- o.toMap.toSeq.sortBy(_._1)
+        (key, value) <- o.toMap.filterKeys(_ != "_id").toSeq.sortBy(_._1)
       } yield s"$key:$value"
 
     val allPairedKeyValues =

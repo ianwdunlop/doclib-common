@@ -49,7 +49,7 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "5b145a7303d9a90c6ade28d44e7804d0")
+    assert(Occurrence.md5(Seq(doc)) == "172e6230302d9e465dc7e23298c8ffb9")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
@@ -66,6 +66,6 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "0bfff4caac95b2fda8f38ddf20715ddb")
+    assert(Occurrence.md5(Seq(doc)) == "3b8260129d1801c344e14179d4ea6771")
   }
 }

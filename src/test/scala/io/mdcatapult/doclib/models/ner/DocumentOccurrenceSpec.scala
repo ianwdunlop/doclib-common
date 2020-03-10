@@ -48,7 +48,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "ea1e0675dcab74bc5072a39fb5f9f656")
+    assert(Occurrence.md5(Seq(doc)) == "19c6dc6cf38d85c801eb9fd09e03a99c")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
@@ -64,6 +64,53 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "1e90907efd5d78061aafd5e48bc908e5")
+    assert(Occurrence.md5(Seq(doc)) == "e1b591c4ced77328af6321f52fd540da")
   }
+
+  "Occurrences with different _ids for the same value and ner doc" should "have the same md5" in {
+    val nerID = UUID.randomUUID()
+    val occurrences = List[Occurrence](
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115416768,
+        characterEnd = 115416777
+      ),
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115424728,
+        characterEnd = 115424737
+      ),
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115379372,
+        characterEnd = 115379381
+      )
+    )
+    val occurrencesNew = List[Occurrence](
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115416768,
+        characterEnd = 115416777
+      ),
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115424728,
+        characterEnd = 115424737
+      ),
+      Occurrence(
+        _id = UUID.randomUUID,
+        nerDocument = nerID,
+        characterStart = 115379372,
+        characterEnd = 115379381
+      )
+    )
+    assert(Occurrence.md5(occurrences) == Occurrence.md5(occurrencesNew))
+  }
+
+
 }
