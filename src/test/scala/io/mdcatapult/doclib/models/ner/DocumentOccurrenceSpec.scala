@@ -48,7 +48,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "19c6dc6cf38d85c801eb9fd09e03a99c")
+    assert(Occurrence.md5(Seq(doc)) == "f0feba83e9ed5c49c1ad1b5d12803204")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
@@ -64,7 +64,7 @@ class DocumentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       correctedValueHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "e1b591c4ced77328af6321f52fd540da")
+    assert(Occurrence.md5(Seq(doc)) == "27f8e2217b9e6310984c1c383f3158ce")
   }
 
   "Occurrences with different _ids for the same value and ner doc" should "have the same md5" in {
