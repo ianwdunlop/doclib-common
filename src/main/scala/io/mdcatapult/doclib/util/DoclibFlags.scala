@@ -6,7 +6,7 @@ import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.BsonNull
+import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
@@ -38,6 +38,9 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     patch = ver.getInt("patch"),
     hash = ver.getString("hash"))
 
+  def getFlags(id: ObjectId): Future[List[DoclibFlag]] =
+    collection.find(equal("_id", id)).toFuture()
+      .map(_.toList.flatMap(_.doclib).filter(_.key == key))
 
   /**
    * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
@@ -45,7 +48,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
    * @param doc DoclibDoc
    * @return
    */
-  def deDuplicate(doc: DoclibDoc):Future[Option[UpdateResult]] = {
+  def deDuplicate(doc: DoclibDoc): Future[Option[UpdateResult]] = {
     implicit val localDateOrdering: Ordering[LocalDateTime] =
       Ordering.by(
         ldt =>
@@ -55,22 +58,23 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             ldt.toInstant(ZoneOffset.UTC).toEpochMilli
       )
 
-    doc.getFlag(key).sortBy(_.started).reverse match {
-      case _ :: Nil => Future.successful(None)
-      case _ :: old =>
-        collection.updateOne(
-          equal("_id", doc._id),
-          pullByFilter(combine(
-            equal("doclib",
-              combine(
-                equal("key", key),
-                in("started", old.map(d => d.started):_*)
+    getFlags(doc._id).flatMap(
+      _.sortBy(_.started).reverse match {
+        case _ :: Nil => Future.successful(None)
+        case _ :: old =>
+          collection.updateOne(
+            equal("_id", doc._id),
+            pullByFilter(combine(
+              equal("doclib",
+                combine(
+                  equal("key", key),
+                  in("started", old.map(_.started):_*)
+                )
               )
-            )
-          ))).toFutureOption()
-      case _ => Future.successful(None)
-    }
-
+            ))).toFutureOption()
+        case _ => Future.successful(None)
+      }
+    )
   }
 
 
