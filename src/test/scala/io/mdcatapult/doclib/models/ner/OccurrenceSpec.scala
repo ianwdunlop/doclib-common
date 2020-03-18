@@ -19,8 +19,6 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
     fragment <- option(org.scalacheck.Gen.uuid)
     correctedValue <- option(strGen(5))
     correctedValueHash <- option(asciiPrintableStr)
-    resolvedEntity <- option(strGen(5))
-    resolvedEntityHash <- option(asciiPrintableStr)
     wordIndex <- option(nonNegativeInt)
   } yield Occurrence(
     uuid,
@@ -30,8 +28,6 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
     fragment,
     correctedValue,
     correctedValueHash,
-    resolvedEntity,
-    resolvedEntityHash,
     wordIndex
   )
 

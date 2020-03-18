@@ -32,8 +32,6 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
         |"fragment": null,
         |"correctedValue": null,
         |"correctedValueHash": null,
-        |"resolvedEntity": null,
-        |"resolvedEntityHash": null,
         |"type": "fragment"}""".stripMargin, classOf[Occurrence])
   }
 
@@ -48,12 +46,10 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       wordIndex = Some(10),
       fragment = Option(UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")),
       correctedValue = Option("fixed!"),
-      correctedValueHash = Option("5e185e300268642a0fcbc964"),
-      resolvedEntity = Option("resolved entity"),
-      resolvedEntityHash = Option("5e1860510268642a0fcbc965")
+      correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "9fca56f6034faef6af4a5eebe6da48ba")
+    assert(Occurrence.md5(Seq(doc)) == "ff4a8df3bfbd5c44a102603101393651")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
@@ -67,11 +63,9 @@ class FragmentOccurrenceSpec extends FlatSpec with Matchers with BsonCodecCompat
       wordIndex = Some(10),
       fragment = None,
       correctedValue = None,
-      correctedValueHash = None,
-      resolvedEntity = None,
-      resolvedEntityHash = None
+      correctedValueHash = None
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "0bfff4caac95b2fda8f38ddf20715ddb")
+    assert(Occurrence.md5(Seq(doc)) == "b9e2be3d8dea149526592430ce3d926a")
   }
 }
