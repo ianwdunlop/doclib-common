@@ -12,6 +12,7 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import scala.concurrent.Await
@@ -19,7 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfter {
+class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -200,6 +201,86 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
       assert(doc.doclib.head.ended.isDefined)
       assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started))
 
+  }
+
+  it should "start and end cleanly" in {
+    val doc =
+      for {
+        _ <- flags.start(newDoc)
+        _ <- flags.end(newDoc, noCheck = true)
+        d <- collection.find(Mequal("_id", newDoc._id)).toFuture()
+      } yield d
+
+    whenReady(doc) { d => {
+      val flags = d.head.doclib
+
+      assert(flags.size == 1)
+
+      val flag = flags.head
+      assert(flag.ended.isDefined)
+      assert(flag.ended.get.isAfter(flag.started))
+    }}
+  }
+
+  it should "start and end on updated doc be clean" in {
+    val doc =
+      for {
+        _ <- flags.start(newDoc)
+        xs <- collection.find(Mequal("_id", newDoc._id)).toFuture()
+        createdDoc = xs.head
+        _ <- flags.start(createdDoc)
+        _ <- flags.end(createdDoc, noCheck = true)
+        d <- collection.find(Mequal("_id", createdDoc._id)).toFuture()
+      } yield d
+
+    whenReady(doc) { d => {
+      val flags = d.head.doclib
+
+      assert(flags.size == 1)
+
+      val flag = flags.head
+      assert(flag.ended.isDefined)
+      assert(flag.ended.get.isAfter(flag.started))
+    }}
+  }
+
+  it should "start and end existing doc cleanly" in {
+    val doc =
+      for {
+        _ <- flags.start(startedDoc)
+        _ <- flags.end(startedDoc, noCheck = true)
+        d <- collection.find(Mequal("_id", startedDoc._id)).toFuture()
+      } yield d
+
+    whenReady(doc) { d => {
+      val flags = d.head.doclib
+
+      assert(flags.size == 1)
+
+      val flag = flags.head
+      assert(flag.ended.isDefined)
+      assert(flag.ended.get.isAfter(flag.started))
+    }}
+  }
+
+  it should "double start from new and end existing doc cleanly" in {
+    val doc =
+      for {
+        _ <- flags.start(newDoc)
+        _ <- flags.start(newDoc)
+        _ <- flags.end(newDoc, noCheck = true)
+        d <- collection.find(Mequal("_id", newDoc._id)).toFuture()
+      } yield d
+
+    whenReady(doc) { d => {
+      val flags = d.head.doclib
+
+      assert(flags.size == 1)
+
+      val flag = flags.head
+      assert(flag.ended.isDefined)
+      assert(flag.ended.get.isAfter(flag.started))
+    }}
   }
 
   it should "error cleanly" in {
