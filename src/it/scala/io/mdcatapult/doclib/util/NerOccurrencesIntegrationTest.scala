@@ -52,8 +52,8 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
 
     whenReady(read) { doc =>
       doc.headOption.get._id should be(nerDoc._id)
-      doc.headOption.get.entityType.get should be(nerDoc.entityType.get)
-      doc.headOption.get.entityGroup.get should be(nerDoc.entityGroup.get)
+      doc.headOption.get.entityType should be(nerDoc.entityType)
+      doc.headOption.get.entityGroup should be(nerDoc.entityGroup)
     }
   }
 
@@ -95,7 +95,7 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
     whenReady(read) { doc =>
       doc.headOption.get._id should be(occurrence._id)
       doc.headOption.get.wordIndex.get should be(10)
-      doc.headOption.get.fragment.get should be(occurrence.fragment.get)
+      doc.headOption.get.fragment should be(occurrence.fragment)
       doc.headOption.get.`type` should be("fragment")
     }
   }
