@@ -9,5 +9,9 @@ case class NerDocument(
                      value: String,
                      hash: String,
                      document: ObjectId,
+                     entityType: Option[String] = None,
+                     entityGroup: Option[String] = None,
+                     resolvedEntity: Option[String] = None,
+                     resolvedEntityHash: Option[String] = None,
                      schema: Option[Schema] = None
                  )

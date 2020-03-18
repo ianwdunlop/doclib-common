@@ -41,6 +41,10 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
       _id =  UUID.randomUUID(),
       value = "value",
       hash = "01234567890",
+      entityType = Some("entity-type"),
+      entityGroup = Some("entity-group"),
+      resolvedEntity = Some("resolved-entity"),
+      resolvedEntityHash = Some("resolved-entity-hash"),
       document = new ObjectId("5d9f0662679b3e75b2781c94")
     )
     val written = nerCollection.insertOne(nerDoc).toFutureOption()
@@ -48,6 +52,8 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
 
     whenReady(read) { doc =>
       doc.headOption.get._id should be(nerDoc._id)
+      doc.headOption.get.entityType should be(nerDoc.entityType)
+      doc.headOption.get.entityGroup should be(nerDoc.entityGroup)
     }
   }
 
@@ -60,9 +66,7 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
       characterEnd = 15,
       fragment = Option(UUID.randomUUID()),
       correctedValue = Option("fixed!"),
-      correctedValueHash = Option("5e185e300268642a0fcbc964"),
-      resolvedEntity = Option("resolved entity"),
-      resolvedEntityHash = Option("5e1860510268642a0fcbc965")
+      correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
     val written = occurrenceCollection.insertOne(occurrence).toFutureOption()
     val read = written.flatMap(_ => occurrenceCollection.find(Mequal("_id", occurrence._id)).toFuture())
@@ -83,8 +87,6 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
       fragment = Option(UUID.randomUUID()),
       correctedValue = Option("fixed!"),
       correctedValueHash = Option("5e185e300268642a0fcbc964"),
-      resolvedEntity = Option("resolved entity"),
-      resolvedEntityHash = Option("5e1860510268642a0fcbc965"),
       wordIndex = Some(10)
     )
     val written = occurrenceCollection.insertOne(occurrence).toFutureOption()
@@ -93,7 +95,7 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
     whenReady(read) { doc =>
       doc.headOption.get._id should be(occurrence._id)
       doc.headOption.get.wordIndex.get should be(10)
-      doc.headOption.get.fragment.get should be(occurrence.fragment.get)
+      doc.headOption.get.fragment should be(occurrence.fragment)
       doc.headOption.get.`type` should be("fragment")
     }
   }
