@@ -9,7 +9,7 @@ import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.model.Filters.{equal ⇒ Mequal}
+import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}

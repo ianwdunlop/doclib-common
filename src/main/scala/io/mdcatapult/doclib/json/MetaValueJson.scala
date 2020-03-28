@@ -13,47 +13,47 @@ trait MetaValueJson {
 
   implicit val metaValueReader: Reads[MetaValueUntyped] = (jv: JsValue) =>
     JsSuccess(jv match {
-      case JsObject(fields: collection.Map[String, JsValue]) ⇒ fields("value") match {
-        case JsBoolean(b) ⇒ MetaBoolean(fields("key").asInstanceOf[JsString].value, b)
-        case JsString(s) ⇒ s match {
-          case isDate(year, month, day, hour, min, sec, nano) ⇒
+      case JsObject(fields: collection.Map[String, JsValue]) => fields("value") match {
+        case JsBoolean(b) => MetaBoolean(fields("key").asInstanceOf[JsString].value, b)
+        case JsString(s) => s match {
+          case isDate(year, month, day, hour, min, sec, nano) =>
             MetaDateTime(
               fields("key").asInstanceOf[JsString].value,
               LocalDateTime.of(year.toInt, month.toInt, day.toInt, hour.toInt, min.toInt, sec.toInt, nano.toInt))
-          case _ ⇒ MetaString(fields("key").asInstanceOf[JsString].value, s)
+          case _ => MetaString(fields("key").asInstanceOf[JsString].value, s)
         }
 
-        case JsNumber(n) ⇒ Try(n.toBigIntExact()) match {
-          case Success(value) ⇒ value match {
-            case Some(int) ⇒ MetaInt(fields("key").asInstanceOf[JsString].value, int.toInt)
-            case None ⇒ MetaDouble(fields("key").asInstanceOf[JsString].value, n.toDouble)
+        case JsNumber(n) => Try(n.toBigIntExact()) match {
+          case Success(value) => value match {
+            case Some(int) => MetaInt(fields("key").asInstanceOf[JsString].value, int.toInt)
+            case None => MetaDouble(fields("key").asInstanceOf[JsString].value, n.toDouble)
           }
-          case Failure(_) ⇒
+          case Failure(_) =>
             MetaDouble(fields("key").asInstanceOf[JsString].value, n.toDouble)
         }
-        case _ ⇒ throw new IllegalArgumentException("Unable to convert value")
+        case _ => throw new IllegalArgumentException("Unable to convert value")
       }
-      case _ ⇒ throw new IllegalArgumentException("Unable parse json")
+      case _ => throw new IllegalArgumentException("Unable parse json")
     })
 
   implicit val metaValueWriter: Writes[MetaValueUntyped] = (value: MetaValueUntyped) => {
     val typed: MetaValue[_] = value match {
-      case v: MetaBoolean ⇒ v.asInstanceOf[MetaBoolean]
-      case v: MetaInt ⇒ v.asInstanceOf[MetaInt]
-      case v: MetaDouble ⇒ v.asInstanceOf[MetaDouble]
-      case v: MetaDateTime ⇒ v.asInstanceOf[MetaDateTime]
-      case v: MetaString ⇒ v.asInstanceOf[MetaString]
+      case v: MetaBoolean => v.asInstanceOf[MetaBoolean]
+      case v: MetaInt => v.asInstanceOf[MetaInt]
+      case v: MetaDouble => v.asInstanceOf[MetaDouble]
+      case v: MetaDateTime => v.asInstanceOf[MetaDateTime]
+      case v: MetaString => v.asInstanceOf[MetaString]
     }
 
     Json.obj(
       "key" -> JsString(typed.getKey),
-      "value" → {
+      "value" -> {
         typed.getValue match {
-          case v: LocalDateTime ⇒ JsString(v.toString())
-          case v: Boolean ⇒ JsBoolean(v)
-          case v: String ⇒ JsString(v)
-          case v: Int ⇒ JsNumber(v)
-          case v: Double ⇒ JsNumber(v)
+          case v: LocalDateTime => JsString(v.toString())
+          case v: Boolean => JsBoolean(v)
+          case v: String => JsString(v)
+          case v: Int => JsNumber(v)
+          case v: Double => JsNumber(v)
         }
       })
   }

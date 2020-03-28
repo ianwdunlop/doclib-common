@@ -26,5 +26,5 @@ case class DoclibDoc(
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)
   def getFlag(key: String): List[DoclibFlag] = doclib.filter(_.key == key)
   def getDerivatives(`type`: Option[String] = None): List[Derivative] =
-    derivatives.getOrElse(List()).filter(d ⇒ (`type`.isDefined && d.`type` == `type`.get) || `type`.isEmpty)
+    derivatives.getOrElse(List()).filter(d => (`type`.isDefined && d.`type` == `type`.get) || `type`.isEmpty)
 }

@@ -5,7 +5,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestKit
-import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
+import com.mongodb.async.client.{MongoCollection => JMongoCollection}
 import com.spingo.op_rabbit.properties.MessageProperty
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg

@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.util
 
 import java.time.LocalDateTime
 
-import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
+import com.mongodb.async.client.{MongoCollection => JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.bson.codecs.configuration.CodecRegistry

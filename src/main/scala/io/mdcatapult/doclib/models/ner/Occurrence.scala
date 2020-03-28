@@ -17,13 +17,13 @@ case class Occurrence(
 
   def toMap: Map[String, Any] =
     Map(
-      "_id" → _id,
-      "nerDocument" → nerDocument,
+      "_id" -> _id,
+      "nerDocument" -> nerDocument,
       "characterStart" -> characterStart,
       "characterEnd" -> characterEnd,
       "fragment" -> fragment,
       "correctedValue" -> correctedValue,
-      "wordIndex" → wordIndex,
+      "wordIndex" -> wordIndex,
       "type" -> `type`
     ).filter(_._2 != None)
 
@@ -48,7 +48,7 @@ object Occurrence {
   def md5(occurrences: Seq[Occurrence]): String = {
     def keyValuesPairsAsText(o: Occurrence): Seq[String] =
       for {
-        (key, value) <- o.toMap.filterKeys(k ⇒ k != "_id" && k != "nerDocument").toSeq.sortBy(_._1)
+        (key, value) <- o.toMap.filterKeys(k => k != "_id" && k != "nerDocument").toSeq.sortBy(_._1)
       } yield s"$key:$value"
 
     val allPairedKeyValues =

@@ -39,11 +39,11 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
         help("help").text("prints this usage text"),
 
         cmd("start")
-          .action((_, c) ⇒ c.copy(action = Some("start")))
+          .action((_, c) => c.copy(action = Some("start")))
           .text("start the consumer")
           .children(
             opt[String]('c', "config")
-              .action((x, c) ⇒ c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
+              .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
               .text("optional: path to additional config for the consumer")
 
           )
@@ -51,15 +51,15 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
     }
     val consumerConfig = ConsumerConfig()
     OParser.parse(optParser, args, consumerConfig) match {
-      case Some(c: ConsumerConfig) ⇒ c
-      case None ⇒ sys.exit(1)
+      case Some(c: ConsumerConfig) => c
+      case None => sys.exit(1)
     }
   }
 
   def start()(implicit as: ActorSystem, materializer: ActorMaterializer, mongo: Mongo): SubscriptionRef
 
   optConfig.action match {
-    case Some("start") ⇒
+    case Some("start") =>
       // initialise actor system
       implicit val system: ActorSystem = ActorSystem(name)
       implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -68,10 +68,10 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
       implicit val codecs: CodecRegistry = MongoCodecs.get
       implicit val mongo: Mongo = new Mongo()
       start
-    case Some(_) ⇒
+    case Some(_) =>
       println(s"${optConfig.action} is not a recognised action")
       sys.exit(1)
-    case None ⇒
+    case None =>
       println("You must specify a command valid command or `start`, see --help for more information")
       sys.exit(1)
   }

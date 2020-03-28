@@ -11,11 +11,11 @@ trait BsonDocumentJson {
   implicit val bsonDocumentWriter: Writes[Document] = (doc: Document) =>
     Json.obj(doc.toMap.map { case (s, o) =>
       val v: JsValueWrapper = o match {
-        case b: BsonBoolean ⇒ JsBoolean(b.getValue)
-        case s: BsonString ⇒ JsString(s.getValue)
-        case n: BsonInt32 ⇒ JsNumber(n.getValue)
-        case n: BsonInt64 ⇒  JsNumber(n.getValue)
-        case n: BsonNumber ⇒ JsNumber(n.doubleValue())
+        case b: BsonBoolean => JsBoolean(b.getValue)
+        case s: BsonString => JsString(s.getValue)
+        case n: BsonInt32 => JsNumber(n.getValue)
+        case n: BsonInt64 =>  JsNumber(n.getValue)
+        case n: BsonNumber => JsNumber(n.doubleValue())
       }
       val ret: (String, JsValueWrapper) = s -> v
       ret
@@ -62,12 +62,12 @@ trait BsonDocumentJson {
     def writes(map: Map[String, Any]): JsValue =
       Json.obj(map.map{case (s, o) =>
         val v: JsValueWrapper = o match {
-          case b: BsonBoolean ⇒ JsBoolean(b.getValue)
-          case s: String ⇒ JsString(s)
-          case s: BsonString ⇒ JsString(s.getValue)
-          case n: BsonInt32 ⇒ JsNumber(n.getValue)
-          case n: BsonInt64 ⇒  JsNumber(n.getValue)
-          case n: BsonNumber ⇒ JsNumber(n.doubleValue())
+          case b: BsonBoolean => JsBoolean(b.getValue)
+          case s: String => JsString(s)
+          case s: BsonString => JsString(s.getValue)
+          case n: BsonInt32 => JsNumber(n.getValue)
+          case n: BsonInt64 =>  JsNumber(n.getValue)
+          case n: BsonNumber => JsNumber(n.doubleValue())
         }
         val ret: (String, JsValueWrapper) = s -> v
         ret

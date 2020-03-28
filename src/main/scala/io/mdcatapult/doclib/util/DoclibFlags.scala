@@ -212,12 +212,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
    */
   def getStateUpdate(state: Option[DoclibFlagState]): Bson = {
     state match {
-      case None ⇒
+      case None =>
         combine(
           currentDate(flagEnded),
           set(flagErrored, BsonNull())
         )
-      case Some(state) ⇒
+      case Some(state) =>
         combine(
           currentDate(flagEnded),
           set(flagErrored, BsonNull()),
