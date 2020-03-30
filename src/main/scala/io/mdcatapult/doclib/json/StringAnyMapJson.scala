@@ -12,7 +12,7 @@ trait StringAnyMapJson {
       case JsObject(fields) => fields.toMap[String, JsValue].map { case (k, v) => k -> (v match {
         case JsBoolean(b) => b
         case JsString(s) => s
-        case JsNumber(n) => Try(n.toBigIntExact()) match {
+        case JsNumber(n) => Try(n.toBigIntExact) match {
           case Success(value) => value.get.toLong
           case Failure(_) => n.toDouble
         }

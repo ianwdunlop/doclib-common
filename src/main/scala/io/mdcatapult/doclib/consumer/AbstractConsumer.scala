@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.consumer
 import java.io.File
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
@@ -56,13 +56,13 @@ abstract class AbstractConsumer(name: String) extends App with LazyLogging{
     }
   }
 
-  def start()(implicit as: ActorSystem, materializer: ActorMaterializer, mongo: Mongo): SubscriptionRef
+  def start()(implicit as: ActorSystem, materializer: Materializer, mongo: Mongo): SubscriptionRef
 
   optConfig.action match {
     case Some("start") =>
       // initialise actor system
       implicit val system: ActorSystem = ActorSystem(name)
-      implicit val materializer: ActorMaterializer = ActorMaterializer()
+      implicit val materializer: Materializer = Materializer(system)
 
       // Initialise Mongo
       implicit val codecs: CodecRegistry = MongoCodecs.get

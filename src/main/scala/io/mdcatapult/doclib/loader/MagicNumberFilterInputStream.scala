@@ -23,13 +23,12 @@ class MagicNumberFilterInputStream private (in: InputStream, magicNumbers: List[
 
   override def read(b: Array[Byte], off: Int, len: Int): Int = {
 
-    def zeroOutBuffer() {
+    def zeroOutBuffer(): Unit =
       for (
         i <- off.until(Math.min(off + len, b.length))
       ) {
         b(i) = 0
       }
-    }
 
     val endOfStream = -1
 
