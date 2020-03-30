@@ -5,11 +5,11 @@ import java.time.{LocalDateTime, ZoneOffset}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.mongodb.scala.bson._
-import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
+class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
 
   implicit val config: Config = ConfigFactory.parseString(
     """

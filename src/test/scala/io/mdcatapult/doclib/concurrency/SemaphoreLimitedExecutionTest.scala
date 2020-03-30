@@ -6,12 +6,13 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SemaphoreLimitedExecutionTest extends FlatSpec with Matchers {
+class SemaphoreLimitedExecutionTest extends AnyFlatSpec with Matchers {
 
   private val concurrentTestTimeout = Timeout(Span(1, Seconds))
 

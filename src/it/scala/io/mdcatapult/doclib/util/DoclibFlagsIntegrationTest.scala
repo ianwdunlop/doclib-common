@@ -14,16 +14,18 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates._
+import org.scalatest.BeforeAndAfter
 import org.scalatest.OptionValues._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -381,10 +383,12 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
-    assert(doc.doclib.filter(_.key == "test").head.state != None)
+
+    doc.doclib.filter(_.key == "test").head.state should not be None
+
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
     // Note: LocalDateTime seems to get 'truncated' on write to db eg 2020-01-27T11:28:10.947614 to 2020-01-27T11:28:10.947 so comparison does not work. Convert both to date first.
-    assert(Date.from(doc.doclib.filter(_.key == "test").head.state.get.updated.atZone(ZoneId.systemDefault).toInstant) == (Date.from(current.atZone(ZoneId.systemDefault).toInstant)))
+    assert(Date.from(doc.doclib.filter(_.key == "test").head.state.get.updated.atZone(ZoneId.systemDefault).toInstant) == Date.from(current.atZone(ZoneId.systemDefault).toInstant))
   }
 
   it should "update the flag state if provided" in {
@@ -397,7 +401,8 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
-    assert(doc.doclib.filter(_.key == "test").head.state != None)
+
+    doc.doclib.filter(_.key == "test").head.state should not be None
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
 
     doc.doclib.filter(_.key == "test").head.state.get.updated.truncatedTo(MILLIS) should be >= updateTime.truncatedTo(MILLIS)
@@ -410,7 +415,8 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
-    assert(doc.doclib.filter(_.key == "test").head.state != None)
+
+    doc.doclib.filter(_.key == "test").head.state should not be None
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
 
     doc.doclib.filter(_.key == "test").head.state.get.updated.truncatedTo(MILLIS) == current.truncatedTo(MILLIS)
@@ -437,12 +443,16 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
-    assert(doc.doclib.filter(_.key == "test").head.reset == None)
-    assert(doc.doclib.filter(_.key == "test").head.ended != None)
+
+    doc.doclib.filter(_.key == "test").head.reset should be (None)
+    doc.doclib.filter(_.key == "test").head.ended should not be None
+
     assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.errored == None)
-    assert(doc.doclib.filter(_.key == "test").head.started != None)
-    assert(doc.doclib.filter(_.key == "test").head.summary == Some("ended"))
+
+    doc.doclib.filter(_.key == "test").head.errored should be (None)
+    doc.doclib.filter(_.key == "test").head.started should not be None
+    doc.doclib.filter(_.key == "test").head.summary should contain ("ended")
+
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
@@ -452,12 +462,16 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
-    assert(doc.doclib.filter(_.key == "test").head.reset == None)
-    assert(doc.doclib.filter(_.key == "test").head.errored != None)
+
+    doc.doclib.filter(_.key == "test").head.reset should be (None)
+    doc.doclib.filter(_.key == "test").head.errored should not be None
+
     assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.ended == None)
-    assert(doc.doclib.filter(_.key == "test").head.started != None)
-    assert(doc.doclib.filter(_.key == "test").head.summary == Some("errored"))
+
+    doc.doclib.filter(_.key == "test").head.ended should be (None)
+    doc.doclib.filter(_.key == "test").head.started should not be None
+    doc.doclib.filter(_.key == "test").head.summary should contain ("errored")
+
     assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
@@ -470,12 +484,15 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
-    assert(doc.doclib.filter(_.key == "test").head.state != None)
+
+    doc.doclib.filter(_.key == "test").head.state should not be None
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
     assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) >= updateTime.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.ended != None)
+
+    doc.doclib.filter(_.key == "test").head.ended should not be None
     assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.reset == None)
+
+    doc.doclib.filter(_.key == "test").head.reset should be (None)
 
   }
 

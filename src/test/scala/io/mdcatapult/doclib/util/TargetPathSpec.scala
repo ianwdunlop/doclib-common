@@ -1,8 +1,10 @@
 package io.mdcatapult.doclib.util
-import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{FlatSpec, Matchers}
 
-class TargetPathSpec extends FlatSpec with Matchers {
+import com.typesafe.config.{Config, ConfigFactory}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class TargetPathSpec extends AnyFlatSpec with Matchers {
 
   implicit val config: Config = ConfigFactory.parseString(
     """

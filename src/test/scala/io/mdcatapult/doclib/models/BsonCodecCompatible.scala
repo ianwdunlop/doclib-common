@@ -12,9 +12,6 @@ import org.mongodb.scala.bson.collection.immutable.Document
 
 import scala.reflect.ClassTag
 
-
-
-
 trait BsonCodecCompatible {
 
   val documentCodec: Codec[Document] = DEFAULT_CODEC_REGISTRY.get(classOf[Document])

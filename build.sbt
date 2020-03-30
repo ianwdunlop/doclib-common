@@ -41,10 +41,10 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= Seq(
-      "org.scalactic" %% "scalactic"                  % "3.0.8",
-      "org.scalatest" %% "scalatest"                  % "3.0.8" % "it, test",
+      "org.scalactic" %% "scalactic"                  % "3.1.1",
+      "org.scalatest" %% "scalatest"                  % "3.1.1" % "it, test",
       "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
-      "org.scalacheck" %% "scalacheck"                % "1.14.1" % Test,
+      "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
       "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
       "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
       "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
