@@ -25,7 +25,7 @@ lazy val root = (project in file(".")).
       "-explaintypes",
       "-feature",
       "-Xlint",
-      "-Ypartial-unification",
+      "-Xfatal-warnings",
     ),
     resolvers         ++= Seq(
       "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
