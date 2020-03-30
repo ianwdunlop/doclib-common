@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
@@ -22,7 +22,7 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
       |}
     """.stripMargin)
 
-  private val now: LocalDateTime = LocalDateTime.now()
+  private val now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
   private val earlier: LocalDateTime = now.minusHours(1)
   private val later: LocalDateTime = now.plusHours(1)
 

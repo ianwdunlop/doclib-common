@@ -77,10 +77,7 @@ class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigF
   private val source = "local/derivatives/derivatives/remote/http/a/path/test_doc.doc"
   private val metadata = List[MetaValueUntyped](MetaString("derivative.type","unarchived"), MetaString("derivative.type", "rawtext"), MetaString("key", "value"))
 
-  private val createdTime = {
-    val instant = LocalDateTime.now().toInstant(ZoneOffset.UTC)
-    LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
-  }
+  private val createdTime = LocalDateTime.now(ZoneOffset.UTC)
 
   private val fileAttrs = {
     val path = new File(source).toPath
