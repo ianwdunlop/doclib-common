@@ -217,7 +217,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     whenReady(doc) { d => {
       val flags = d.head.doclib
 
-      flags should have length(1)
+      flags should have length 1
 
       val flag = flags.head
       flag.ended.value should be >= flag.started
@@ -277,7 +277,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     whenReady(doc) { d => {
       val flags = d.head.doclib
 
-      flags should have length(1)
+      flags should have length 1
 
       val flag = flags.head
       flag.ended.value should be >= flag.started
