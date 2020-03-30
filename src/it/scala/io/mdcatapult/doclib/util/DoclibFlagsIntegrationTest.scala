@@ -1,10 +1,12 @@
 package io.mdcatapult.doclib.util
 
+import java.time.temporal.ChronoUnit.MILLIS
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
+import io.mdcatapult.doclib.util.ImplicitOrdering.localDateOrdering
 import io.mdcatapult.klein.mongo.Mongo
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries}
 import org.bson.codecs.configuration.CodecRegistry
@@ -12,6 +14,7 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates._
+import org.scalatest.OptionValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
@@ -41,7 +44,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   implicit val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibflags")
 
-  val current: LocalDateTime = LocalDateTime.now()
+  val current: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
   val earlier: LocalDateTime = current.minusHours(1)
   val later: LocalDateTime = current.plusHours(1)
 
@@ -214,11 +217,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     whenReady(doc) { d => {
       val flags = d.head.doclib
 
-      assert(flags.size == 1)
+      flags should have length(1)
 
       val flag = flags.head
-      assert(flag.ended.isDefined)
-      assert(flag.ended.get.isAfter(flag.started))
+      flag.ended.value should be >= flag.started
     }}
   }
 
@@ -275,11 +277,10 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     whenReady(doc) { d => {
       val flags = d.head.doclib
 
-      assert(flags.size == 1)
+      flags should have length(1)
 
       val flag = flags.head
-      assert(flag.ended.isDefined)
-      assert(flag.ended.get.isAfter(flag.started))
+      flag.ended.value should be >= flag.started
     }}
   }
 
@@ -333,39 +334,42 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   "A doc with duplicate flags" should "deduplicate when starting" in {
-    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
+
     val result = Await.result(flags.start(dupeDoc), 5.seconds).get
       assert(result.getModifiedCount == 1)
+
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) >= time)
+      doc.doclib.filter(_.key == "test").head.started.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
-      assert(doc.doclib.exists(_.key == "test"))
   }
 
   it should "deduplicate when ending" in {
-    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
+
     val result = Await.result(flags.start(dupeDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+      assert(result.getModifiedCount == 1)
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 2)
-    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) >= time)
+      assert(doc.doclib.size == 2)
+      doc.doclib.filter(_.key == "test").head.started.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
-      assert(doc.doclib.exists(_.key == "test"))
   }
 
   it should "deduplicate when erroring" in {
-    val time = LocalDateTime.now.toEpochSecond(ZoneOffset.UTC)
+    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
     val result = Await.result(flags.error(dupeDoc), 5.seconds).get
     assert(result.getModifiedCount == 1)
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == later.toEpochSecond(ZoneOffset.UTC))
-      assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) >= time)
+
+      val testFlag = doc.doclib.filter(_.key == "test").head
+      testFlag.started.truncatedTo(MILLIS) should be (later.truncatedTo(MILLIS))
+      testFlag.errored.value.truncatedTo(MILLIS) should be >= time
+
       assert(doc.doclib.exists(_.key == "keep"))
-      assert(doc.doclib.exists(_.key == "test"))
   }
 
   it should "save the doclib flag state if it exists in the flag" in {
@@ -384,7 +388,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   it should "update the flag state if provided" in {
-    val updateTime = LocalDateTime.now()
+    val updateTime = LocalDateTime.now(ZoneOffset.UTC)
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
     val flagUpdateResult = Await.result(flags.end(dupeDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
@@ -395,7 +399,8 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.exists(_.key == "keep"))
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "23456")
-    assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) >= updateTime.toEpochSecond(ZoneOffset.UTC))
+
+    doc.doclib.filter(_.key == "test").head.state.get.updated.truncatedTo(MILLIS) should be >= updateTime.truncatedTo(MILLIS)
   }
 
   it should "not update the flag state if None" in {
@@ -407,7 +412,8 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
     assert(doc.doclib.exists(_.key == "keep"))
     assert(doc.doclib.filter(_.key == "test").head.state != None)
     assert(doc.doclib.filter(_.key == "test").head.state.get.value == "12345")
-    assert(doc.doclib.filter(_.key == "test").head.state.get.updated.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+
+    doc.doclib.filter(_.key == "test").head.state.get.updated.truncatedTo(MILLIS) == current.truncatedTo(MILLIS)
   }
 
   "A doc" can "be reset and existing flags remain as before" in {
@@ -456,7 +462,7 @@ class DoclibFlagsIntegrationTest extends FlatSpec with Matchers with BeforeAndAf
   }
 
   "The reset flag" should "be reset when ending and state is provided" in {
-    val updateTime = LocalDateTime.now()
+    val updateTime = LocalDateTime.now(ZoneOffset.UTC)
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
     val flagUpdateResult = Await.result(flags.end(endOrErrorDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
