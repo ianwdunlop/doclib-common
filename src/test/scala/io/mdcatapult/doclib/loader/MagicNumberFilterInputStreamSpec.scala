@@ -1,9 +1,10 @@
 package io.mdcatapult.doclib.loader
 
 import org.apache.tools.ant.filters.StringInputStream
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MagicNumberFilterInputStreamSpec extends FlatSpec with Matchers {
+class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
 
   private val truncator = MagicNumberFilterInputStream.toTruncateAnyWith(List("RDX2", "RDA2").map(_.getBytes)) _
 

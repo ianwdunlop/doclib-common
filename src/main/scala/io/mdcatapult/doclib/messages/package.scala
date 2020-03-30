@@ -12,18 +12,18 @@ package object messages {
   def getValFrom[T](key: String, values: Map[String, Any]): Option[T] = {
     if (!values.exists(_._1 == key)) None
     else values(key).asInstanceOf[T] match {
-      case None ⇒ None
-      case v ⇒ Some(v)
+      case None => None
+      case v => Some(v)
     }
   }
 
   def decodeMetaData(data: List[Map[String, Any]]): List[MetaValueUntyped] = {
     data.map(mv => mv("value") match {
-      case scalarVal: Boolean ⇒ MetaBoolean(mv("key").asInstanceOf[String], scalarVal)
-      case scalarVal: Int ⇒ MetaInt(mv("key").asInstanceOf[String], scalarVal)
-      case scalarVal: Double ⇒ MetaDouble(mv("key").asInstanceOf[String], scalarVal)
-      case scalarVal: LocalDateTime ⇒ MetaDateTime(mv("key").asInstanceOf[String], scalarVal)
-      case scalarVal: String ⇒ MetaString(mv("key").asInstanceOf[String], scalarVal)
+      case scalarVal: Boolean => MetaBoolean(mv("key").asInstanceOf[String], scalarVal)
+      case scalarVal: Int => MetaInt(mv("key").asInstanceOf[String], scalarVal)
+      case scalarVal: Double => MetaDouble(mv("key").asInstanceOf[String], scalarVal)
+      case scalarVal: LocalDateTime => MetaDateTime(mv("key").asInstanceOf[String], scalarVal)
+      case scalarVal: String => MetaString(mv("key").asInstanceOf[String], scalarVal)
     })
   }
 

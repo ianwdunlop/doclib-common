@@ -4,15 +4,12 @@ import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
-import io.mdcatapult.doclib.util.MongoCodecs
-import org.bson.codecs.configuration.CodecRegistry
 import org.bson.types.ObjectId
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
-
-  val registry: CodecRegistry = MongoCodecs.get
+class DoclibDocSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
 
   "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(DoclibDoc(
@@ -46,8 +43,8 @@ class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
     val prefetchMsg: PrefetchMsg = PrefetchMsg("/a/file/somewhere.pdf", None, Some(List("a-tag")), Some(metadataMap), None)
     val fetchedMetadata = prefetchMsg.metadata
     assert(fetchedMetadata.get.length == 1)
-    assert(fetchedMetadata.get(0).getKey == "doi")
-    assert(fetchedMetadata.get(0).getValue == "10.1101/327015")
+    assert(fetchedMetadata.get.head.getKey == "doi")
+    assert(fetchedMetadata.get.head.getValue == "10.1101/327015")
   }
 
   "Integer metadata can be added to DoclibDoc and" should "be able to be decoded" in {
@@ -55,8 +52,8 @@ class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
     val prefetchMsg: PrefetchMsg = PrefetchMsg("/a/file/somewhere.pdf", None, Some(List("a-tag")), Some(metadataMap), None)
     val fetchedMetadata = prefetchMsg.metadata
     assert(fetchedMetadata.get.length == 1)
-    assert(fetchedMetadata.get(0).getKey == "a-value")
-    assert(fetchedMetadata.get(0).getValue == 10)
+    assert(fetchedMetadata.get.head.getKey == "a-value")
+    assert(fetchedMetadata.get.head.getValue == 10)
   }
 
   "Mixed types of metadata can be added to DoclibDoc and" should "be able to be decoded" in {
@@ -64,8 +61,8 @@ class DoclibDocSpec extends FlatSpec with Matchers with BsonCodecCompatible {
     val prefetchMsg: PrefetchMsg = PrefetchMsg("/a/file/somewhere.pdf", None, Some(List("a-tag")), Some(metadataMap), None)
     val fetchedMetadata = prefetchMsg.metadata
     assert(fetchedMetadata.get.length == 2)
-    assert(fetchedMetadata.get(0).getKey == "doi")
-    assert(fetchedMetadata.get(0).getValue == "10.1101/327015")
+    assert(fetchedMetadata.get.head.getKey == "doi")
+    assert(fetchedMetadata.get.head.getValue == "10.1101/327015")
     assert(fetchedMetadata.get(1).getKey == "a-value")
     assert(fetchedMetadata.get(1).getValue == 10)
   }

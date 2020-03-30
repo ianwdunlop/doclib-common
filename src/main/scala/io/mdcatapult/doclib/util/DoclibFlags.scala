@@ -6,8 +6,8 @@ import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
@@ -49,14 +49,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
    * @return
    */
   def deDuplicate(doc: DoclibDoc): Future[Option[UpdateResult]] = {
-    implicit val localDateOrdering: Ordering[LocalDateTime] =
-      Ordering.by(
-        ldt =>
-          if (ldt == null) // scalastyle:ignore
-            0
-          else
-            ldt.toInstant(ZoneOffset.UTC).toEpochMilli
-      )
+
+    import ImplicitOrdering.localDateOrdering
 
     getFlags(doc._id).flatMap(
       _.sortBy(_.started).reverse match {
@@ -98,7 +92,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           combine(push(flags, DoclibFlag(
             key = key,
             version = getVersion(config.getConfig("version")),
-            started = LocalDateTime.now(),
+            started = LocalDateTime.now(ZoneOffset.UTC),
             summary = Some("started")
           )))
         ).toFutureOption()
@@ -212,12 +206,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
    */
   def getStateUpdate(state: Option[DoclibFlagState]): Bson = {
     state match {
-      case None ⇒
+      case None =>
         combine(
           currentDate(flagEnded),
           set(flagErrored, BsonNull())
         )
-      case Some(state) ⇒
+      case Some(state) =>
         combine(
           currentDate(flagEnded),
           set(flagErrored, BsonNull()),

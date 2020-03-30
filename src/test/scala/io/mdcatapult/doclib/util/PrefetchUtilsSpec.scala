@@ -5,24 +5,23 @@ import java.time.{LocalDateTime, ZoneOffset}
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestKit
-import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.spingo.op_rabbit.properties.MessageProperty
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
 import io.mdcatapult.doclib.models.{DoclibDoc, FileAttrs}
 import io.mdcatapult.klein.queue.Sendable
-import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpecLike, Matchers}
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
 class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigFactory.parseString(
   """
   akka.loggers = ["akka.testkit.TestEventListener"]
-  """))) with FlatSpecLike with Matchers with MockFactory with Eventually {
+  """))) with AnyFlatSpecLike with Matchers with MockFactory with Eventually {
 
   implicit var config: Config = ConfigFactory.parseString(
     """
@@ -58,9 +57,6 @@ class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigF
       |  }
       |}
     """.stripMargin)
-  implicit val mongoCodecs: CodecRegistry = MongoCodecs.get
-  val wrappedCollection: JMongoCollection[DoclibDoc] = stub[JMongoCollection[DoclibDoc]]
-  implicit val collection: MongoCollection[DoclibDoc] = MongoCollection[DoclibDoc](wrappedCollection)
 
   // Fake the queues, we are not interacting with them
   class FakePrefetchQ extends Sendable[PrefetchMsg] {
@@ -70,44 +66,50 @@ class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigF
     }
   }
 
-  val prefetchQ = mock[FakePrefetchQ]
+  private val prefetchQ = mock[FakePrefetchQ]
 
   class MyPrefetchUtils extends PrefetchUtils {
     override val doclibConfig: Config = config
     override val prefetchQueue: Sendable[PrefetchMsg] = prefetchQ
     override val derivativeType: String = "a.derivative.type"
-    override val doclibCollection: MongoCollection[DoclibDoc] = collection
+    override val doclibCollection: MongoCollection[DoclibDoc] = None.orNull
   }
 
-  val source = "local/derivatives/derivatives/remote/http/a/path/test_doc.doc"
-  val metadata = List[MetaValueUntyped](MetaString("derivative.type","unarchived"), MetaString("derivative.type", "rawtext"), MetaString("key", "value"))
-  val createdTime = LocalDateTime.now().toInstant(ZoneOffset.UTC)
-  val path = new File(source).toPath
-  val fileAttrs = FileAttrs(
-    path = path.getParent.toAbsolutePath.toString,
-    name = path.getFileName.toString,
-    mtime = LocalDateTime.ofInstant(createdTime, ZoneOffset.UTC),
-    ctime = LocalDateTime.ofInstant(createdTime, ZoneOffset.UTC),
-    atime = LocalDateTime.ofInstant(createdTime, ZoneOffset.UTC),
-    size = 5
-  )
-  val doc = DoclibDoc(
+  private val source = "local/derivatives/derivatives/remote/http/a/path/test_doc.doc"
+  private val metadata = List[MetaValueUntyped](MetaString("derivative.type","unarchived"), MetaString("derivative.type", "rawtext"), MetaString("key", "value"))
+
+  private val createdTime = LocalDateTime.now(ZoneOffset.UTC)
+
+  private val fileAttrs = {
+    val path = new File(source).toPath
+    FileAttrs(
+      path = path.getParent.toAbsolutePath.toString,
+      name = path.getFileName.toString,
+      mtime = createdTime,
+      ctime = createdTime,
+      atime = createdTime,
+      size = 5
+    )
+  }
+
+  private val doc = DoclibDoc(
     _id = new ObjectId(),
     source = source,
     hash = "12345",
-    created = LocalDateTime.ofInstant(createdTime, ZoneOffset.UTC),
-    updated = LocalDateTime.ofInstant(createdTime, ZoneOffset.UTC),
+    created = createdTime,
+    updated = createdTime,
     mimetype = "",
     attrs = Some(fileAttrs),
     metadata = Some(metadata)
   )
-  val prefetchUtls = new MyPrefetchUtils
+
+  private val prefetchUtils = new MyPrefetchUtils
 
   "Existing derivative.type metadata" should "be removed before sending message" in {
-    val filteredMetadata = prefetchUtls.filterDerivatives(doc)
+    val filteredMetadata = prefetchUtils.filterDerivatives(doc)
     assert(filteredMetadata.length == 1)
-    assert(filteredMetadata(0).getKey == "key")
-    assert(filteredMetadata(0).getValue == "value")
+    assert(filteredMetadata.head.getKey == "key")
+    assert(filteredMetadata.head.getValue == "value")
   }
 
 }

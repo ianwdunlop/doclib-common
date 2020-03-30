@@ -6,8 +6,6 @@ import org.mongodb.scala.Document
 import play.api.libs.json._
 
 object PrefetchMsg extends BsonDocumentJson {
-  implicit val msgReader: Reads[PrefetchMsg] = Json.reads[PrefetchMsg]
-  implicit val msgWriter: Writes[PrefetchMsg] = Json.writes[PrefetchMsg]
   implicit val msgFormatter: Format[PrefetchMsg] = Json.format[PrefetchMsg]
 }
 

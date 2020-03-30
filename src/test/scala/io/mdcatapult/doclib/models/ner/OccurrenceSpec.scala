@@ -9,7 +9,7 @@ object OccurrenceSpec extends Properties("Occurrence.md5") {
 
   private val nonNegativeInt = oneOf(const(0), posNum[Int])
 
-  val strGen = (n: Int) => Gen.listOfN(n, Gen.alphaChar).map(_.mkString)
+  private val strGen = (n: Int) => Gen.listOfN(n, Gen.alphaChar).map(_.mkString)
 
   private val genOccurrence: Gen[Occurrence] = for {
     uuid <- org.scalacheck.Gen.uuid

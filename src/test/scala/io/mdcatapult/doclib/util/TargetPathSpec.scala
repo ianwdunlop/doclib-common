@@ -1,10 +1,12 @@
 package io.mdcatapult.doclib.util
+
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class TargetPathSpec extends FlatSpec with Matchers {
+class TargetPathSpec extends AnyFlatSpec with Matchers {
 
-  implicit var config: Config = ConfigFactory.parseString(
+  implicit val config: Config = ConfigFactory.parseString(
     """
       |doclib {
       |  root: "test-assets"
@@ -121,6 +123,5 @@ class TargetPathSpec extends FlatSpec with Matchers {
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
     assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
   }
-
 
 }

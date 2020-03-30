@@ -7,15 +7,19 @@ import scala.util.{Failure, Success}
 
 trait LemonLabsUriJson {
 
-  implicit val lemonLabsUriReader: Reads[Uri] = (jv: JsValue) =>
-    Uri.parseTry(jv.asInstanceOf[JsString].value) match {
-      case Success(u) ⇒ JsSuccess(u)
-      case Failure(e) ⇒ JsError(e.getMessage)
+  implicit val lemonLabsUriFormatter: Format[Uri] = {
+
+    val lemonLabsUriReader: Reads[Uri] = (jv: JsValue) =>
+      Uri.parseTry(jv.asInstanceOf[JsString].value) match {
+        case Success(u) => JsSuccess(u)
+        case Failure(e) => JsError(e.getMessage)
+      }
+
+    val lemonLabsUriWriter: Writes[Uri] = (uri: Uri) => {
+      val u = uri.toString()
+      JsString(u)
     }
 
-  implicit val lemonLabsUriWriter: Writes[Uri] = (uri: Uri) => {
-    val u = uri.toString()
-    JsString(u)
+    Format(lemonLabsUriReader, lemonLabsUriWriter)
   }
-  implicit val lemonLabsUriFormatter: Format[Uri] = Format(lemonLabsUriReader, lemonLabsUriWriter)
 }

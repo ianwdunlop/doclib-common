@@ -1,12 +1,12 @@
 package io.mdcatapult.doclib.messages
 
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
-import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json._
 
-class PrefetchMsgSpec  extends FlatSpec with Matchers with MockFactory {
+class PrefetchMsgSpec  extends AnyFlatSpec with Matchers with MockFactory {
 
   "A message" should "convert to JSON sucessfully" in {
     val msgJson = Json.toJson(PrefetchMsg("doclib/biorxiv/files/327015.full.pdf", metadata = Some(List(MetaString("doi", "10.1101/327015"))), tags = Some(List("bioarxiv"))))

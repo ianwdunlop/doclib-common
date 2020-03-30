@@ -25,12 +25,12 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
   override def encode(w: BsonWriter, t: Envelope, c: EncoderContext): Unit = {
     w.writeStartDocument()
     t match {
-      case v: ArchiveMsg ⇒
+      case v: ArchiveMsg =>
         if (v.id.isDefined) w.writeString("id", v.id.get)
         if (v.source.isDefined) w.writeString("source", v.source.get)
-      case v: DoclibMsg ⇒
+      case v: DoclibMsg =>
         w.writeString("id", v.id)
-      case v: NerMsg ⇒
+      case v: NerMsg =>
         w.writeString("id", v.id)
         if (v.requires.isDefined) {
           w.writeName("requires")
@@ -38,7 +38,7 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
           v.requires.get.foreach(w.writeString)
           w.writeEndArray()
         }
-      case v: PrefetchMsg ⇒
+      case v: PrefetchMsg =>
         w.writeString("source", v.source)
         if (v.origin.isDefined) {
           w.writeName("origin")
@@ -63,7 +63,7 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
           w.writeBoolean(v.derivative.getOrElse(false))
         }
 
-      case v: SupervisorMsg ⇒
+      case v: SupervisorMsg =>
         w.writeString("id", v.id)
         if (v.reset.isDefined) {
           w.writeName("reset")
@@ -71,7 +71,7 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
           v.reset.get.foreach(w.writeString)
           w.writeEndArray()
         }
-      case _ ⇒ // do nothing
+      case _ => // do nothing
     }
     w.writeEndDocument()
   }

@@ -53,13 +53,13 @@ abstract class SourceLoader extends LazyLogging{
     * @return
     */
   def load: List[String] = archiveStream match {
-    case _: BufferedInputStream ⇒ List(tikaExtract)
-    case ais: ArchiveInputStream ⇒
+    case _: BufferedInputStream => List(tikaExtract)
+    case ais: ArchiveInputStream =>
       Iterator.continually(ais.getNextEntry)
         .takeWhile(_ != null)
         .filterNot(_.isDirectory)
-        .filter(entry ⇒ validExtensions.exists(ext ⇒ entry.getName.matches(s".*\\.$ext$$")))
-        .map(_ ⇒ {
+        .filter(entry => validExtensions.exists(ext => entry.getName.matches(s".*\\.$ext$$")))
+        .map(_ => {
           SourceLoader.load(ais).head
         }).toList
   }
@@ -91,7 +91,7 @@ abstract class SourceLoader extends LazyLogging{
     */
   protected def archiveStream: InputStream =
     Try(new ArchiveStreamFactory().createArchiveInputStream(input)) match {
-      case Success(ais) ⇒ ais
-      case Failure(_) ⇒ input
+      case Success(ais) => ais
+      case Failure(_) => input
     }
 }

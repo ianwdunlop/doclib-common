@@ -1,11 +1,12 @@
+lazy val scala_2_13 = "2.13.1"
 lazy val scala_2_12 = "2.12.10"
 
 lazy val configVersion = "1.3.2"
 lazy val catsVersion = "2.1.0"
-lazy val playVersion = "2.7.2"
+lazy val playVersion = "2.8.1"
 lazy val tikaVersion = "1.21"
 lazy val betterFilesVersion = "3.8.0"
-lazy val akkaVersion = "2.5.26"
+lazy val akkaVersion = "2.6.4"
 
 lazy val IntegrationTest = config("it") extend Test
 
@@ -15,9 +16,10 @@ lazy val root = (project in file(".")).
     Defaults.itSettings,
     name              := "common",
     organization := "io.mdcatapult.doclib",
-    scalaVersion      := scala_2_12,
+    scalaVersion      := scala_2_13,
     coverageEnabled   := false,
-    crossScalaVersions  := scala_2_12 :: Nil,
+    useCoursier   := false,
+    crossScalaVersions  := scala_2_13 :: scala_2_12 :: Nil,
     scalacOptions ++= Seq(
       "-encoding", "utf-8",
       "-unchecked",
@@ -25,7 +27,7 @@ lazy val root = (project in file(".")).
       "-explaintypes",
       "-feature",
       "-Xlint",
-      "-Ypartial-unification",
+      "-Xfatal-warnings",
     ),
     resolvers         ++= Seq(
       "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
@@ -39,10 +41,10 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= Seq(
-      "org.scalactic" %% "scalactic"                  % "3.0.5",
-      "org.scalatest" %% "scalatest"                  % "3.0.5" % "it, test",
+      "org.scalactic" %% "scalactic"                  % "3.1.1",
+      "org.scalatest" %% "scalatest"                  % "3.1.1" % "it, test",
       "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
-      "org.scalacheck" %% "scalacheck"                % "1.14.1" % Test,
+      "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
       "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
       "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
       "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
@@ -51,9 +53,9 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-macros"                % catsVersion,
       "org.typelevel" %% "cats-kernel"                % catsVersion,
       "org.typelevel" %% "cats-core"                  % catsVersion,
-      "io.lemonlabs" %% "scala-uri"                   % "1.4.5",
-      "io.mdcatapult.klein" %% "queue"                % "0.0.16",
-      "io.mdcatapult.klein" %% "mongo"                % "0.0.4",
+      "io.lemonlabs" %% "scala-uri"                   % "2.2.0",
+      "io.mdcatapult.klein" %% "queue"                % "0.0.17",
+      "io.mdcatapult.klein" %% "mongo"                % "0.0.10",
       "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
       "commons-io" % "commons-io"                     % "2.6",
       "com.chuusai" %% "shapeless"                    % "2.3.3",

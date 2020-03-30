@@ -1,18 +1,15 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 
-import com.mongodb.async.client.{MongoCollection ⇒ JMongoCollection}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson._
-import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
+class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -25,14 +22,9 @@ class DoclibFlagsSpec extends FlatSpec with Matchers with MockFactory {
       |}
     """.stripMargin)
 
-
-  val wrappedCollection: JMongoCollection[DoclibDoc] = mock[JMongoCollection[DoclibDoc]]
-  implicit val collection: MongoCollection[DoclibDoc] = MongoCollection[DoclibDoc](wrappedCollection)
-
-  val codecs: CodecRegistry = MongoCodecs.get
-  val now: LocalDateTime = LocalDateTime.now()
-  val earlier: LocalDateTime = now.minusHours(1)
-  val later: LocalDateTime = now.plusHours(1)
+  private val now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
+  private val earlier: LocalDateTime = now.minusHours(1)
+  private val later: LocalDateTime = now.plusHours(1)
 
   val newDoc: DoclibDoc = DoclibDoc(
     _id = new ObjectId,
