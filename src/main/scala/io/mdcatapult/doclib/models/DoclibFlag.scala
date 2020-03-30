@@ -1,11 +1,10 @@
 package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
-import play.api.libs.json.{Format, Json, Reads, Writes}
+
+import play.api.libs.json.{Format, Json}
 
 object DoclibFlag  {
-  implicit val prefetchOriginReader: Reads[DoclibFlag] = Json.reads[DoclibFlag]
-  implicit val prefetchOriginWriter: Writes[DoclibFlag] = Json.writes[DoclibFlag]
   implicit val prefetchOriginFormatter: Format[DoclibFlag] = Json.format[DoclibFlag]
 }
 
