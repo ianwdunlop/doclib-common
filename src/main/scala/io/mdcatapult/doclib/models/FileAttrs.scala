@@ -2,11 +2,9 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
-import play.api.libs.json.{Format, Json, Reads, Writes}
+import play.api.libs.json.{Format, Json}
 
 object FileAttrs {
-  implicit val msgReader: Reads[FileAttrs] = Json.reads[FileAttrs]
-  implicit val msgWriter: Writes[FileAttrs] = Json.writes[FileAttrs]
   implicit val msgFormatter: Format[FileAttrs] = Json.format[FileAttrs]
 }
 
