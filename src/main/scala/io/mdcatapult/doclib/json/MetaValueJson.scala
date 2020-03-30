@@ -23,7 +23,7 @@ trait MetaValueJson {
           case _ => MetaString(fields("key").asInstanceOf[JsString].value, s)
         }
 
-        case JsNumber(n) => Try(n.toBigIntExact()) match {
+        case JsNumber(n) => Try(n.toBigIntExact) match {
           case Success(value) => value match {
             case Some(int) => MetaInt(fields("key").asInstanceOf[JsString].value, int.toInt)
             case None => MetaDouble(fields("key").asInstanceOf[JsString].value, n.toDouble)
@@ -49,7 +49,7 @@ trait MetaValueJson {
       "key" -> JsString(typed.getKey),
       "value" -> {
         typed.getValue match {
-          case v: LocalDateTime => JsString(v.toString())
+          case v: LocalDateTime => JsString(v.toString)
           case v: Boolean => JsBoolean(v)
           case v: String => JsString(v)
           case v: Int => JsNumber(v)

@@ -65,7 +65,7 @@ class PrefetchUtilsIntegrationTest extends TestKit(ActorSystem("PrefetchUtilsInt
     val name = "prefetch-message-queue"
     val rabbit: ActorRef = testActor
     val sent: AtomicInteger = new AtomicInteger(0)
-    val messages: mutable.MutableList[MetaValueUntyped] = mutable.MutableList[MetaValueUntyped]()
+    val messages: mutable.ListBuffer[MetaValueUntyped] = mutable.ListBuffer[MetaValueUntyped]()
     def send(envelope: PrefetchMsg,  properties: Seq[MessageProperty] = Seq.empty): Unit = {
       sent.set(sent.get() + 1)
       messages ++= envelope.metadata.get
