@@ -7,10 +7,10 @@ import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-
-class NerDocumentSpec extends FlatSpec with Matchers with BsonCodecCompatible {
+class NerDocumentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
 
   val registry: CodecRegistry = MongoCodecs.get
 

@@ -11,14 +11,16 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
+class NerOccurrencesIntegrationTest  extends AnyFlatSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.load()
   val coreCodecs: CodecRegistry = MongoCodecs.get
@@ -31,7 +33,7 @@ class NerOccurrencesIntegrationTest  extends FlatSpec with Matchers with BeforeA
   val occurrenceCollection: MongoCollection[Occurrence] =
     mongo.database.getCollection(s"${config.getString("mongo.ner-collection")}_occurrences")
 
-  override def beforeAll = {
+  override def beforeAll: Unit = {
     Await.result(nerCollection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
     Await.result(occurrenceCollection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
   }

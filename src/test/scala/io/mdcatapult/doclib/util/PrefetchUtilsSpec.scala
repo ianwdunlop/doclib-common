@@ -15,12 +15,13 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpecLike, Matchers}
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
 class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigFactory.parseString(
   """
   akka.loggers = ["akka.testkit.TestEventListener"]
-  """))) with FlatSpecLike with Matchers with MockFactory with Eventually {
+  """))) with AnyFlatSpecLike with Matchers with MockFactory with Eventually {
 
   implicit var config: Config = ConfigFactory.parseString(
     """
