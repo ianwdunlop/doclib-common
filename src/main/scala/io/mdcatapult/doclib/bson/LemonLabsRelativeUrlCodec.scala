@@ -10,8 +10,8 @@ class LemonLabsRelativeUrlCodec extends Codec[RelativeUrl] {
 
   override def decode(bsonReader: BsonReader, decoderContext: DecoderContext): RelativeUrl =
     RelativeUrl.parseTry(bsonReader.readString()) match {
-      case Success(uri) ⇒ uri
-      case Failure(e) ⇒ throw e
+      case Success(uri) => uri
+      case Failure(e) => throw e
     }
 
   override def encode(bsonWriter: BsonWriter, t: RelativeUrl, encoderContext: EncoderContext): Unit =

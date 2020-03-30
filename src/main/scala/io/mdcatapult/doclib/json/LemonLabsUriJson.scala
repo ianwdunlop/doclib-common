@@ -9,8 +9,8 @@ trait LemonLabsUriJson {
 
   implicit val lemonLabsUriReader: Reads[Uri] = (jv: JsValue) =>
     Uri.parseTry(jv.asInstanceOf[JsString].value) match {
-      case Success(u) ⇒ JsSuccess(u)
-      case Failure(e) ⇒ JsError(e.getMessage)
+      case Success(u) => JsSuccess(u)
+      case Failure(e) => JsError(e.getMessage)
     }
 
   implicit val lemonLabsUriWriter: Writes[Uri] = (uri: Uri) => {

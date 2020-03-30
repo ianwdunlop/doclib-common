@@ -32,11 +32,11 @@ trait TargetPath {
     val targetRoot = target.replaceAll("/+$", "")
     val regex = """(.*)/(.*)$""".r
     source match {
-      case regex(path, file) ⇒
+      case regex(path, file) =>
         val c = commonPath(List(targetRoot, path))
         val targetPath  = scrub(path.replaceAll(s"^$c", "").replaceAll("^/+|/+$", ""))
         Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
-      case _ ⇒ source
+      case _ => source
     }
   }
 
@@ -53,10 +53,10 @@ trait TargetPath {
     val doubleDerivatives = s"^$d/($d/.*)$$".r
 
     path match {
-      case ingressPath(remainder) ⇒ scrub(remainder)
-      case localPath(remainder) ⇒ scrub(remainder)
-      case doubleDerivatives(remainder) ⇒ scrub(remainder)
-      case _ ⇒ path
+      case ingressPath(remainder) => scrub(remainder)
+      case localPath(remainder) => scrub(remainder)
+      case doubleDerivatives(remainder) => scrub(remainder)
+      case _ => path
     }
   }
 }

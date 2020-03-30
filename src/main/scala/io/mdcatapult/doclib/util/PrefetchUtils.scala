@@ -33,7 +33,7 @@ trait PrefetchUtils {
 
   def enqueue(source: List[String], doc: DoclibDoc): List[String] = {
     val derivativeMetadata = List[MetaValueUntyped](MetaString("derivative.type", derivativeType))
-    source.foreach(path ⇒ {
+    source.foreach(path => {
       prefetchQueue.send(PrefetchMsg(
         source = path,
         origin = Some(List(Origin(
@@ -53,7 +53,7 @@ trait PrefetchUtils {
 
   def persist(doc: DoclibDoc, files: List[String]): Future[Option[UpdateResult]] = {
     doclibCollection.updateOne(equal("_id", doc._id),
-      addEachToSet("derivatives", files.map(path ⇒ Derivative(derivativeType, path)):_*),
+      addEachToSet("derivatives", files.map(path => Derivative(derivativeType, path)):_*),
     ).toFutureOption()
   }
 

@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import better.files.{File ⇒ ScalaFile}
+import better.files.{File => ScalaFile}
 
 /**
  * Convenience method to delete a list of directories
