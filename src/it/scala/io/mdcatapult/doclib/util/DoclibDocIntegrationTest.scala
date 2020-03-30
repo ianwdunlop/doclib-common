@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -41,7 +41,7 @@ class DoclibDocIntegrationTest extends FlatSpec with Matchers with BeforeAndAfte
   implicit val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibdoc")
 
-  val now: LocalDateTime = LocalDateTime.now()
+  val now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
 
   before {
     Await.result(collection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
