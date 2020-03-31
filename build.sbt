@@ -33,17 +33,17 @@ lazy val root = (project in file(".")).
       "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
       "MDC Nexus Snapshots" at "https://nexus.mdcatapult.io/repository/maven-snapshots/"),
     credentials       += {
-      val nexusPassword = sys.env.get("NEXUS_PASSWORD")
-      if ( nexusPassword.nonEmpty ) {
-        Credentials("Sonatype Nexus Repository Manager", "nexus.mdcatapult.io", "gitlab", nexusPassword.get)
-      } else {
-        Credentials(Path.userHome / ".sbt" / ".credentials")
+      sys.env.get("NEXUS_PASSWORD") match {
+        case Some(p) =>
+          Credentials("Sonatype Nexus Repository Manager", "nexus.mdcatapult.io", "gitlab", p)
+        case None =>
+          Credentials(Path.userHome / ".sbt" / ".credentials")
       }
     },
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic"                  % "3.1.1",
       "org.scalatest" %% "scalatest"                  % "3.1.1" % "it, test",
-      "org.scalamock" %% "scalamock"                  % "4.3.0" % "it, test",
+      "org.scalamock" %% "scalamock"                  % "4.4.0" % "it, test",
       "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
       "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
       "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
@@ -54,18 +54,12 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-kernel"                % catsVersion,
       "org.typelevel" %% "cats-core"                  % catsVersion,
       "io.lemonlabs" %% "scala-uri"                   % "2.2.0",
-      "io.mdcatapult.klein" %% "queue"                % "0.0.17",
+      "io.mdcatapult.klein" %% "queue"                % "0.0.18",
       "io.mdcatapult.klein" %% "mongo"                % "0.0.10",
       "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
-      "commons-io" % "commons-io"                     % "2.6",
-      "com.chuusai" %% "shapeless"                    % "2.3.3",
-      "org.apache.commons" % "commons-compress"       % "1.18",
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,
       "org.apache.tika" % "tika-langdetect"           % tikaVersion,
-      "org.apache.pdfbox" % "jbig2-imageio"           % "3.0.2",
-      "com.github.jai-imageio" % "jai-imageio-jpeg2000" % "1.3.0",
-      "org.xerial" % "sqlite-jdbc"                      % "3.25.2",
       "com.github.pathikrit"  %% "better-files"       % betterFilesVersion
 
     )
