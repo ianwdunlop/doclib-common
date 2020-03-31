@@ -25,7 +25,7 @@ object SourceLoader {
 
   /**
     * Dynamic loader of file based on file path supplied
-    * Uses apache tika to determin mimetype and load specific types as required
+    * Uses apache tika to determine mimetype and load specific types as required
     * @param file path to file to be loaded
     * @return
     */
@@ -35,7 +35,7 @@ object SourceLoader {
 /**
   * Abstract source loader
   */
-abstract class SourceLoader extends LazyLogging{
+abstract class SourceLoader extends LazyLogging {
 
   /** abstract input value to be defined in super classes **/
   val input: BufferedInputStream
@@ -46,7 +46,6 @@ abstract class SourceLoader extends LazyLogging{
     "odp", "ods", "odt", "pdf", "pptx", "sgm", "sgml", "shtm", "shtml",
     "txt", "txt.gz", "tar", "tar.001", "tar.bz2", "tar.gz", "tbz2", "tgz",
     "xlsx", "xml", "xml.gz", "zip")
-
 
   /**
     * default load method to extract source as text
@@ -59,11 +58,9 @@ abstract class SourceLoader extends LazyLogging{
         .takeWhile(_ != null)
         .filterNot(_.isDirectory)
         .filter(entry => validExtensions.exists(ext => entry.getName.matches(s".*\\.$ext$$")))
-        .map(_ => {
-          SourceLoader.load(ais).head
-        }).toList
+        .map(_ => SourceLoader.load(ais).head)
+        .toList
   }
-
 
   def tikaExtract: String =  {
     val tika = new Tika()
@@ -83,7 +80,6 @@ abstract class SourceLoader extends LazyLogging{
     content
 
   }
-
 
   /**
     * test if input is an archive and return appropriate stream of type
