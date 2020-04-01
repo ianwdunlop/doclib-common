@@ -4,7 +4,7 @@ lazy val scala_2_12 = "2.12.10"
 lazy val configVersion = "1.3.2"
 lazy val catsVersion = "2.1.0"
 lazy val playVersion = "2.8.1"
-lazy val tikaVersion = "1.21"
+lazy val tikaVersion = "1.24"
 lazy val betterFilesVersion = "3.8.0"
 lazy val akkaVersion = "2.6.4"
 
