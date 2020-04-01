@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.loader
 
-import org.apache.tools.ant.filters.StringInputStream
+import io.mdcatapult.doclib.util.stringToInputStream
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -15,7 +15,7 @@ class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
     val bufferSize = text.getBytes.length
     val buffer = new Array[Byte](bufferSize)
 
-    val bytesRead = truncator(new StringInputStream(text + moreText)).read(buffer, 0, buffer.length)
+    val bytesRead = truncator(stringToInputStream(text + moreText)).read(buffer, 0, buffer.length)
 
     buffer should equal (new Array[Byte](bufferSize))
     bytesRead should be (-1)
@@ -26,7 +26,7 @@ class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
     val bufferSize = text.getBytes.length
     val buffer = new Array[Byte](bufferSize)
 
-    val bytesRead = truncator(new StringInputStream(text + moreText)).read(buffer, 0, buffer.length)
+    val bytesRead = truncator(stringToInputStream(text + moreText)).read(buffer, 0, buffer.length)
 
     buffer should equal (new Array[Byte](bufferSize))
     bytesRead should be (-1)
@@ -37,7 +37,7 @@ class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
     val bufferSize = text.getBytes.length
     val buffer = new Array[Byte](bufferSize)
 
-    val in = truncator(new StringInputStream(text + moreText))
+    val in = truncator(stringToInputStream(text + moreText))
 
     in.read(buffer, 0, buffer.length)
     val bytesRead = in.read(buffer, 0, buffer.length)
@@ -51,7 +51,7 @@ class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
     val bufferSize = text.getBytes.length
     val buffer = new Array[Byte](bufferSize)
 
-    val in = truncator(new StringInputStream(text + moreText))
+    val in = truncator(stringToInputStream(text + moreText))
     val bytesRead = in.read(buffer, 0, buffer.length)
 
     buffer should equal (text.getBytes)
@@ -67,7 +67,7 @@ class MagicNumberFilterInputStreamSpec extends AnyFlatSpec with Matchers {
     val bufferSize = textWithMagicNumber.getBytes.length
     val buffer = new Array[Byte](bufferSize)
 
-    val in = truncator(new StringInputStream(text + textWithMagicNumber + moreText))
+    val in = truncator(stringToInputStream(text + textWithMagicNumber + moreText))
 
     in.read(new Array[Byte](firstLineLength), 0, firstLineLength)
 
