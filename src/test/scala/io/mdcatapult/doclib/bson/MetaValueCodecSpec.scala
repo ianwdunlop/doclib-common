@@ -1,9 +1,9 @@
 package io.mdcatapult.doclib.bson
 
-import java.time.{LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 
 import io.mdcatapult.doclib.models.metadata._
+import io.mdcatapult.doclib.util._
 
 class MetaValueCodecSpec extends CodecSpec{
 
@@ -38,15 +38,15 @@ class MetaValueCodecSpec extends CodecSpec{
     decodedDocument should equal(original)
   }
   it can "encode & decode MetaDateTime" in {
-    val now = LocalDateTime.now(ZoneOffset.UTC)
-    val original = MetaDateTime("theKey", now)
+    val time = nowUtc.now()
+    val original = MetaDateTime("theKey", time)
     val decodedDocument = roundTrip[MetaValueUntyped](original, codec)
 
     decodedDocument shouldBe a[MetaDateTime]
     // compares formatted date time as translation to BSON datetime loses precision
     val retrieved = decodedDocument.asInstanceOf[MetaDateTime].value
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    retrieved.format(formatter) should equal(now.format(formatter))
+    retrieved.format(formatter) should equal(time.format(formatter))
 
   }
 }

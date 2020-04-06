@@ -46,7 +46,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   implicit val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibflags")
 
-  val current: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
+  val current: LocalDateTime = nowUtc.now()
   val earlier: LocalDateTime = current.minusHours(1)
   val later: LocalDateTime = current.plusHours(1)
 
@@ -336,7 +336,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   }
 
   "A doc with duplicate flags" should "deduplicate when starting" in {
-    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
+    val time = nowUtc.now().truncatedTo(MILLIS)
 
     val result = Await.result(flags.start(dupeDoc), 5.seconds).get
       assert(result.getModifiedCount == 1)
@@ -348,7 +348,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   }
 
   it should "deduplicate when ending" in {
-    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
+    val time = nowUtc.now().truncatedTo(MILLIS)
 
     val result = Await.result(flags.start(dupeDoc), 5.seconds).get
       assert(result.getModifiedCount == 1)
@@ -360,7 +360,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   }
 
   it should "deduplicate when erroring" in {
-    val time = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(MILLIS)
+    val time = nowUtc.now().truncatedTo(MILLIS)
     val result = Await.result(flags.error(dupeDoc), 5.seconds).get
     assert(result.getModifiedCount == 1)
 
@@ -392,7 +392,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   }
 
   it should "update the flag state if provided" in {
-    val updateTime = LocalDateTime.now(ZoneOffset.UTC)
+    val updateTime = nowUtc.now()
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
     val flagUpdateResult = Await.result(flags.end(dupeDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
@@ -476,7 +476,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
   }
 
   "The reset flag" should "be reset when ending and state is provided" in {
-    val updateTime = LocalDateTime.now(ZoneOffset.UTC)
+    val updateTime = nowUtc.now()
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
     val flagUpdateResult = Await.result(flags.end(endOrErrorDoc, state = state), 5.seconds)
     assert(flagUpdateResult.isDefined)
