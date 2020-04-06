@@ -1,7 +1,6 @@
 package io.mdcatapult.doclib.util
 
 import java.io.File
-import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{ActorRef, ActorSystem}
@@ -85,7 +84,7 @@ class PrefetchUtilsIntegrationTest extends TestKit(ActorSystem("PrefetchUtilsInt
   private val source = "local/derivatives/derivatives/remote/http/a/path/test_doc.doc"
   private val metadata = List[MetaValueUntyped](MetaString("derivative.type","unarchived"), MetaString("derivative.type", "rawtext"), MetaString("key", "value"))
 
-  private val createdTime = LocalDateTime.now(ZoneOffset.UTC)
+  private val createdTime = nowUtc.now()
 
   private val fileAttrs = {
     val path = new File(source).toPath

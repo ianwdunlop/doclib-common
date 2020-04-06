@@ -9,4 +9,6 @@ package object util {
 
   def stringToInputStream(t: String): InputStream =
     IOUtils.toInputStream(t, UTF_8)
+
+  implicit val nowUtc: FixedTimezoneNow = FixedTimezoneNow.utc()
 }

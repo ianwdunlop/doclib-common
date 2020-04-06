@@ -1,7 +1,5 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
-
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
@@ -79,7 +77,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     * @param doc DoclibDoc
     * @return
     */
-  def start(doc: DoclibDoc): Future[Option[UpdateResult]] =
+  def start(doc: DoclibDoc)(implicit time: Now): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
       restart(doc)
     } else {
@@ -92,7 +90,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           combine(push(flags, DoclibFlag(
             key = key,
             version = getVersion(config.getConfig("version")),
-            started = LocalDateTime.now(ZoneOffset.UTC),
+            started = time.now(),
             summary = Some("started")
           )))
         ).toFutureOption()
