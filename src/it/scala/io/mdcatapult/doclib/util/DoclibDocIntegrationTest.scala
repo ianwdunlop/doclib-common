@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 import java.util.UUID
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -10,17 +10,17 @@ import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
+import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
+import org.scalatest.BeforeAndAfter
+import org.scalatest.OptionValues._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.OptionValues._
-import org.mongodb.scala.model.Filters.{equal => Mequal}
-import org.scalatest.BeforeAndAfter
-import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
@@ -43,7 +43,7 @@ class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndA
   implicit val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibdoc")
 
-  val now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
+  val created: LocalDateTime = nowUtc.now()
 
   before {
     Await.result(collection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
@@ -55,8 +55,8 @@ class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndA
       source = "/path/to/new.txt",
       hash = "0123456789",
       mimetype =  "text/plain",
-      created =  now,
-      updated =  now,
+      created =  created,
+      updated =  created,
       uuid = Option(UUID.randomUUID())
     )
 
@@ -74,8 +74,8 @@ class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndA
       source = "/path/to/new.txt",
       hash = "0123456789",
       mimetype =  "text/plain",
-      created =  now,
-      updated =  now
+      created =  created,
+      updated =  created
     )
 
     val written = collection.insertOne(newDoc).toFutureOption()

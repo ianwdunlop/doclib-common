@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.util
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
@@ -22,17 +22,17 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
       |}
     """.stripMargin)
 
-  private val now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
-  private val earlier: LocalDateTime = now.minusHours(1)
-  private val later: LocalDateTime = now.plusHours(1)
+  private val created: LocalDateTime = nowUtc.now()
+  private val earlier: LocalDateTime = created.minusHours(1)
+  private val later: LocalDateTime = created.plusHours(1)
 
   val newDoc: DoclibDoc = DoclibDoc(
     _id = new ObjectId,
     source = "/path/to/file.txt",
     hash = "0123456789",
     mimetype =  "text/plain",
-    created =  now,
-    updated =  now,
+    created =  created,
+    updated =  created,
   )
 
   val startedDoc: DoclibDoc = newDoc.copy(
@@ -44,7 +44,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
         minor = 0,
         patch = 1,
         hash = "1234567890"),
-      started = now
+      started = created
     ))
   )
 
@@ -58,7 +58,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = now
+        started = created
       ),
       DoclibFlag(
         key = "test",
@@ -91,7 +91,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   it should "get a valid flag" in {
     val flag = startedDoc.getFlag("test")
     assert(flag.length == 1)
-    assert(flag.head.started == now)
+    assert(flag.head.started == created)
   }
 
   it should "fail to get an invalid flag" in {
@@ -109,12 +109,12 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 1,
           hash = "1234567890"),
-        started = now,
-        state = Some(DoclibFlagState(value = "12345", updated = now))
+        started = created,
+        state = Some(DoclibFlagState(value = "12345", updated = created))
       ))
     )
     assert(stateDoc.getFlag("test").head.state.get.value == "12345")
-    assert(stateDoc.getFlag("test").head.state.get.updated == now)
+    assert(stateDoc.getFlag("test").head.state.get.updated == created)
   }
 
   it can "have a reset property" in {
@@ -128,12 +128,12 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
             minor = 0,
             patch = 2,
             hash = "1234567890"),
-          started = now,
-          reset = Some(now)
+          started = created,
+          reset = Some(created)
         )
       )
     )
-    assert(resetDoc.getFlag("test").head.reset.get == now)
+    assert(resetDoc.getFlag("test").head.reset.get == created)
   }
 
   it can "have a summary state property" in {
@@ -147,7 +147,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
             minor = 0,
             patch = 2,
             hash = "1234567890"),
-          started = now,
+          started = created,
           summary = Some("started")
         )
       )
