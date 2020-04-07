@@ -27,7 +27,7 @@ lazy val root = (project in file(".")).
       "-explaintypes",
       "-feature",
       "-Xlint",
-      "-Xfatal-warnings",
+      // "-Xfatal-warnings",  2.13 compatibility library necessarily brings in unused dependency in Scala 2.13
     ),
     resolvers         ++= Seq(
       "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
@@ -54,8 +54,8 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-kernel"                % catsVersion,
       "org.typelevel" %% "cats-core"                  % catsVersion,
       "io.lemonlabs" %% "scala-uri"                   % "2.2.0",
-      "io.mdcatapult.klein" %% "queue"                % "0.0.18",
-      "io.mdcatapult.klein" %% "mongo"                % "0.0.10",
+      "io.mdcatapult.klein" %% "queue"                % "0.0.20",
+      "io.mdcatapult.klein" %% "mongo"                % "0.0.12",
       "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,
