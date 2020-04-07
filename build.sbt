@@ -7,6 +7,7 @@ lazy val playVersion = "2.8.1"
 lazy val tikaVersion = "1.24"
 lazy val betterFilesVersion = "3.8.0"
 lazy val akkaVersion = "2.6.4"
+lazy val monixVersion = "3.1.0"
 
 lazy val IntegrationTest = config("it") extend Test
 
@@ -60,7 +61,8 @@ lazy val root = (project in file(".")).
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,
       "org.apache.tika" % "tika-langdetect"           % tikaVersion,
-      "com.github.pathikrit"  %% "better-files"       % betterFilesVersion
+      "com.github.pathikrit"  %% "better-files"       % betterFilesVersion,
+      "io.monix" %% "monix"                           % monixVersion
 
     )
   )

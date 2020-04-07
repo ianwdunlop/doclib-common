@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.concurrency
 
-import java.util.concurrent.Semaphore
+import monix.execution.AsyncSemaphore
 
 import com.typesafe.scalalogging.LazyLogging
 
@@ -14,7 +14,7 @@ object SemaphoreLimitedExecution extends LimitedExecutionFactory {
     * @param concurrency number of semaphore permits
     * @return LimitedExecution configured with a semaphore
     */
-  override def create(concurrency: Int): SemaphoreLimitedExecution = create(new Semaphore(concurrency, true))
+  override def create(concurrency: Int): SemaphoreLimitedExecution = create(AsyncSemaphore(concurrency))
 
   /** Create a SemaphoreLimitedExecution that controls concurrency with an exposed Semaphore.  Because the semaphore is
     * passed in it is possible that it is manipulated outside of this LimitedExecution, which could then leak permits.
@@ -23,7 +23,7 @@ object SemaphoreLimitedExecution extends LimitedExecutionFactory {
     * @param s semaphore to control concurrency
     * @return LimitedExecution configured with a semaphore
     */
-  def create(s: Semaphore): SemaphoreLimitedExecution = new SemaphoreLimitedExecution(s)
+  def create(s: AsyncSemaphore): SemaphoreLimitedExecution = new SemaphoreLimitedExecution(s)
 }
 
 /** Control function execution concurrency using a JDK semaphore.  It is responsible for ensuring that acquired permits
@@ -31,25 +31,25 @@ object SemaphoreLimitedExecution extends LimitedExecutionFactory {
   *
   * @param s semaphore
   */
-class SemaphoreLimitedExecution private (s: Semaphore) extends LimitedExecution with LazyLogging  {
+class SemaphoreLimitedExecution private (s: AsyncSemaphore) extends LimitedExecution with LazyLogging  {
 
   /** @inheritdoc */
   override def weighted[C, T](weight: Int)(c: C, label: String)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
     logger.debug("Acquire lock of weight {} for {}", weight, label)
-    s.acquire(weight)
-    logger.debug("Lock acquired for {}", label)
-
     try {
-      val result = f(c)
-      result.onComplete(_ =>  {
-        logger.debug("Release lock of weight {} for {}", weight, label)
-        s.release(weight)
-      })
-      result
+      s.acquireN(weight).flatMap { _ =>
+        logger.debug("Lock acquired for {}", label)
+        val result = f(c)
+        result.onComplete(_ =>  {
+          logger.debug("Release lock of weight {} for {}", weight, label)
+          s.releaseN(weight)
+        })
+        result
+      }
     } catch {
       case e: Exception =>
         logger.debug("Release lock of weight {} for {} on error: {}", weight, label, e)
-        s.release(weight)
+        s.releaseN(weight)
         throw e
     }
   }
