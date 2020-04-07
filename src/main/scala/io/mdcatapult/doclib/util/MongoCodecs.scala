@@ -24,10 +24,14 @@ object MongoCodecs {
     * @param codecProviders defined the bson parsing of a case classes
     * @return mongo codecs
     */
-  def include(codecProviders: Seq[CodecProvider]): CodecRegistry = fromRegistries(
-      fromProviders(codecProviders: _*),
+  def include(codecProviders: Seq[CodecProvider]): CodecRegistry =
+    if (codecProviders.nonEmpty)
+      fromRegistries(
+        fromProviders(codecProviders: _*),
+        get
+      )
+    else
       get
-    )
 
   /** Mongo Codecs with the default set of codecs for case classes defined within doclib-common.
     *
