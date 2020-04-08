@@ -36,21 +36,21 @@ class SemaphoreLimitedExecution private (s: AsyncSemaphore) extends LimitedExecu
   /** @inheritdoc */
   override def weighted[C, T](weight: Int)(c: C, label: String)(f: C => Future[T])(implicit ec: ExecutionContext): Future[T] = {
     logger.debug("Acquire lock of weight {} for {}", weight, label)
-    try {
-      s.acquireN(weight).flatMap { _ =>
+    s.acquireN(weight).flatMap { _ =>
+      try {
         logger.debug("Lock acquired for {}", label)
         val result = f(c)
-        result.onComplete(_ =>  {
+        result.onComplete(_ => {
           logger.debug("Release lock of weight {} for {}", weight, label)
           s.releaseN(weight)
         })
         result
+      } catch {
+        case e: Exception =>
+          logger.debug("Release lock of weight {} for {} on error: {}", weight, label, e)
+          s.releaseN(weight)
+          throw e
       }
-    } catch {
-      case e: Exception =>
-        logger.debug("Release lock of weight {} for {} on error: {}", weight, label, e)
-        s.releaseN(weight)
-        throw e
     }
   }
 
