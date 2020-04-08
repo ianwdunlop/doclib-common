@@ -4,4 +4,4 @@ import java.util.UUID
 
 import org.mongodb.scala.bson.ObjectId
 
-case class ParentChildMapping(_id: UUID, parent: ObjectId, child: ObjectId)
+case class ParentChildMapping(_id: UUID, parent: ObjectId, child: Option[ObjectId], childPath: String)

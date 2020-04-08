@@ -17,12 +17,14 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
     roundTrip(ParentChildMapping(
       _id = id,
       parent = parentId,
-      child = childId
+      child = Some(childId),
+      childPath = "/a/path/to/child"
     ),
       """{
         |"_id": {"$binary": "j1pofHmjEeqFWM9IZFxYSQ==", "$type": "04"},
         |"parent": {"$oid": "5d970056b3e8083540798f90"},
-        |"child": {"$oid": "5d970056b3e8083540798f94"}
+        |"child": {"$oid": "5d970056b3e8083540798f94"},
+        |"childPath": "a/path/to/child"
         |}""".stripMargin, classOf[ParentChildMapping])
   }
 
