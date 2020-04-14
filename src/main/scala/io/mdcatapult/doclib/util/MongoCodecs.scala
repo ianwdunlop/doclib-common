@@ -64,6 +64,7 @@ object MongoCodecs {
       classOf[NerMsg],
       classOf[SupervisorMsg],
       classOf[DoclibFlagState],
+      classOf[ParentChildMapping]
     ),
     fromCodecs(
       new LemonLabsAbsoluteUrlCodec,
