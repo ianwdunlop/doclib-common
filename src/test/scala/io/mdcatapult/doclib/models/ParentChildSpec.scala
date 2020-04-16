@@ -21,14 +21,16 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
       parent = parentId,
       child = Some(childId),
       childPath = "/a/path/to/child",
-      metadata = Some(metadataMap)
+      metadata = Some(metadataMap),
+      consumer = Some("consumer")
     ),
       """{
         |"_id": {"$binary": "j1pofHmjEeqFWM9IZFxYSQ==", "$type": "04"},
         |"parent": {"$oid": "5d970056b3e8083540798f90"},
         |"child": {"$oid": "5d970056b3e8083540798f94"},
         |"childPath": "/a/path/to/child",
-        |"metadata": [{"key": "doi", "value": "10.1101/327015"}, {"key": "a-value", "value": 10}]
+        |"metadata": [{"key": "doi", "value": "10.1101/327015"}, {"key": "a-value", "value": 10}],
+        |"consumer": "consumer"
         |}""".stripMargin, classOf[ParentChildMapping])
   }
 

@@ -51,7 +51,7 @@ class ParentChildIntegrationTest  extends AnyFlatSpec with Matchers with BeforeA
 
   "A parent child record" can "be stored" in {
     val metadataMap = List(MetaString("doi", "10.1101/327015"), MetaInt("a-value", 10))
-    val parentChild = ParentChildMapping(_id = UUID.randomUUID, parent = new ObjectId, child = Some(new ObjectId), childPath = "/a/path/to/child", metadata = Some(metadataMap))
+    val parentChild = ParentChildMapping(_id = UUID.randomUUID, parent = new ObjectId, child = Some(new ObjectId), childPath = "/a/path/to/child", metadata = Some(metadataMap), consumer = Some("consumer"))
     val doc = for {
       _ <- collection.insertOne(parentChild).toFuture()
       found <- collection.find(Mequal("_id", parentChild._id)).toFuture()
@@ -62,6 +62,7 @@ class ParentChildIntegrationTest  extends AnyFlatSpec with Matchers with BeforeA
       assert(d.head.parent == parentChild.parent)
       assert(d.head.childPath == parentChild.childPath)
       assert(d.head.metadata == parentChild.metadata)
+      assert(d.head.consumer == parentChild.consumer)
     }}
   }
 
