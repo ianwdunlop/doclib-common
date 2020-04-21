@@ -3,15 +3,11 @@ package io.mdcatapult.doclib.models.ner
 import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
-import io.mdcatapult.doclib.util.MongoCodecs
-import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class SchemaSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
-
-  val registry: CodecRegistry = MongoCodecs.get
 
   "Model" can "be encoded and decoded successfully to BSON" in {
     roundTrip(Schema(

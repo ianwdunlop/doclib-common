@@ -76,7 +76,7 @@ class NerOccurrencesIntegrationTest  extends AnyFlatSpec with Matchers with Befo
     whenReady(read) { doc =>
       doc.headOption.get._id should be(occurrence._id)
       doc.headOption.get.nerDocument should be(occurrence.nerDocument)
-      doc.headOption.get.`type` should be("document")
+      doc.headOption.get.`type` should be("fragment")
     }
   }
 
