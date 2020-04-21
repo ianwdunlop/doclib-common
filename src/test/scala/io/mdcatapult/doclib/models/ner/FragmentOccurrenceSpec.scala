@@ -1,31 +1,24 @@
 package io.mdcatapult.doclib.models.ner
 
-import java.util.UUID
-
 import io.mdcatapult.doclib.models.BsonCodecCompatible
-import io.mdcatapult.doclib.util.MongoCodecs
-import org.bson.codecs.configuration.CodecRegistry
+import io.mdcatapult.doclib.models.ner.Fixture._
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class FragmentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
 
-  val registry: CodecRegistry = MongoCodecs.get
-
   "Model" can "be encoded and decoded successfully to BSON" in {
-    val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     roundTrip(Occurrence(
       _id = uuid,
-      nerDocument = docUUID,
+      nerDocument = docUuid,
       characterStart = 1,
       characterEnd = 2,
       wordIndex = Some(3)
     ),
-      """{
-        |"_id": {"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"},
-        |"nerDocument": {"$binary": "YAApuszqTkaepX9UmWlU3Q==", "$type": "04"},
+      s"""{
+        |"_id": $uuidMongoBinary,
+        |"nerDocument": $docUuidMongoBinary,
         |"characterStart": 1,
         |"characterEnd": 2,
         |"wordIndex": 3,
@@ -36,28 +29,24 @@ class FragmentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
   }
 
   it can "give old known hash for same document occurrence" in {
-    val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     val doc = Occurrence(
       _id = uuid,
-      nerDocument = docUUID,
+      nerDocument = docUuid,
       characterStart = 12,
       characterEnd = 15,
       wordIndex = Some(10),
-      fragment = Option(UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")),
+      fragment = Option(fragmentUuid),
       correctedValue = Option("fixed!"),
       correctedValueHash = Option("5e185e300268642a0fcbc964")
     )
 
-    assert(Occurrence.md5(Seq(doc)) == "ff4a8df3bfbd5c44a102603101393651")
+    assert(Occurrence.md5(Seq(doc)) == "c1848b55947e5cca0197c5a7295b36c5")
   }
 
   it can "give old known hash for same document occurrence with optionals are None" in {
-    val uuid = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-    val docUUID = UUID.fromString("600029ba-ccea-4e46-9ea5-7f54996954dd")
     val doc = Occurrence(
       _id = uuid,
-      nerDocument = docUUID,
+      nerDocument = docUuid,
       characterStart = 12,
       characterEnd = 15,
       wordIndex = Some(10),
