@@ -43,7 +43,12 @@ object Occurrence {
             correctedValueHash: Option[String] = None,
             wordIndex: Option[Int] = None
           ): Occurrence = {
-    val docType = wordIndex.map(_ => "fragment").getOrElse("document")
+    val docType =
+      if (fragment.isDefined || wordIndex.isDefined)
+        "fragment"
+      else
+        "document"
+
     this(_id, nerDocument, characterStart, characterEnd,fragment, correctedValue, correctedValueHash, wordIndex, docType)
   }
 
