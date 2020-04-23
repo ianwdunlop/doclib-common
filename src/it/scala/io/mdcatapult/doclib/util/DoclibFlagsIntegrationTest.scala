@@ -149,7 +149,8 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           hash = "1234567890"),
         started = current,
         ended = Some(current),
-        errored = Some(current)
+        errored = Some(current),
+        state = Some(DoclibFlagState(value = "12345", updated = current))
       )
     )
   )
@@ -428,13 +429,18 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     val doc = Await.result(collection.find(Mequal("_id", resetDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
-    assert(doc.doclib.filter(_.key == "test").head.reset.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.started != null)
-    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.ended != null)
-    assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
-    assert(doc.doclib.filter(_.key == "test").head.errored != null)
-    assert(doc.doclib.filter(_.key == "test").head.errored.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+
+    val flag = doc.doclib.filter(_.key == "test").head
+    val t = current.toEpochSecond(ZoneOffset.UTC)
+
+    assert(flag.reset.get.toEpochSecond(ZoneOffset.UTC) >= t)
+    assert(flag.started != null)
+    assert(flag.started.toEpochSecond(ZoneOffset.UTC) == t)
+    assert(flag.ended != null)
+    assert(flag.ended.get.toEpochSecond(ZoneOffset.UTC) == t)
+    assert(flag.errored != null)
+    assert(flag.errored.get.toEpochSecond(ZoneOffset.UTC) == t)
+    flag.state should be (None)
   }
 
   "Ending a flag" should "clear the reset timestamp" in {
