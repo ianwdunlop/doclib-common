@@ -4,7 +4,6 @@ import java.util.UUID
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -28,6 +27,6 @@ class TextFragmentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatibl
         |"startAt": 2,
         |"endAt": 3,
         |"length": 1,
-        |}""".stripMargin, classOf[TextFragment])
+        |}""".stripMargin)
   }
 }

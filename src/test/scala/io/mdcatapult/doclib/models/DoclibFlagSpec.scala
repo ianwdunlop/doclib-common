@@ -2,7 +2,6 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -33,7 +32,7 @@ class DoclibFlagSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible 
         |"reset": {"$date": 1569931200000},
         |"state": {"value": "12345", "updated": {"$date": 1569931200000}},
         |"summary": "errored"
-        |}""".stripMargin, classOf[DoclibFlag])
+        |}""".stripMargin)
 
   }
 
