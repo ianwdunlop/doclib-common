@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
 import org.bson.types.ObjectId
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -35,7 +34,7 @@ class DoclibDocSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
         |"origin": null,
         |"metadata": null,
         |"uuid": null
-        |}""".stripMargin, classOf[DoclibDoc])
+        |}""".stripMargin)
   }
 
   "String metadata can be added to DoclibDoc and" should "be able to be decoded" in {

@@ -1,13 +1,11 @@
 package io.mdcatapult.doclib.util
 
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.klein.mongo.Mongo
-import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
@@ -15,14 +13,12 @@ import org.mongodb.scala.model.Updates.combine
 import org.scalatest.BeforeAndAfter
 import org.scalatest.OptionValues._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -35,13 +31,10 @@ class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndA
       |}
     """.stripMargin).withFallback(ConfigFactory.load())
 
-  val coreCodecs: CodecRegistry = MongoCodecs.get
-  implicit val codecs: CodecRegistry = fromRegistries(fromCodecs(new NullWritableLocalDateTime(coreCodecs)), coreCodecs)
-
   implicit val mongo: Mongo = new Mongo()
 
   implicit val collection: MongoCollection[DoclibDoc] =
-    mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibdoc")
+    mongo.database.getCollection(collectionName(suffix = "doclibdoc"))
 
   val created: LocalDateTime = nowUtc.now()
 
@@ -57,7 +50,7 @@ class DoclibDocIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndA
       mimetype =  "text/plain",
       created =  created,
       updated =  created,
-      uuid = Option(UUID.randomUUID())
+      uuid = Option(randomUUID())
     )
 
     val written = collection.insertOne(newDoc).toFutureOption()
