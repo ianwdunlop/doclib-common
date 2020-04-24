@@ -10,7 +10,7 @@ import org.bson.UuidRepresentation
 import org.bson.codecs.UuidCodec
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
 
 object MongoCodecs {
@@ -32,6 +32,9 @@ object MongoCodecs {
       )
     else
       get
+
+  def includeProvider(codec: CodecProvider): CodecRegistry =
+    include(Seq(codec))
 
   /** Mongo Codecs with the default set of codecs for case classes defined within doclib-common.
     *

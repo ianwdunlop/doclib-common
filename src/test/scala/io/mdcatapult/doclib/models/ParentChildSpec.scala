@@ -4,7 +4,6 @@ import java.util.UUID
 
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
 import org.bson.types.ObjectId
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -31,7 +30,7 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
         |"childPath": "/a/path/to/child",
         |"metadata": [{"key": "doi", "value": "10.1101/327015"}, {"key": "a-value", "value": 10}],
         |"consumer": "consumer"
-        |}""".stripMargin, classOf[ParentChildMapping])
+        |}""".stripMargin)
   }
 
 }

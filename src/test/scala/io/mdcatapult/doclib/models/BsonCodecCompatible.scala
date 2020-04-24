@@ -4,20 +4,19 @@ import java.nio.ByteBuffer
 
 import io.mdcatapult.doclib.util.MongoCodecs
 import org.bson._
-import org.bson.codecs.configuration.CodecProvider
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.io.{BasicOutputBuffer, ByteBufferBsonInput, OutputBuffer}
-import org.mongodb.scala.bson.codecs._
 import org.mongodb.scala.bson.collection.immutable.Document
 
 import scala.reflect.ClassTag
 
 trait BsonCodecCompatible {
 
-  val documentCodec: Codec[Document] = DEFAULT_CODEC_REGISTRY.get(classOf[Document])
+  private val registry = MongoCodecs.get
 
-  def roundTrip[T](value: T, expected: String, provider: CodecProvider, providers: CodecProvider*)(implicit ct: ClassTag[T]): Unit = {
-    val registry = MongoCodecs.get
+  private val documentCodec: Codec[Document] = registry.get(classOf[Document])
+
+  def roundTrip[T](value: T, expected: String)(implicit ct: ClassTag[T]): Unit = {
     val codec = registry.get(ct.runtimeClass).asInstanceOf[Codec[T]]
     roundTripCodec(value, Document(expected), codec)
   }

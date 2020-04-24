@@ -3,15 +3,10 @@ package io.mdcatapult.doclib.models.metadata
 import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
-import io.mdcatapult.doclib.util.MongoCodecs
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class MetaDateTimeSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
-
-  val registry: CodecRegistry = MongoCodecs.get
 
   "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(MetaDateTime(
@@ -21,6 +16,6 @@ class MetaDateTimeSpec extends AnyFlatSpec with Matchers with BsonCodecCompatibl
       """{
         |  "key": "key",
         |  "value": {"$date": 1569931200000}
-        |}""".stripMargin, classOf[MetaDateTime])
+        |}""".stripMargin)
   }
 }

@@ -3,7 +3,6 @@ package io.mdcatapult.doclib.models.ner
 import java.time.LocalDateTime
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -22,6 +21,6 @@ class SchemaSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
         |"tool": "toolValue",
         |"config": "configValue",
         |"version": "versionValue",
-        |"lastRun": {"$date": 1569931200000}}""".stripMargin, classOf[Schema])
+        |"lastRun": {"$date": 1569931200000}}""".stripMargin)
   }
 }
