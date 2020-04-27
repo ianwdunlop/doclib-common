@@ -58,7 +58,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     hash = "0123456789",
     mimetype =  "text/plain",
     created =  current,
-    updated =  current,
+    updated =  current
   )
 
   val startedDoc: DoclibDoc = newDoc.copy(
@@ -72,7 +72,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
         minor = 0,
         patch = 1,
         hash = "1234567890"),
-      started = current,
+      started = Some(current),
       summary = Some("started")
     ))
   )
@@ -89,7 +89,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current
+        started = Some(current)
       ),
       DoclibFlag(
         key = "test",
@@ -109,7 +109,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 1,
           hash = "1234567891"),
-        started = later,
+        started = Some(later),
         state = Some(DoclibFlagState(value = "12345", updated = current))
       ),
       DoclibFlag(
@@ -120,7 +120,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = earlier
+        started = Some(earlier)
       ),
       DoclibFlag(
         key = "keep",
@@ -130,7 +130,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current
+        started = Some(current)
       )
     )
   )
@@ -147,7 +147,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current,
+        started = Some(current),
         ended = Some(current),
         errored = Some(current),
         state = Some(DoclibFlagState(value = "12345", updated = current))
@@ -167,7 +167,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = current,
+        started = Some(current),
         reset = Some(current)
       )
     )
@@ -184,9 +184,35 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
   val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.started.isAfter(current))
+      assert(doc.doclib.head.started.get.isAfter(current))
       assert(doc.doclib.head.summary.contains("started"))
 
+  }
+
+  "A queued document" should "have queued true" in {
+    val result = Await.result(flags.queue(newDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.queued)
+    assert(doc.doclib.head.started == None)
+  }
+
+  "A previously queued document" should "not be requeued" in {
+    val result = Await.result(flags.queue(newDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+    val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.queued)
+    assert(doc.doclib.head.started == None)
+    // Doc is now queued so should not be done again ie. the request does not result in a mongo update
+    val requeue = Await.result(flags.queue(doc), 5.seconds)
+    assert(requeue == None)
+    val requeueDoc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
+    assert(requeueDoc.doclib.size == 1)
+    assert(requeueDoc.doclib.head.queued)
+    assert(requeueDoc.doclib.head.started == None)
   }
 
   "A new document" can "be started " in {
@@ -198,6 +224,15 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     assert(doc.doclib.head.summary.contains("started"))
     }
 
+  "A started document" should "be queued " in {
+    val result = Await.result(flags.start(newDoc), 5.seconds).get
+    assert(result.getModifiedCount == 1)
+
+    val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.queued)
+  }
+
   it should "end cleanly" in {
 
     val result = Await.result(flags.end(startedDoc), 5.seconds).get
@@ -205,7 +240,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.ended.isDefined)
-      assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started))
+      assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started.get))
 
   }
 
@@ -223,7 +258,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
       flags should have length 1
 
       val flag = flags.head
-      flag.ended.value should be >= flag.started
+      flag.ended.value should be >= flag.started.get
     }}
   }
 
@@ -245,7 +280,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
       val flag = flags.head
       assert(flag.ended.isDefined)
-      assert(flag.ended.get.isAfter(flag.started))
+      assert(flag.ended.get.isAfter(flag.started.get))
     }}
   }
 
@@ -264,7 +299,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
       val flag = flags.head
       assert(flag.ended.isDefined)
-      assert(flag.ended.get.isAfter(flag.started))
+      assert(flag.ended.get.isAfter(flag.started.get))
     }}
   }
 
@@ -283,7 +318,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
       flags should have length 1
 
       val flag = flags.head
-      flag.ended.value should be >= flag.started
+      flag.ended.value should be >= flag.started.get
     }}
   }
 
@@ -295,7 +330,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
       assert(doc.doclib.size == 1)
       assert(doc.doclib.head.errored.isDefined)
       assert(doc.doclib.head.summary.contains("errored"))
-      assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started))
+      assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started.get))
   }
 
   "A 'new' document" should "start successfully" in {
@@ -344,7 +379,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      doc.doclib.filter(_.key == "test").head.started.truncatedTo(MILLIS) should be >= time
+      doc.doclib.filter(_.key == "test").head.started.get.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
   }
 
@@ -356,7 +391,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
       assert(doc.doclib.size == 2)
-      doc.doclib.filter(_.key == "test").head.started.truncatedTo(MILLIS) should be >= time
+      doc.doclib.filter(_.key == "test").head.started.get.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
   }
 
@@ -369,7 +404,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
       assert(doc.doclib.size == 2)
 
       val testFlag = doc.doclib.filter(_.key == "test").head
-      testFlag.started.truncatedTo(MILLIS) should be (later.truncatedTo(MILLIS))
+      testFlag.started.get.truncatedTo(MILLIS) should be (later.truncatedTo(MILLIS))
       testFlag.errored.value.truncatedTo(MILLIS) should be >= time
 
       assert(doc.doclib.exists(_.key == "keep"))
@@ -435,7 +470,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
 
     assert(flag.reset.get.toEpochSecond(ZoneOffset.UTC) >= t)
     assert(flag.started != null)
-    assert(flag.started.toEpochSecond(ZoneOffset.UTC) == t)
+    assert(flag.started.get.toEpochSecond(ZoneOffset.UTC) == t)
     assert(flag.ended != null)
     assert(flag.ended.get.toEpochSecond(ZoneOffset.UTC) == t)
     assert(flag.errored != null)
@@ -459,7 +494,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     doc.doclib.filter(_.key == "test").head.started should not be None
     doc.doclib.filter(_.key == "test").head.summary should contain ("ended")
 
-    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.started.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
   "Erroring a flag" should "clear the reset timestamp" in {
@@ -478,7 +513,7 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
     doc.doclib.filter(_.key == "test").head.started should not be None
     doc.doclib.filter(_.key == "test").head.summary should contain ("errored")
 
-    assert(doc.doclib.filter(_.key == "test").head.started.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
+    assert(doc.doclib.filter(_.key == "test").head.started.get.toEpochSecond(ZoneOffset.UTC) == current.toEpochSecond(ZoneOffset.UTC))
   }
 
   "The reset flag" should "be reset when ending and state is provided" in {

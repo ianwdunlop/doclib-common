@@ -35,6 +35,7 @@ class NullWritableLocalDateTime(codecs: CodecRegistry) extends Codec[DoclibFlag]
       writer.writeNull("started")
       writeOptionLocalDateTime(writer, "ended", value.ended, encoderContext)
       writeOptionLocalDateTime(writer, "errored", value.errored, encoderContext)
+      writer.writeBoolean("queued", value.queued)
       writer.writeEndDocument()
     }
   }

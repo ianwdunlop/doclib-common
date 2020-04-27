@@ -27,11 +27,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
   protected val flagReset = s"$flags.$$.reset"
   protected val flagState = s"$flags.$$.state"
   protected val flagSummary = s"$flags.$$.summary"
+  protected val flagQueued = s"$flags.$$.queued"
 
 
   protected def getVersion(ver: Config): ConsumerVersion = ConsumerVersion(
     number = ver.getString("number"),
-    major =  ver.getInt("major"),
+    major = ver.getInt("major"),
     minor = ver.getInt("minor"),
     patch = ver.getInt("patch"),
     hash = ver.getString("hash"))
@@ -41,11 +42,12 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
       .map(_.toList.flatMap(_.doclib).filter(_.key == key))
 
   /**
-   * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
-   * retains that while removing flags with older started timestamps
-   * @param doc DoclibDoc
-   * @return
-   */
+    * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
+    * retains that while removing flags with older started timestamps
+    *
+    * @param doc DoclibDoc
+    * @return
+    */
   def deDuplicate(doc: DoclibDoc): Future[Option[UpdateResult]] = {
 
     import ImplicitOrdering.localDateOrdering
@@ -60,7 +62,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
               equal("doclib",
                 combine(
                   equal("key", key),
-                  in("started", old.map(_.started):_*)
+                  in("started", old.map(_.started.getOrElse(null)): _*)
                 )
               )
             ))).toFutureOption()
@@ -74,6 +76,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     * the document to start, assumes that if flag is present in DoclibDoc requires restart
     * ensures only one flag exists be making sure the update conditionally checks flagKey is not already present to
     * eliminate race condition for multiple instances of the same document being in flight
+    *
     * @param doc DoclibDoc
     * @return
     */
@@ -86,16 +89,55 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
         result <- collection.updateOne(
           combine(
             equal("_id", doc._id),
-            nin(flagKey,List(key))),
+            nin(flagKey, List(key))),
           combine(push(flags, DoclibFlag(
             key = key,
             version = getVersion(config.getConfig("version")),
-            started = time.now(),
-            summary = Some("started")
+            started = Some(time.now()),
+            summary = Some("started"),
+            queued = true
           )))
         ).toFutureOption()
       } yield result
     }
+
+  /**
+    * If doc is not currently queued then set queued to true otherwise do nothing.
+    * @param doc
+    * @return
+    */
+  def queue(doc: DoclibDoc): Future[Option[UpdateResult]] =
+    if (doc.hasFlag(key)) {
+        for {
+          _ <- deDuplicate(doc)
+          result <- if (!doc.getFlag(key).head.queued) {
+            collection.updateOne(
+              and(
+                equal("_id", doc._id),
+                equal(flagKey, key)),
+              combine(
+                set(flagQueued, true)
+              )
+            ).toFutureOption()
+          } else Future.successful(None)
+        } yield result
+    } else {
+      for {
+        _ <- deDuplicate(doc)
+        result <- collection.updateOne(
+          combine(
+            equal("_id", doc._id),
+            nin(flagKey, List(key))),
+          combine(push(flags, DoclibFlag(
+            key = key,
+            // version not optional but doesn't really matter since it gets set on start, end etc.
+            version = getVersion(config.getConfig("version")),
+            queued = true
+          )))
+        ).toFutureOption()
+      } yield result
+    }
+
 
 
   /**
@@ -116,7 +158,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             currentDate(flagStarted),
             set(flagVersion, getVersion(config.getConfig("version"))),
             set(flagEnded, BsonNull()),
-            set(flagErrored, BsonNull())
+            set(flagErrored, BsonNull()),
+            set(flagQueued, true)
           )
         ).toFutureOption()
       } yield result
@@ -142,7 +185,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           combine(
             set(flagReset, BsonNull()),
             set(flagSummary, "ended"),
-            getStateUpdate(state)
+            getStateUpdate(state),
+            set(flagQueued, false)
           )
         ).toFutureOption()
       } yield result
@@ -168,7 +212,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           set(flagEnded, BsonNull()),
           set(flagReset, BsonNull()),
           set(flagSummary, "errored"),
-          currentDate(flagErrored)
+          currentDate(flagErrored),
+          set(flagQueued, false)
         )).toFutureOption()
       } yield result
     } else Future.failed(new NotStarted("error", doc))
@@ -190,7 +235,8 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
           combine(
             currentDate(flagReset),
             set(flagState, None.orNull),
-            set(flagVersion, getVersion(config.getConfig("version")))
+            set(flagVersion, getVersion(config.getConfig("version"))),
+            set(flagQueued, false)
           )
         ).toFutureOption()
       } yield result
