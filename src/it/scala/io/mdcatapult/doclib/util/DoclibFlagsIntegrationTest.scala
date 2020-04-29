@@ -8,8 +8,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import io.mdcatapult.doclib.util.ImplicitOrdering.localDateOrdering
 import io.mdcatapult.klein.mongo.Mongo
-import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
@@ -17,15 +15,13 @@ import org.mongodb.scala.model.Updates._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.OptionValues._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
     """
@@ -38,13 +34,10 @@ class DoclibFlagsIntegrationTest extends AnyFlatSpec with Matchers with BeforeAn
       |}
     """.stripMargin).withFallback(ConfigFactory.load())
 
-  val coreCodecs: CodecRegistry = MongoCodecs.get
-  implicit val codecs: CodecRegistry = fromRegistries(fromCodecs(new NullWritableLocalDateTime(coreCodecs)), coreCodecs)
-
   implicit val mongo: Mongo = new Mongo()
 
   implicit val collection: MongoCollection[DoclibDoc] =
-    mongo.database.getCollection(s"${config.getString("mongo.collection")}_doclibflags")
+    mongo.database.getCollection(collectionName(suffix = "doclibflags"))
 
   val current: LocalDateTime = nowUtc.now()
   val earlier: LocalDateTime = current.minusHours(1)

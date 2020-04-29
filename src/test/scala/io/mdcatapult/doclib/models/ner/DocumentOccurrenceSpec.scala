@@ -1,10 +1,9 @@
 package io.mdcatapult.doclib.models.ner
 
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.models.ner.Fixture._
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -27,7 +26,7 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
         |"correctedValueHash": null,
         |"wordIndex": null,
         |"type": "document"
-        |}""".stripMargin, classOf[Occurrence])
+        |}""".stripMargin)
   }
 
   it can "give old known hash for same document occurrence" in {
@@ -59,22 +58,22 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
   }
 
   "Occurrences with different _ids for the same value and ner doc" should "have the same md5" in {
-    val nerID = UUID.randomUUID()
+    val nerID = randomUUID()
     val occurrences = List[Occurrence](
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115416768,
         characterEnd = 115416777
       ),
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115424728,
         characterEnd = 115424737
       ),
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115379372,
         characterEnd = 115379381
@@ -82,19 +81,19 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
     )
     val occurrencesNew = List[Occurrence](
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115416768,
         characterEnd = 115416777
       ),
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115424728,
         characterEnd = 115424737
       ),
       Occurrence(
-        _id = UUID.randomUUID,
+        _id = randomUUID(),
         nerDocument = nerID,
         characterStart = 115379372,
         characterEnd = 115379381

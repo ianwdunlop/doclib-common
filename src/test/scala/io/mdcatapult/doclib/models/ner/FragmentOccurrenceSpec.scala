@@ -2,7 +2,6 @@ package io.mdcatapult.doclib.models.ner
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.models.ner.Fixture._
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -25,7 +24,7 @@ class FragmentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
         |"fragment": null,
         |"correctedValue": null,
         |"correctedValueHash": null,
-        |"type": "fragment"}""".stripMargin, classOf[Occurrence])
+        |"type": "fragment"}""".stripMargin)
   }
 
   it can "give old known hash for same document occurrence" in {

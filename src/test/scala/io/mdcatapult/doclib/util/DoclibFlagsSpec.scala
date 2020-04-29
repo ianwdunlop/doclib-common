@@ -27,7 +27,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   private val later: LocalDateTime = created.plusHours(1)
 
   val newDoc: DoclibDoc = DoclibDoc(
-    _id = new ObjectId,
+    _id = new ObjectId(),
     source = "/path/to/file.txt",
     hash = "0123456789",
     mimetype =  "text/plain",

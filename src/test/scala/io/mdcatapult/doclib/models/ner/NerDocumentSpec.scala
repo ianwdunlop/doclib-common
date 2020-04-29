@@ -3,7 +3,6 @@ package io.mdcatapult.doclib.models.ner
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.models.ner.Fixture._
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -29,6 +28,6 @@ class NerDocumentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
         |"entityGroup": "entity-group",
         |"resolvedEntity": "resolved-entity",
         |"resolvedEntityHash": "resolved-entity-hash",
-        |"schema": null}""".stripMargin, classOf[NerDocument])
+        |"schema": null}""".stripMargin)
   }
 }

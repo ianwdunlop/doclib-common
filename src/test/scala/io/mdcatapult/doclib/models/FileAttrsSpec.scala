@@ -2,15 +2,10 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
-import io.mdcatapult.doclib.util.MongoCodecs
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class FileAttrsSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
-
-  val registry: CodecRegistry = MongoCodecs.get
 
   "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(FileAttrs(
@@ -28,7 +23,7 @@ class FileAttrsSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
         |"ctime": {"$date": 1569931200000},
         |"atime": {"$date": 1569931200000},
         |"size": {"$numberLong": "123456"}
-        |}""".stripMargin, classOf[FileAttrs])
+        |}""".stripMargin)
 
   }
 

@@ -56,7 +56,7 @@ lazy val root = (project in file(".")).
       "org.typelevel" %% "cats-core"                  % catsVersion,
       "io.lemonlabs" %% "scala-uri"                   % "2.2.0",
       "io.mdcatapult.klein" %% "queue"                % "0.0.20",
-      "io.mdcatapult.klein" %% "mongo"                % "0.0.13",
+      "io.mdcatapult.klein" %% "mongo"                % "0.0.14",
       "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
       "org.apache.tika" % "tika-core"                 % tikaVersion,
       "org.apache.tika" % "tika-parsers"              % tikaVersion,
