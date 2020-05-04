@@ -173,12 +173,13 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
   "A 'started' document" should "be restarted successfully" in {
     val result = Await.result(flags.start(startedDoc), 5.seconds).get
-      assert(result.getModifiedCount == 1)
+    assert(result.getModifiedCount == 1)
 
-  val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.started.get.isAfter(current))
-      assert(doc.doclib.head.summary.contains("started"))
+    val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.started.get.isAfter(current))
+    assert(doc.doclib.head.summary.contains("started"))
+    assert(doc.doclib.head.queued)
 
   }
 
@@ -231,10 +232,10 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     val result = Await.result(flags.end(startedDoc), 5.seconds).get
     assert(result.getModifiedCount == 1)
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.ended.isDefined)
-      assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started.get))
-
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.ended.isDefined)
+    assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started.get))
+    assert(!doc.doclib.head.queued)
   }
 
   it should "start and end cleanly" in {
@@ -252,6 +253,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
       val flag = flags.head
       flag.ended.value should be >= flag.started.get
+      assert (!flag.queued)
     }}
   }
 
@@ -312,6 +314,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
       val flag = flags.head
       flag.ended.value should be >= flag.started.get
+      assert(!flag.queued)
     }}
   }
 
@@ -320,10 +323,11 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(result.getModifiedCount == 1)
 
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 1)
-      assert(doc.doclib.head.errored.isDefined)
-      assert(doc.doclib.head.summary.contains("errored"))
-      assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started.get))
+    assert(doc.doclib.size == 1)
+    assert(doc.doclib.head.errored.isDefined)
+    assert(doc.doclib.head.summary.contains("errored"))
+    assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started.get))
+    assert(!doc.doclib.head.queued)
   }
 
   "A 'new' document" should "start successfully" in {
@@ -468,6 +472,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(flag.ended.get.toEpochSecond(ZoneOffset.UTC) == t)
     assert(flag.errored != null)
     assert(flag.errored.get.toEpochSecond(ZoneOffset.UTC) == t)
+    assert(!flag.queued)
     flag.state should be (None)
   }
 
