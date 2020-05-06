@@ -35,7 +35,7 @@ case class DoclibDocExtractor(defaultFlagKey: String, recentRunTolerance: Tempor
     val key = flagKey.getOrElse(defaultFlagKey)
 
     d.getFlag(key).exists(
-      _.started.get.plus(recentRunTolerance).isAfter(time.now())
+      _.started.exists { _.plus(recentRunTolerance).isAfter(time.now()) }
     )
   }
 }
