@@ -220,7 +220,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
 
   /**
     * Set the started and restart timestamp to the current time. Clear the
-    * ended and errored timestamps.
+    * ended and errored timestamps. Set queued to true.
     * @param doc the document to restart
     * @return
     */
