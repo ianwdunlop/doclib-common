@@ -236,7 +236,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             currentDate(flagReset),
             set(flagState, None.orNull),
             set(flagVersion, getVersion(config.getConfig("version"))),
-            set(flagQueued, false)
+            set(flagQueued, true)
           )
         ).toFutureOption()
       } yield result

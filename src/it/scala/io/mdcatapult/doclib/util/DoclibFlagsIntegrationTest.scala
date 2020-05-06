@@ -472,7 +472,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(flag.ended.get.toEpochSecond(ZoneOffset.UTC) == t)
     assert(flag.errored != null)
     assert(flag.errored.get.toEpochSecond(ZoneOffset.UTC) == t)
-    assert(!flag.queued)
+    assert(flag.queued)
     flag.state should be (None)
   }
 
