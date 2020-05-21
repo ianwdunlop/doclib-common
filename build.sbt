@@ -1,5 +1,4 @@
-lazy val scala_2_13 = "2.13.1"
-lazy val scala_2_12 = "2.12.10"
+lazy val scala_2_13 = "2.13.2"
 
 lazy val configVersion = "1.3.2"
 lazy val catsVersion = "2.1.0"
@@ -20,7 +19,7 @@ lazy val root = (project in file(".")).
     scalaVersion      := scala_2_13,
     coverageEnabled   := false,
     useCoursier   := false,
-    crossScalaVersions  := scala_2_13 :: scala_2_12 :: Nil,
+    crossScalaVersions  := scala_2_13 :: Nil,
     scalacOptions ++= Seq(
       "-encoding", "utf-8",
       "-unchecked",
@@ -28,7 +27,7 @@ lazy val root = (project in file(".")).
       "-explaintypes",
       "-feature",
       "-Xlint",
-      // "-Xfatal-warnings",  2.13 compatibility library necessarily brings in unused dependency in Scala 2.13
+      "-Xfatal-warnings",
     ),
     resolvers         ++= Seq(
       "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
