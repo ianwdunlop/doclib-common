@@ -44,7 +44,8 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
         minor = 0,
         patch = 1,
         hash = "1234567890"),
-      started = created
+      started = Some(created),
+      queued = true
     ))
   )
 
@@ -58,7 +59,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = created
+        started = Some(created)
       ),
       DoclibFlag(
         key = "test",
@@ -68,7 +69,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 1,
           hash = "1234567891"),
-        started = later
+        started = Some(later)
       ),
       DoclibFlag(
         key = "test",
@@ -78,7 +79,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 2,
           hash = "1234567890"),
-        started = earlier
+        started = Some(earlier)
       )
     )
   )
@@ -91,7 +92,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   it should "get a valid flag" in {
     val flag = startedDoc.getFlag("test")
     assert(flag.length == 1)
-    assert(flag.head.started == created)
+    assert(flag.head.started.get == created)
   }
 
   it should "fail to get an invalid flag" in {
@@ -109,7 +110,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
           minor = 0,
           patch = 1,
           hash = "1234567890"),
-        started = created,
+        started = Some(created),
         state = Some(DoclibFlagState(value = "12345", updated = created))
       ))
     )
@@ -128,7 +129,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
             minor = 0,
             patch = 2,
             hash = "1234567890"),
-          started = created,
+          started = Some(created),
           reset = Some(created)
         )
       )
@@ -147,12 +148,16 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
             minor = 0,
             patch = 2,
             hash = "1234567890"),
-          started = created,
+          started = Some(created),
           summary = Some("started")
         )
       )
     )
     assert(resetDoc.getFlag("test").head.summary.get == "started")
+  }
+
+  "A queued flag" should "return true when testing for queued" in {
+    assert(startedDoc.getFlag("test").head.queued)
   }
 
 }

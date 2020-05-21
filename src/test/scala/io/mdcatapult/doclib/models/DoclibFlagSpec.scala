@@ -16,7 +16,7 @@ class DoclibFlagSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible 
         minor = 0,
         patch = 0,
         hash = "01234567890"),
-      started = LocalDateTime.parse("2019-10-01T12:00:00"),
+      started = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
       ended = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
       errored = Some(LocalDateTime.parse("2019-10-01T12:00:00")),
       summary = Some("errored"),
@@ -31,7 +31,8 @@ class DoclibFlagSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible 
         |"errored": {"$date": 1569931200000},
         |"reset": {"$date": 1569931200000},
         |"state": {"value": "12345", "updated": {"$date": 1569931200000}},
-        |"summary": "errored"
+        |"summary": "errored",
+        |"queued": false
         |}""".stripMargin)
 
   }
