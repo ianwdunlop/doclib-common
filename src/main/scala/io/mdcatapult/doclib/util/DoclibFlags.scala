@@ -62,7 +62,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
               equal("doclib",
                 combine(
                   equal("key", key),
-                  in("started", old.map(_.started.getOrElse(null)): _*)
+                  in("started", old.map(_.started.orNull): _*)
                 )
               )
             ))).toFutureOption()
@@ -95,7 +95,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             version = getVersion(config.getConfig("version")),
             started = Some(time.now()),
             summary = Some("started"),
-            queued = true
+            queued = Some(true)
           )))
         ).toFutureOption()
       } yield result
@@ -103,14 +103,14 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
 
   /**
     * If doc is not currently queued then set queued to true otherwise do nothing.
-    * @param doc
+    * @param doc document that might be queued
     * @return
     */
   def queue(doc: DoclibDoc): Future[Option[UpdateResult]] =
     if (doc.hasFlag(key)) {
         for {
           _ <- deDuplicate(doc)
-          result <- if (!doc.getFlag(key).head.queued) {
+          result <- if (doc.getFlag(key).head.isNotQueued) {
             collection.updateOne(
               and(
                 equal("_id", doc._id),
@@ -132,7 +132,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
             key = key,
             // version not optional but doesn't really matter since it gets set on start, end etc.
             version = getVersion(config.getConfig("version")),
-            queued = true
+            queued = Some(true)
           )))
         ).toFutureOption()
       } yield result
