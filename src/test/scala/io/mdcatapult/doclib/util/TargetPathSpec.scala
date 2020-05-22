@@ -118,8 +118,33 @@ class TargetPathSpec extends AnyFlatSpec with Matchers {
     assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
   }
 
+
+  "A remote path " can "be converted to a remote ingress path" in {
+    val source = "remote/test.csv"
+    val target = targetPath.getTargetPath(source, config.getString("doclib.remote.temp-dir"))
+    assert(target == "remote-ingress/test.csv")
+  }
+
   "A deeply nested double derivatives local path " can "be converted to a equally nested single derivative archive path" in {
     val source = "local/derivatives/derivatives/path/to/a/file/somewhere/test.csv"
+    val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
+    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+  }
+
+  "A deeply nested remote path " can "be converted to a equally nested archive path" in {
+    val source = "remote/path/to/a/file/somewhere/test.csv"
+    val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
+    assert(target == "archive/path/to/a/file/somewhere/test.csv")
+  }
+
+  "A deeply nested derivatives remote path " can "be converted to a equally nested derivatives archive path" in {
+    val source = "remote/derivatives/path/to/a/file/somewhere/test.csv"
+    val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
+    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+  }
+
+  "A deeply nested double derivatives remote path " can "be converted to a equally nested single derivative archive path" in {
+    val source = "remote/derivatives/derivatives/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
     assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
   }

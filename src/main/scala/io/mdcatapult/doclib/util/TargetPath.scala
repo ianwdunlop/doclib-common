@@ -4,6 +4,8 @@ import java.nio.file.Paths
 
 import com.typesafe.config.Config
 
+import scala.annotation.tailrec
+
 trait TargetPath {
 
   val doclibConfig: Config
@@ -59,7 +61,7 @@ trait TargetPath {
 
   /**
     * Scrubs clean the start of a path in preparation to placing the path into a new doclib path directory.
-    * Removes all leading sequences of "local", "ingress" from the start of a path.
+    * Removes all leading sequences of "local", "remote", "ingress" from the start of a path.
     * Additionally it de-duplicates "derivatives" from the start.
     *
     * @param path to scrub repeated path entries from
@@ -70,17 +72,24 @@ trait TargetPath {
 
     val localTempDir = string("doclib.local.temp-dir")
     val localTargetDir = string("doclib.local.target-dir")
+    val remoteTargetDir = string("doclib.remote.target-dir")
     val d = string("doclib.derivative.target-dir")
 
     val ingressPath = s"^$localTempDir/?(.*)$$".r
     val localPath = s"^$localTargetDir/?(.*)$$".r
+    val remotePath = s"^$remoteTargetDir/?(.*)$$".r
     val doubleDerivatives = s"^$d/($d/.*)$$".r
 
-    path match {
-      case ingressPath(remainder) => scrub(remainder)
-      case localPath(remainder) => scrub(remainder)
-      case doubleDerivatives(remainder) => scrub(remainder)
-      case _ => path
-    }
+    @tailrec
+    def scrubStart(p: String): String =
+      p match {
+        case ingressPath(subPath) => scrubStart(subPath)
+        case localPath(subPath) => scrubStart(subPath)
+        case remotePath(subPath) => scrubStart(subPath)
+        case doubleDerivatives(subPath) => scrubStart(subPath)
+        case _ => p
+      }
+    
+    scrubStart(path)
   }
 }
