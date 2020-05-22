@@ -40,7 +40,7 @@ class MetaValueCodec extends Codec[MetaValueUntyped] {
     bsonReader.readEndDocument()
 
     if (key.isEmpty) {
-      throw new Exception("MetaValue  requires a key")
+      throw new Exception("MetaValue requires a key")
     }
 
     value match {

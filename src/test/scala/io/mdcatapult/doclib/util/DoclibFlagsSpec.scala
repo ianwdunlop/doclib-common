@@ -45,7 +45,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
         patch = 1,
         hash = "1234567890"),
       started = Some(created),
-      queued = true
+      queued = Some(true)
     ))
   )
 
@@ -157,7 +157,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   }
 
   "A queued flag" should "return true when testing for queued" in {
-    assert(startedDoc.getFlag("test").head.queued)
+    assert(startedDoc.getFlag("test").head.isQueued)
   }
 
 }

@@ -179,7 +179,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(doc.doclib.size == 1)
     assert(doc.doclib.head.started.get.isAfter(current))
     assert(doc.doclib.head.summary.contains("started"))
-    assert(doc.doclib.head.queued)
+    assert(doc.doclib.head.isQueued)
 
   }
 
@@ -189,8 +189,9 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.queued)
-    assert(doc.doclib.head.started == None)
+    assert(doc.doclib.head.isQueued)
+
+    doc.doclib.head.started should be (None)
   }
 
   "A previously queued document" should "not be requeued" in {
@@ -198,15 +199,17 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(result.getModifiedCount == 1)
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.queued)
-    assert(doc.doclib.head.started == None)
+    assert(doc.doclib.head.isQueued)
+    doc.doclib.head.started should be (None)
     // Doc is now queued so should not be done again ie. the request does not result in a mongo update
     val requeue = Await.result(flags.queue(doc), 5.seconds)
-    assert(requeue == None)
+    requeue should be (None)
+
     val requeueDoc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
     assert(requeueDoc.doclib.size == 1)
-    assert(requeueDoc.doclib.head.queued)
-    assert(requeueDoc.doclib.head.started == None)
+    assert(requeueDoc.doclib.head.isQueued)
+
+    requeueDoc.doclib.head.started should be (None)
   }
 
   "A new document" can "be started " in {
@@ -224,7 +227,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.queued)
+    assert(doc.doclib.head.isQueued)
   }
 
   it should "end cleanly" in {
@@ -235,7 +238,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(doc.doclib.size == 1)
     assert(doc.doclib.head.ended.isDefined)
     assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started.get))
-    assert(!doc.doclib.head.queued)
+    assert(doc.doclib.head.isNotQueued)
   }
 
   it should "start and end cleanly" in {
@@ -253,7 +256,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
       val flag = flags.head
       flag.ended.value should be >= flag.started.get
-      assert (!flag.queued)
+      assert (flag.isNotQueued)
     }}
   }
 
@@ -314,7 +317,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
       val flag = flags.head
       flag.ended.value should be >= flag.started.get
-      assert(!flag.queued)
+      assert(flag.isNotQueued)
     }}
   }
 
@@ -327,7 +330,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(doc.doclib.head.errored.isDefined)
     assert(doc.doclib.head.summary.contains("errored"))
     assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started.get))
-    assert(!doc.doclib.head.queued)
+    assert(doc.doclib.head.isNotQueued)
   }
 
   "A 'new' document" should "start successfully" in {
@@ -472,7 +475,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(flag.ended.get.toEpochSecond(ZoneOffset.UTC) == t)
     assert(flag.errored != null)
     assert(flag.errored.get.toEpochSecond(ZoneOffset.UTC) == t)
-    assert(flag.queued)
+    assert(flag.isQueued)
     flag.state should be (None)
   }
 

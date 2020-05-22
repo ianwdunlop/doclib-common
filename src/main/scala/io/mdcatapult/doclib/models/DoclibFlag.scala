@@ -23,5 +23,10 @@ case class DoclibFlag(
                        state: Option[DoclibFlagState] = None,
                        summary: Option[String] = None,
                        reset: Option[LocalDateTime] = None,
-                       queued: Boolean = false
-                     )
+                       queued: Option[Boolean] = Some(false)
+                     ) {
+
+  def isQueued: Boolean = queued.getOrElse(false)
+
+  def isNotQueued: Boolean = !isQueued
+}
