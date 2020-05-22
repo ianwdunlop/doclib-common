@@ -4,8 +4,6 @@ import java.util.UUID
 
 import io.mdcatapult.doclib.util.HashUtils
 
-import scala.collection.compat._
-
 case class Occurrence(
                        _id: UUID,
                        nerDocument: UUID,

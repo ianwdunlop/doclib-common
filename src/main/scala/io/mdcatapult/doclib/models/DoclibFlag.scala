@@ -17,10 +17,16 @@ object DoclibFlag  {
 case class DoclibFlag(
                        key: String,
                        version: ConsumerVersion,
-                       started: LocalDateTime,
+                       started: Option[LocalDateTime] = None,
                        ended: Option[LocalDateTime] = None,
                        errored: Option[LocalDateTime] = None,
                        state: Option[DoclibFlagState] = None,
                        summary: Option[String] = None,
-                       reset: Option[LocalDateTime] = None
-                     )
+                       reset: Option[LocalDateTime] = None,
+                       queued: Option[Boolean] = Some(false)
+                     ) {
+
+  def isQueued: Boolean = queued.getOrElse(false)
+
+  def isNotQueued: Boolean = !isQueued
+}
