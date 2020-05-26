@@ -4,14 +4,17 @@ import java.nio.file.Paths
 
 import com.typesafe.config.Config
 
+import scala.annotation.tailrec
+
 trait TargetPath {
 
   val doclibConfig: Config
+
   /**
-   * determines common root paths for two path string
-   * @param paths List[String]
-   * @return String common path component
-   */
+    * determines common root paths for two path string
+    * @param paths List[String]
+    * @return String common path component
+    */
   protected def commonPath(paths: List[String]): String = {
     val SEP = "/"
     val BOUNDARY_REGEX = s"(?=[$SEP])(?<=[^$SEP])|(?=[^$SEP])(?<=[$SEP])"
@@ -19,44 +22,74 @@ trait TargetPath {
       case (aa :: as, bb :: bs) if aa equals bb => aa :: common(as, bs)
       case _ => Nil
     }
-    if (paths.length < 2) paths.headOption.getOrElse("")
-    else paths.map(_.split(BOUNDARY_REGEX).toList).reduceLeft(common).mkString
+
+    paths match {
+      case Nil => ""
+      case x :: Nil => x
+      case _ =>
+        val pathEntries = paths.map(_.split(BOUNDARY_REGEX).toList)
+        val commonEntries = pathEntries.reduceLeft(common)
+
+        commonEntries.mkString
+    }
   }
 
   /**
-   * generate new file path maintaining file path from origin but allowing for intersection of common root paths
-   * @param source String
-   * @return String full path to new target
-   */
+    * generate new file path maintaining file path from origin but allowing for intersection of common root paths
+    * @param source String
+    * @return String full path to new target
+    */
   def getTargetPath(source: String, target: String, prefix: Option[String] = None): String = {
     val targetRoot = target.replaceAll("/+$", "")
     val regex = """(.*)/(.*)$""".r
+
     source match {
       case regex(path, file) =>
         val c = commonPath(List(targetRoot, path))
-        val targetPath  = scrub(path.replaceAll(s"^$c", "").replaceAll("^/+|/+$", ""))
+
+        val targetPath =
+          scrub(
+            path
+              .replaceAll(s"^$c", "")
+              .replaceAll("^/+|/+$", "")
+          )
+
         Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
       case _ => source
     }
   }
 
   /**
-   * Replace repeated doclib path entries with single.
-   * eg "/derivatives/derivatives" with "/derivatives"
-   * @param path
-   * @return
-   */
-  protected def scrub(path: String):String  = {
-    val ingressPath = s"^${doclibConfig.getString("doclib.local.temp-dir")}/?(.*)$$".r
-    val localPath = s"^${doclibConfig.getString("doclib.local.target-dir")}/?(.*)$$".r
-    val d = doclibConfig.getString("doclib.derivative.target-dir")
+    * Scrubs clean the start of a path in preparation to placing the path into a new doclib path directory.
+    * Removes all leading sequences of "local", "remote", "ingress" from the start of a path.
+    * Additionally it de-duplicates "derivatives" from the start.
+    *
+    * @param path to scrub repeated path entries from
+    * @return scrubbed path
+    */
+  protected def scrub(path: String): String  = {
+    val string = doclibConfig.getString _
+
+    val localTempDir = string("doclib.local.temp-dir")
+    val localTargetDir = string("doclib.local.target-dir")
+    val remoteTargetDir = string("doclib.remote.target-dir")
+    val d = string("doclib.derivative.target-dir")
+
+    val ingressPath = s"^$localTempDir/?(.*)$$".r
+    val localPath = s"^$localTargetDir/?(.*)$$".r
+    val remotePath = s"^$remoteTargetDir/?(.*)$$".r
     val doubleDerivatives = s"^$d/($d/.*)$$".r
 
-    path match {
-      case ingressPath(remainder) => scrub(remainder)
-      case localPath(remainder) => scrub(remainder)
-      case doubleDerivatives(remainder) => scrub(remainder)
-      case _ => path
-    }
+    @tailrec
+    def scrubStart(p: String): String =
+      p match {
+        case ingressPath(subPath) => scrubStart(subPath)
+        case localPath(subPath) => scrubStart(subPath)
+        case remotePath(subPath) => scrubStart(subPath)
+        case doubleDerivatives(subPath) => scrubStart(subPath)
+        case _ => p
+      }
+    
+    scrubStart(path)
   }
 }
