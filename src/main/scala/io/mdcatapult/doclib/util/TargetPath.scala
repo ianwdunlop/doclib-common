@@ -19,10 +19,11 @@ trait TargetPath {
     val SEP = "/"
     val BOUNDARY_REGEX = s"(?=[$SEP])(?<=[^$SEP])|(?=[^$SEP])(?<=[$SEP])"
 
-    def common(a: List[String], b: List[String]): List[String] = (a, b) match {
-      case (aa :: as, bb :: bs) if aa equals bb => aa :: common(as, bs)
-      case _ => Nil
-    }
+    def common(a: List[String], b: List[String]): List[String] =
+      (a, b) match {
+        case (aa :: as, bb :: bs) if aa equals bb => aa :: common(as, bs)
+        case _ => Nil
+      }
 
     paths match {
       case Nil => ""
