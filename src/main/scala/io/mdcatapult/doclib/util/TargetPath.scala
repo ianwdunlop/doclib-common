@@ -18,6 +18,7 @@ trait TargetPath {
   protected def commonPath(paths: List[String]): String = {
     val SEP = "/"
     val BOUNDARY_REGEX = s"(?=[$SEP])(?<=[^$SEP])|(?=[^$SEP])(?<=[$SEP])"
+
     def common(a: List[String], b: List[String]): List[String] = (a, b) match {
       case (aa :: as, bb :: bs) if aa equals bb => aa :: common(as, bs)
       case _ => Nil
@@ -43,20 +44,44 @@ trait TargetPath {
     val targetRoot = target.replaceAll("/+$", "")
     val regex = """(.*)/(.*)$""".r
 
-    source match {
-      case regex(path, file) =>
-        val c = commonPath(List(targetRoot, path))
+    val archiveDirName = doclibConfig.getString("doclib.archive.target-dir")
 
-        val targetPath =
-          scrub(
-            path
-              .replaceAll(s"^$c", "")
-              .replaceAll("^/+|/+$", "")
-          )
+    if (targetRoot == archiveDirName)
+      deduplicateDerivatives(Paths.get(targetRoot, source).toString)
+    else
+      source match {
+        case regex(path, file) =>
+          val c = commonPath(List(targetRoot, path))
 
-        Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
-      case _ => source
+          val targetPath =
+            deduplicateDerivatives(
+              scrub(
+                path
+                  .replaceAll(s"^$c", "")
+                  .replaceAll("^/+|/+$", "")
+              )
+            )
+
+          Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
+        case _ => source
+      }
+  }
+
+  private def deduplicateDerivatives(path: String): String = {
+    val derivative = doclibConfig.getString("doclib.derivative.target-dir")
+    val doubleDerivatives = s"$derivative/$derivative"
+
+    @tailrec
+    def deduplicate(p: String): String = {
+      val deduplicated = p.replace(doubleDerivatives, derivative)
+
+      if (deduplicated == p)
+        p
+      else
+        deduplicate(deduplicated)
     }
+
+    deduplicate(path)
   }
 
   /**
@@ -67,18 +92,16 @@ trait TargetPath {
     * @param path to scrub repeated path entries from
     * @return scrubbed path
     */
-  protected def scrub(path: String): String  = {
+  private def scrub(path: String): String  = {
     val string = doclibConfig.getString _
 
     val localTempDir = string("doclib.local.temp-dir")
     val localTargetDir = string("doclib.local.target-dir")
     val remoteTargetDir = string("doclib.remote.target-dir")
-    val d = string("doclib.derivative.target-dir")
 
     val ingressPath = s"^$localTempDir/?(.*)$$".r
     val localPath = s"^$localTargetDir/?(.*)$$".r
     val remotePath = s"^$remoteTargetDir/?(.*)$$".r
-    val doubleDerivatives = s"^$d/($d/.*)$$".r
 
     @tailrec
     def scrubStart(p: String): String =
@@ -86,10 +109,9 @@ trait TargetPath {
         case ingressPath(subPath) => scrubStart(subPath)
         case localPath(subPath) => scrubStart(subPath)
         case remotePath(subPath) => scrubStart(subPath)
-        case doubleDerivatives(subPath) => scrubStart(subPath)
         case _ => p
       }
-    
+
     scrubStart(path)
   }
 }
