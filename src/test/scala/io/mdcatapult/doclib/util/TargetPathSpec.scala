@@ -103,19 +103,19 @@ class TargetPathSpec extends AnyFlatSpec with Matchers {
   "A local path " can "be converted to a archive path" in {
     val source = "local/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/test.csv")
+    assert(target == "archive/local/test.csv")
   }
 
   "A deeply nested local path " can "be converted to a equally nested archive path" in {
     val source = "local/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/local/path/to/a/file/somewhere/test.csv")
   }
 
   "A deeply nested derivatives local path " can "be converted to a equally nested derivatives archive path" in {
     val source = "local/derivatives/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/local/derivatives/path/to/a/file/somewhere/test.csv")
   }
 
 
@@ -128,25 +128,25 @@ class TargetPathSpec extends AnyFlatSpec with Matchers {
   "A deeply nested double derivatives local path " can "be converted to a equally nested single derivative archive path" in {
     val source = "local/derivatives/derivatives/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/local/derivatives/path/to/a/file/somewhere/test.csv")
   }
 
   "A deeply nested remote path " can "be converted to a equally nested archive path" in {
     val source = "remote/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/remote/path/to/a/file/somewhere/test.csv")
   }
 
   "A deeply nested derivatives remote path " can "be converted to a equally nested derivatives archive path" in {
     val source = "remote/derivatives/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/remote/derivatives/path/to/a/file/somewhere/test.csv")
   }
 
   "A deeply nested double derivatives remote path " can "be converted to a equally nested single derivative archive path" in {
     val source = "remote/derivatives/derivatives/path/to/a/file/somewhere/test.csv"
     val target = targetPath.getTargetPath(source, config.getString("doclib.archive.target-dir"))
-    assert(target == "archive/derivatives/path/to/a/file/somewhere/test.csv")
+    assert(target == "archive/remote/derivatives/path/to/a/file/somewhere/test.csv")
   }
 
 }
