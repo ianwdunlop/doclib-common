@@ -1,13 +1,13 @@
 package io.mdcatapult.doclib.util
 
 import java.time.LocalDateTime
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
 import org.scalatest.BeforeAndAfter
@@ -44,7 +44,7 @@ class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with 
 
   "A DoclibDoc" should "be stored with a UUID" in {
     val newDoc: DoclibDoc = DoclibDoc(
-      _id = new ObjectId,
+      _id = UUID.randomUUID(),
       source = "/path/to/new.txt",
       hash = "0123456789",
       mimetype =  "text/plain",
@@ -63,7 +63,7 @@ class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with 
 
   it should "retrieve older DoclibDocs that have no UUID" in {
     val newDoc: DoclibDoc = DoclibDoc(
-      _id = new ObjectId,
+      _id = UUID.randomUUID(),
       source = "/path/to/new.txt",
       hash = "0123456789",
       mimetype =  "text/plain",

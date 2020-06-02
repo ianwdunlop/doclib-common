@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.util
 
 import java.io.File
+import java.util.UUID
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestKit
@@ -11,7 +12,6 @@ import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
 import io.mdcatapult.doclib.models.{DoclibDoc, FileAttrs}
 import io.mdcatapult.klein.queue.Sendable
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -92,7 +92,7 @@ class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigF
   }
 
   private val doc = DoclibDoc(
-    _id = new ObjectId(),
+    _id = UUID.randomUUID(),
     source = source,
     hash = "12345",
     created = createdTime,
