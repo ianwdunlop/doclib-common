@@ -1,18 +1,16 @@
 package io.mdcatapult.doclib.models
 
-import java.util.UUID
-
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
-import org.bson.types.ObjectId
+import io.mdcatapult.doclib.models.ner.Fixture._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
 
   "Derivative" can "be encoded and decoded successfully to BSON" in {
-    val id = UUID.fromString("8f5a687c-79a3-11ea-8558-cf48645c5849")
-    val parentId = new ObjectId("5d970056b3e8083540798f90")
-    val childId = new ObjectId("5d970056b3e8083540798f94")
+    val id = uuid
+    val parentId = docUuid
+    val childId = childDocUuid
     val metadataMap = List(MetaString("doi", "10.1101/327015"), MetaInt("a-value", 10))
 
     roundTrip(ParentChildMapping(
@@ -23,10 +21,10 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
       metadata = Some(metadataMap),
       consumer = Some("consumer")
     ),
-      """{
-        |"_id": {"$binary": "j1pofHmjEeqFWM9IZFxYSQ==", "$type": "04"},
-        |"parent": {"$oid": "5d970056b3e8083540798f90"},
-        |"child": {"$oid": "5d970056b3e8083540798f94"},
+      s"""{
+        |"_id": $uuidMongoBinary,
+        |"parent": $docUuidMongoBinary,
+        |"child": $childDocUuidMongoBinary,
         |"childPath": "/a/path/to/child",
         |"metadata": [{"key": "doi", "value": "10.1101/327015"}, {"key": "a-value", "value": 10}],
         |"consumer": "consumer"
