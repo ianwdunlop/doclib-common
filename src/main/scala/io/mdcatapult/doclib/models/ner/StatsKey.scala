@@ -1,8 +1,9 @@
 package io.mdcatapult.doclib.models.ner
 
+import java.util.UUID
+
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.doclib.util.HashUtils.md5
-import org.mongodb.scala.bson.ObjectId
 
 object StatsKey {
 
@@ -26,12 +27,12 @@ object StatsKey {
  * @param config identifier for the config that was used by the tool
  */
 case class StatsKey(
-                     document: ObjectId,
+                     document: UUID,
                      schema: String,
                      config: String,
                      tool: String,
                    ) {
 
   /** Calculate the hash value that is required to be used as the _id for the corresponding Stats object. */
-  def key: String = md5(document.toHexString + schema + config + tool)
+  def key: String = md5(document.toString + schema + config + tool)
 }
