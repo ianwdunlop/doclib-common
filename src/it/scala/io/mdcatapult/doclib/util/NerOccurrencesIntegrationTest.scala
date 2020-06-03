@@ -6,7 +6,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.ner.{NerDocument, Occurrence}
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
 import org.scalatest.BeforeAndAfterAll
@@ -40,8 +39,7 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
       entityType = Some("entity-type"),
       entityGroup = Some("entity-group"),
       resolvedEntity = Some("resolved-entity"),
-      resolvedEntityHash = Some("resolved-entity-hash"),
-      document = new ObjectId("5d9f0662679b3e75b2781c94")
+      resolvedEntityHash = Some("resolved-entity-hash")
     )
     val written = nerCollection.insertOne(nerDoc).toFutureOption()
     val read = written.flatMap(_ => nerCollection.find(Mequal("_id", nerDoc._id)).toFuture())

@@ -17,13 +17,15 @@ class NerDocumentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
       entityGroup = Some("entity-group"),
       resolvedEntity = Some("resolved-entity"),
       resolvedEntityHash = Some("resolved-entity-hash"),
-      document = new ObjectId("5d9f0662679b3e75b2781c94"),
+      document = Option(new ObjectId("5d9f0662679b3e75b2781c94")),
+      documentId = Option(docUuid)
     ),
       s"""{
         |"_id": $uuidMongoBinary,
         |"value": "value",
         |"hash": "01234567890",
         |"document": {"$$oid": "5d9f0662679b3e75b2781c94"},
+        |"documentId": $docUuidMongoBinary,
         |"entityType": "entity-type",
         |"entityGroup": "entity-group",
         |"resolvedEntity": "resolved-entity",
