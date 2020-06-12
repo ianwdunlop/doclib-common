@@ -17,7 +17,6 @@ lazy val root = (project in file(".")).
     name              := "common",
     organization := "io.mdcatapult.doclib",
     scalaVersion      := scala_2_13,
-    coverageEnabled   := false,
     useCoursier   := false,
     crossScalaVersions  := scala_2_13 :: Nil,
     scalacOptions ++= Seq(
