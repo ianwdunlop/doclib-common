@@ -1,11 +1,13 @@
 package io.mdcatapult.doclib.util
 
+import java.util.UUID
+
 import com.typesafe.config.Config
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonNull
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Updates._
 import org.mongodb.scala.result.UpdateResult
@@ -37,7 +39,7 @@ class DoclibFlags(key: String)(implicit collection: MongoCollection[DoclibDoc], 
     patch = ver.getInt("patch"),
     hash = ver.getString("hash"))
 
-  def getFlags(id: ObjectId): Future[List[DoclibFlag]] =
+  def getFlags(id: UUID): Future[List[DoclibFlag]] =
     collection.find(equal("_id", id)).toFuture()
       .map(_.toList.flatMap(_.doclib).filter(_.key == key))
 

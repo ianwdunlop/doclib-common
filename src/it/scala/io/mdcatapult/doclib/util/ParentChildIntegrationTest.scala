@@ -8,7 +8,6 @@ import io.mdcatapult.doclib.models.ParentChildMapping
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine
 import org.scalatest.BeforeAndAfter
@@ -44,7 +43,7 @@ class ParentChildIntegrationTest  extends IntegrationSpec with BeforeAndAfter wi
 
   "A parent child record" can "be stored" in {
     val metadataMap = List(MetaString("doi", "10.1101/327015"), MetaInt("a-value", 10))
-    val parentChild = ParentChildMapping(_id = randomUUID(), parent = new ObjectId, child = Some(new ObjectId()), childPath = "/a/path/to/child", metadata = Some(metadataMap), consumer = Some("consumer"))
+    val parentChild = ParentChildMapping(_id = randomUUID(), parent = randomUUID(), child = Some(randomUUID()), childPath = "/a/path/to/child", metadata = Some(metadataMap), consumer = Some("consumer"))
 
     val doc = for {
       _ <- collection.insertOne(parentChild).toFuture()

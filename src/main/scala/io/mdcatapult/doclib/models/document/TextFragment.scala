@@ -2,11 +2,9 @@ package io.mdcatapult.doclib.models.document
 
 import java.util.UUID
 
-import org.mongodb.scala.bson.ObjectId
-
 case class TextFragment(
                          _id: UUID,
-                         document: ObjectId,
+                         document: UUID,
                          index: Int,
                          startAt: Int,
                          endAt: Int,

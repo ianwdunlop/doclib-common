@@ -2,14 +2,13 @@ package io.mdcatapult.doclib.util
 
 import java.time.temporal.ChronoUnit.MILLIS
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
-import java.util.Date
+import java.util.{Date, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
 import io.mdcatapult.doclib.util.ImplicitOrdering.localDateOrdering
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates._
 import org.scalatest.BeforeAndAfter
@@ -46,7 +45,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   val flags = new DoclibFlags("test")
 
   val newDoc: DoclibDoc = DoclibDoc(
-    _id = new ObjectId,
+    _id = UUID.randomUUID(),
     source = "/path/to/new.txt",
     hash = "0123456789",
     mimetype =  "text/plain",
@@ -55,7 +54,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   )
 
   val startedDoc: DoclibDoc = newDoc.copy(
-    _id = new ObjectId,
+    _id = UUID.randomUUID(),
     source = "/path/to/started.txt",
     doclib = List(DoclibFlag(
       key = "test",
@@ -71,7 +70,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   )
 
   val dupeDoc: DoclibDoc = newDoc.copy(
-    _id = new ObjectId,
+    _id = UUID.randomUUID(),
     source = "/path/to/dupe.txt",
     doclib = List(
       DoclibFlag(
@@ -129,7 +128,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   )
 
   val resetDoc: DoclibDoc = newDoc.copy(
-    _id = new ObjectId,
+    _id = UUID.randomUUID(),
     source = "/path/to/reset.txt",
     doclib = List(
       DoclibFlag(
@@ -149,7 +148,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   )
 
   val endOrErrorDoc: DoclibDoc = newDoc.copy(
-    _id = new ObjectId,
+    _id = UUID.randomUUID(),
     source = "/path/to/ending.txt",
     doclib = List(
       DoclibFlag(

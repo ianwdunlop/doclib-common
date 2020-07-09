@@ -47,25 +47,25 @@ trait TargetPath {
 
     val archiveDirName = doclibConfig.getString("doclib.archive.target-dir")
 
-    if (targetRoot == archiveDirName)
-      deduplicateDerivatives(Paths.get(targetRoot, source).toString)
-    else
-      source match {
-        case regex(path, file) =>
-          val c = commonPath(List(targetRoot, path))
+    deduplicateDerivatives(
+      if (targetRoot == archiveDirName)
+        Paths.get(targetRoot, source).toString
+      else
+        source match {
+          case regex(path, file) =>
+            val c = commonPath(List(targetRoot, path))
 
-          val targetPath =
-            deduplicateDerivatives(
+            val targetPath =
               scrub(
                 path
                   .replaceAll(s"^$c", "")
                   .replaceAll("^/+|/+$", "")
               )
-            )
 
-          Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
-        case _ => source
-      }
+            Paths.get(targetRoot, targetPath, s"${prefix.getOrElse("")}$file").toString
+          case _ => source
+        }
+    )
   }
 
   private def deduplicateDerivatives(path: String): String = {

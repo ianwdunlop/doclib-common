@@ -46,7 +46,11 @@ test:
     RABBITMQ_USERNAME: guest
     RABBITMQ_PASSWORD: guest
   script:
-    - sbt +clean coverage +test +it:test coverageReport coverageOff
+    - sbt +clean coverage +test +it:test coverageReport
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    paths:
+      - target/scala-2.13/scoverage-report/
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
@@ -94,7 +98,7 @@ release-master:
     - >
       curl --header 'Content-Type: application/json'
       --header "PRIVATE-TOKEN: $GIT_RELEASE_TOKEN"
-      --data "{ \"name\": \"$RELEASE_TAG\", \"tag_name\": \"$RELEASE_TAG\", \"description\": \"Automated CI Release of $RELEASE_TAG\n\n$GIT_LOG\" }"
+      --data "{ \"name\": \"$RELEASE_TAG\", \"tag_name\": \"$RELEASE_TAG\", \"description\": \"Changelog for $RELEASE_TAG\n\n$GIT_LOG\" }"
       --request POST https://gitlab.mdcatapult.io/api/v4/projects/$CI_PROJECT_ID/releases
     - git checkout develop
     - git pull

@@ -2,7 +2,6 @@ package io.mdcatapult.doclib.models.ner
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
 import io.mdcatapult.doclib.models.ner.Fixture._
-import org.mongodb.scala.bson.ObjectId
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -17,13 +16,13 @@ class NerDocumentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
       entityGroup = Some("entity-group"),
       resolvedEntity = Some("resolved-entity"),
       resolvedEntityHash = Some("resolved-entity-hash"),
-      document = new ObjectId("5d9f0662679b3e75b2781c94"),
+      document = docUuid,
     ),
       s"""{
         |"_id": $uuidMongoBinary,
         |"value": "value",
         |"hash": "01234567890",
-        |"document": {"$$oid": "5d9f0662679b3e75b2781c94"},
+        |"document": $docUuidMongoBinary,
         |"entityType": "entity-type",
         |"entityGroup": "entity-group",
         |"resolvedEntity": "resolved-entity",
