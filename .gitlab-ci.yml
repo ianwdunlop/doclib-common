@@ -30,6 +30,8 @@ default:
 
 test:
   stage: test
+  tags:
+    - wopr
   variables:
     MONGO_HOST: mongo
     MONGO_DATABASE: prefetch-test
@@ -51,6 +53,8 @@ test:
 
 publish-snapshot:
   stage: publish
+  tags:
+    - wopr
   script:
     - sbt +publish
   only:
@@ -61,6 +65,8 @@ publish-snapshot:
 
 release:
   stage: publish
+  tags:
+    - wopr
   script:
     - /scripts/release.sh -b -r develop
   only:
@@ -71,6 +77,8 @@ release:
 
 publish-master:
   stage: publish
+  tags:
+    - wopr
   script:
     - sbt +publish
   only:
