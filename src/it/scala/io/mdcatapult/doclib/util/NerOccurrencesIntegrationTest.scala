@@ -46,7 +46,7 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
     val written = nerCollection.insertOne(nerDoc).toFutureOption()
     val read = written.flatMap(_ => nerCollection.find(Mequal("_id", nerDoc._id)).toFuture())
 
-    whenReady(read) { doc =>
+    whenReady(read, longTimeout) { doc =>
       doc.headOption.get._id should be(nerDoc._id)
       doc.headOption.get.entityType should be(nerDoc.entityType)
       doc.headOption.get.entityGroup should be(nerDoc.entityGroup)
@@ -67,7 +67,7 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
     val written = occurrenceCollection.insertOne(occurrence).toFutureOption()
     val read = written.flatMap(_ => occurrenceCollection.find(Mequal("_id", occurrence._id)).toFuture())
 
-    whenReady(read) { doc =>
+    whenReady(read, longTimeout) { doc =>
       doc.headOption.get._id should be(occurrence._id)
       doc.headOption.get.nerDocument should be(occurrence.nerDocument)
       doc.headOption.get.`type` should be("fragment")
@@ -88,7 +88,7 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
     val written = occurrenceCollection.insertOne(occurrence).toFutureOption()
     val read = written.flatMap(_ => occurrenceCollection.find(Mequal("_id", occurrence._id)).toFuture())
 
-    whenReady(read) { doc =>
+    whenReady(read, longTimeout) { doc =>
       doc.headOption.get._id should be(occurrence._id)
       doc.headOption.get.wordIndex.get should be(10)
       doc.headOption.get.fragment should be(occurrence.fragment)

@@ -56,7 +56,7 @@ class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with 
     val written = collection.insertOne(newDoc).toFutureOption()
     val read = written.flatMap(_ => collection.find(Mequal("_id", newDoc._id)).toFuture())
 
-    whenReady(read) { doc =>
+    whenReady(read, longTimeout) { doc =>
       doc.headOption.value.uuid should be(newDoc.uuid)
     }
   }
@@ -74,7 +74,7 @@ class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with 
     val written = collection.insertOne(newDoc).toFutureOption()
     val read = written.flatMap(_ => collection.find(Mequal("_id", newDoc._id)).toFuture())
 
-    whenReady(read) { doc =>
+    whenReady(read, longTimeout) { doc =>
       doc.headOption.value.uuid should be(None)
     }
   }
