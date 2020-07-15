@@ -15,9 +15,8 @@ class LemonLabsRelativeUrlCodec extends Codec[RelativeUrl] {
     }
 
   override def encode(bsonWriter: BsonWriter, t: RelativeUrl, encoderContext: EncoderContext): Unit =
-    bsonWriter.writeString(t.toString())
+    bsonWriter.writeString(t.toString)
 
   override def getEncoderClass: Class[RelativeUrl] = classOf[RelativeUrl]
-
 
 }

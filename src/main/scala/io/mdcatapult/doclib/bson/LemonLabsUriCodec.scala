@@ -15,7 +15,7 @@ class LemonLabsUriCodec extends Codec[Uri] {
     }
 
   override def encode(bsonWriter: BsonWriter, t: Uri, encoderContext: EncoderContext): Unit =
-    bsonWriter.writeString(t.toString())
+    bsonWriter.writeString(t.toString)
 
   override def getEncoderClass: Class[Uri] = classOf[Uri]
 
