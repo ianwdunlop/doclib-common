@@ -50,7 +50,7 @@ class ParentChildIntegrationTest  extends IntegrationSpec with BeforeAndAfter wi
       found <- collection.find(Mequal("_id", parentChild._id)).toFuture()
     } yield found
 
-    whenReady(doc) { d => {
+    whenReady(doc, longTimeout) { d => {
       assert(d.head._id == parentChild._id)
       assert(d.head.child == parentChild.child)
       assert(d.head.parent == parentChild.parent)

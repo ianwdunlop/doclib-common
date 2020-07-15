@@ -2,10 +2,13 @@ package io.mdcatapult.doclib.util
 
 import java.time.temporal.ChronoUnit.MILLIS
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
-import java.util.{Date, UUID}
+import java.util.Date
+import java.util.UUID.randomUUID
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
+import io.mdcatapult.doclib.flag.{MongoFlagStore, NotStartedException}
+import io.mdcatapult.doclib.models.result.UpdatedResult
+import io.mdcatapult.doclib.models._
 import io.mdcatapult.doclib.util.ImplicitOrdering.localDateOrdering
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
@@ -23,7 +26,9 @@ import scala.util.{Failure, Success}
 class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
-    """
+    """doclib {
+      |  flag = test
+      |}
       |version {
       |  number = "2.0.6-SNAPSHOT",
       |  major = 2,
@@ -33,19 +38,27 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
       |}
     """.stripMargin).withFallback(ConfigFactory.load())
 
-  implicit val mongo: Mongo = new Mongo()
+  implicit private val mongo: Mongo = new Mongo()
 
-  implicit val collection: MongoCollection[DoclibDoc] =
+  implicit private val collection: MongoCollection[DoclibDoc] =
     mongo.database.getCollection(collectionName(suffix = "doclibflags"))
 
-  val current: LocalDateTime = nowUtc.now()
-  val earlier: LocalDateTime = current.minusHours(1)
-  val later: LocalDateTime = current.plusHours(1)
+  private val current: LocalDateTime = nowUtc.now()
+  private val time: Now = AdvancingNow.fromCurrentTime()
 
-  val flags = new DoclibFlags("test")
+  private val earlier: LocalDateTime = current.minusHours(1)
+  private val later: LocalDateTime = current.plusHours(1)
 
-  val newDoc: DoclibDoc = DoclibDoc(
-    _id = UUID.randomUUID(),
+  private val flags =
+    new MongoFlagStore(
+      ConsumerVersion.fromConfig(config),
+      DoclibDocExtractor(),
+      collection,
+      time
+    ).findFlagContext(None)
+
+  private val newDoc: DoclibDoc = DoclibDoc(
+    _id = randomUUID(),
     source = "/path/to/new.txt",
     hash = "0123456789",
     mimetype =  "text/plain",
@@ -53,8 +66,8 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     updated =  current
   )
 
-  val startedDoc: DoclibDoc = newDoc.copy(
-    _id = UUID.randomUUID(),
+  private val startedDoc: DoclibDoc = newDoc.copy(
+    _id = randomUUID(),
     source = "/path/to/started.txt",
     doclib = List(DoclibFlag(
       key = "test",
@@ -69,8 +82,8 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     ))
   )
 
-  val dupeDoc: DoclibDoc = newDoc.copy(
-    _id = UUID.randomUUID(),
+  private val dupeDoc: DoclibDoc = newDoc.copy(
+    _id = randomUUID(),
     source = "/path/to/dupe.txt",
     doclib = List(
       DoclibFlag(
@@ -127,8 +140,8 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     )
   )
 
-  val resetDoc: DoclibDoc = newDoc.copy(
-    _id = UUID.randomUUID(),
+  private val resetDoc: DoclibDoc = newDoc.copy(
+    _id = randomUUID(),
     source = "/path/to/reset.txt",
     doclib = List(
       DoclibFlag(
@@ -147,8 +160,8 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     )
   )
 
-  val endOrErrorDoc: DoclibDoc = newDoc.copy(
-    _id = UUID.randomUUID(),
+  private val endOrErrorDoc: DoclibDoc = newDoc.copy(
+    _id = randomUUID(),
     source = "/path/to/ending.txt",
     doclib = List(
       DoclibFlag(
@@ -167,15 +180,17 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
   before  {
     Await.result(collection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
-    Await.result(collection.insertMany(List(newDoc, startedDoc, dupeDoc, resetDoc, endOrErrorDoc)).toFuture(), Duration.Inf)
+    Await.result(collection.insertMany(
+      List(newDoc, startedDoc, dupeDoc, resetDoc, endOrErrorDoc)
+    ).toFuture(), Duration.Inf)
   }
 
   "A 'started' document" should "be restarted successfully" in {
-    val result = Await.result(flags.start(startedDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.start(startedDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
+    doc.doclib should have length 1
     assert(doc.doclib.head.started.get.isAfter(current))
     assert(doc.doclib.head.summary.contains("started"))
     assert(doc.doclib.head.isQueued)
@@ -183,61 +198,63 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   "A queued document" should "have queued true" in {
-    val result = Await.result(flags.queue(newDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.queue(newDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.isQueued)
+    doc.doclib should have length 1
+    doc.doclib.head.isQueued should be (true)
 
     doc.doclib.head.started should be (None)
   }
 
   "A previously queued document" should "not be requeued" in {
-    val result = Await.result(flags.queue(newDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.queue(newDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.isQueued)
+    doc.doclib should have length 1
+    doc.doclib.head.isQueued should be (true)
     doc.doclib.head.started should be (None)
+
     // Doc is now queued so should not be done again ie. the request does not result in a mongo update
     val requeue = Await.result(flags.queue(doc), 5.seconds)
-    requeue should be (None)
+    requeue should be (UpdatedResult.nothing)
 
     val requeueDoc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
-    assert(requeueDoc.doclib.size == 1)
-    assert(requeueDoc.doclib.head.isQueued)
-
+    requeueDoc.doclib should have length 1
+    requeueDoc.doclib.head.isQueued should be (true)
     requeueDoc.doclib.head.started should be (None)
   }
 
   "A new document" can "be started " in {
-    val result = Await.result(flags.start(newDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.start(newDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.summary.contains("started"))
-    }
+    doc.doclib should have length 1
+    doc.doclib.head.summary should contain ("started")
+  }
 
   "A started document" should "be queued " in {
-    val result = Await.result(flags.start(newDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.start(newDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", newDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.isQueued)
+    doc.doclib should have length 1
+    doc.doclib.head.isQueued should be (true)
   }
 
   it should "end cleanly" in {
 
-    val result = Await.result(flags.end(startedDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.end(startedDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.ended.isDefined)
+    doc.doclib should have length 1
+    doc.doclib.head.ended.isDefined should be (true)
     assert(doc.doclib.head.ended.get.isAfter(doc.doclib.head.started.get))
-    assert(doc.doclib.head.isNotQueued)
+    doc.doclib.head.isNotQueued should be (true)
   }
 
   it should "start and end cleanly" in {
@@ -248,7 +265,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
         d <- collection.find(Mequal("_id", newDoc._id)).toFuture()
       } yield d
 
-    whenReady(doc) { d => {
+    whenReady(doc, longTimeout) { d => {
       val flags = d.head.doclib
 
       flags should have length 1
@@ -270,7 +287,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
         d <- collection.find(Mequal("_id", createdDoc._id)).toFuture()
       } yield d
 
-    whenReady(doc) { d => {
+    whenReady(doc, longTimeout) { d => {
       val flags = d.head.doclib
 
       assert(flags.size == 1)
@@ -289,7 +306,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
         d <- collection.find(Mequal("_id", startedDoc._id)).toFuture()
       } yield d
 
-    whenReady(doc) { d => {
+    whenReady(doc, longTimeout) { d => {
       val flags = d.head.doclib
 
       assert(flags.size == 1)
@@ -309,7 +326,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
         d <- collection.find(Mequal("_id", newDoc._id)).toFuture()
       } yield d
 
-    whenReady(doc) { d => {
+    whenReady(doc, longTimeout) { d => {
       val flags = d.head.doclib
 
       flags should have length 1
@@ -321,13 +338,13 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   it should "error cleanly" in {
-    val result = Await.result(flags.error(startedDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.error(startedDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", startedDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
-    assert(doc.doclib.head.errored.isDefined)
-    assert(doc.doclib.head.summary.contains("errored"))
+    doc.doclib should have length 1
+    doc.doclib.head.errored.isDefined should be (true)
+    doc.doclib.head.summary should contain ("errored")
     assert(doc.doclib.head.errored.get.isAfter(doc.doclib.head.started.get))
     assert(doc.doclib.head.isNotQueued)
   }
@@ -335,49 +352,36 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   "A 'new' document" should "start successfully" in {
     val f = flags.start(newDoc)
     f map { result => {
-      assert(result.isDefined)
-      assert(result.get.getModifiedCount == 1)
+      result.modifiedCount should be (1)
     }}
   }
 
   it should "fail on error" in {
-    import flags.NotStarted
     flags.error(newDoc).onComplete({
       case Success(_) => fail()
       case Failure(e) =>
-        assert(e.isInstanceOf[NotStarted])
+        assert(e.isInstanceOf[NotStartedException])
         assert(e.getMessage == "Cannot 'error' as flag 'test' has not been started")
     })
   }
 
   it should "fail on end" in {
-    import flags.NotStarted
     flags.end(newDoc).onComplete({
       case Success(_) => fail()
       case Failure(e) =>
-        assert(e.isInstanceOf[NotStarted])
+        assert(e.isInstanceOf[NotStartedException])
         assert(e.getMessage == "Cannot 'end' as flag 'test' has not been started")
-    })
-  }
-
-  it should "not be restartable" in {
-    import flags.NotStarted
-    flags.restart(newDoc).onComplete({
-      case Success(_) => fail()
-      case Failure(e) =>
-        assert(e.isInstanceOf[NotStarted])
-        assert(e.getMessage == "Cannot 'restart' as flag 'test' has not been started")
     })
   }
 
   "A doc with duplicate flags" should "deduplicate when starting" in {
     val time = nowUtc.now().truncatedTo(MILLIS)
 
-    val result = Await.result(flags.start(dupeDoc), 5.seconds).get
-      assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.start(dupeDoc), 5.seconds)
+      result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 2)
+      doc.doclib should have length 2
       doc.doclib.filter(_.key == "test").head.started.get.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
   }
@@ -385,37 +389,38 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   it should "deduplicate when ending" in {
     val time = nowUtc.now().truncatedTo(MILLIS)
 
-    val result = Await.result(flags.start(dupeDoc), 5.seconds).get
-      assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.start(dupeDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 2)
+      doc.doclib should have length 2
       doc.doclib.filter(_.key == "test").head.started.get.truncatedTo(MILLIS) should be >= time
       assert(doc.doclib.exists(_.key == "keep"))
   }
 
   it should "deduplicate when erroring" in {
     val time = nowUtc.now().truncatedTo(MILLIS)
-    val result = Await.result(flags.error(dupeDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.error(dupeDoc), 5.seconds)
+    result.modifiedCount should be (1)
 
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-      assert(doc.doclib.size == 2)
+    doc.doclib should have length 2
 
-      val testFlag = doc.doclib.filter(_.key == "test").head
-      testFlag.started.get.truncatedTo(MILLIS) should be (later.truncatedTo(MILLIS))
-      testFlag.errored.value.truncatedTo(MILLIS) should be >= time
+    val testFlag = doc.doclib.filter(_.key == "test").head
+    testFlag.started.get.truncatedTo(MILLIS) should be (later.truncatedTo(MILLIS))
+    testFlag.errored.value.truncatedTo(MILLIS) should be >= time
 
-      assert(doc.doclib.exists(_.key == "keep"))
+    assert(doc.doclib.exists(_.key == "keep"))
   }
 
   it should "save the doclib flag state if it exists in the flag" in {
     val result = Await.result(flags.start(dupeDoc), 5.seconds)
-    assert(result.isDefined)
-    assert(result.get.getModifiedCount == 1)
+    result.modifiedCount should be (1)
+
     // Note: the assertions always seem to pass inside a subscribe so using await instead.
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 2)
+    doc.doclib should have length 2
+
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
 
@@ -428,12 +433,13 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
   it should "update the flag state if provided" in {
     val updateTime = nowUtc.now()
+
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
     val flagUpdateResult = Await.result(flags.end(dupeDoc, state = state), 5.seconds)
-    assert(flagUpdateResult.isDefined)
-    assert(flagUpdateResult.get.getModifiedCount == 1)
+    flagUpdateResult.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 2)
+    doc.doclib should have length 2
     assert(doc.doclib.exists(_.key == "test"))
     assert(doc.doclib.exists(_.key == "keep"))
 
@@ -444,8 +450,9 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   it should "not update the flag state if None" in {
-    val result = Await.result(flags.end(dupeDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.end(dupeDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", dupeDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 2)
     assert(doc.doclib.exists(_.key == "test"))
@@ -458,10 +465,11 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   "A doc" can "be reset and existing flags remain as before" in {
-    val result = Await.result(flags.reset(resetDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.reset(resetDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", resetDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
+    doc.doclib should have length 1
     assert(doc.doclib.exists(_.key == "test"))
 
     val flag = doc.doclib.filter(_.key == "test").head
@@ -479,10 +487,11 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   "Ending a flag" should "clear the reset timestamp" in {
-    val result = Await.result(flags.end(endOrErrorDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.end(endOrErrorDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
+    doc.doclib should have length 1
     assert(doc.doclib.exists(_.key == "test"))
 
     doc.doclib.filter(_.key == "test").head.reset should be (None)
@@ -498,10 +507,11 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   }
 
   "Erroring a flag" should "clear the reset timestamp" in {
-    val result = Await.result(flags.error(endOrErrorDoc), 5.seconds).get
-    assert(result.getModifiedCount == 1)
+    val result = Await.result(flags.error(endOrErrorDoc), 5.seconds)
+    result.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
-    assert(doc.doclib.size == 1)
+    doc.doclib should have length 1
     assert(doc.doclib.exists(_.key == "test"))
 
     doc.doclib.filter(_.key == "test").head.reset should be (None)
@@ -519,9 +529,10 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   "The reset flag" should "be reset when ending and state is provided" in {
     val updateTime = nowUtc.now()
     val state = Some(DoclibFlagState(value = "23456", updated = updateTime))
+
     val flagUpdateResult = Await.result(flags.end(endOrErrorDoc, state = state), 5.seconds)
-    assert(flagUpdateResult.isDefined)
-    assert(flagUpdateResult.get.getModifiedCount == 1)
+    flagUpdateResult.modifiedCount should be (1)
+
     val doc = Await.result(collection.find(Mequal("_id", endOrErrorDoc._id)).toFuture(), 5.seconds).head
     assert(doc.doclib.size == 1)
     assert(doc.doclib.exists(_.key == "test"))
@@ -534,7 +545,6 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     assert(doc.doclib.filter(_.key == "test").head.ended.get.toEpochSecond(ZoneOffset.UTC) >= current.toEpochSecond(ZoneOffset.UTC))
 
     doc.doclib.filter(_.key == "test").head.reset should be (None)
-
   }
 
 }
