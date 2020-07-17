@@ -5,7 +5,7 @@ import java.util.UUID
 import io.mdcatapult.doclib.models.result.ResultConverters.toUpdatedResult
 import io.mdcatapult.doclib.models.result.UpdatedResult
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibDocExtractor, DoclibFlag, DoclibFlagState}
-import io.mdcatapult.doclib.util.{ImplicitOrdering, Now}
+import io.mdcatapult.doclib.path.ImplicitOrdering
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonNull
 import org.mongodb.scala.model.Filters.{and, equal, in, nin}
@@ -194,7 +194,7 @@ class MongoFlagStore(
         */
       private def deDuplicate(doc: DoclibDoc): Future[UpdatedResult] = {
 
-        import ImplicitOrdering.localDateOrdering
+        import .localDateOrdering
 
         val timeOrderedFlags: Future[List[DoclibFlag]] =
           getFlags(doc._id).map(_.sortBy(_.started).reverse)

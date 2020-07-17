@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.models
 import java.time.temporal.TemporalAmount
 
 import com.typesafe.config.Config
-import io.mdcatapult.doclib.util.Now
+import io.mdcatapult.doclib.path.Now
 
 object DoclibDocExtractor {
 

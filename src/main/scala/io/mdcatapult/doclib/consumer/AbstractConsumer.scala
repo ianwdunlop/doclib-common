@@ -8,8 +8,8 @@ import akka.stream.Materializer
 import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
+import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.models.ConsumerVersion
-import io.mdcatapult.doclib.util.MongoCodecs
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Envelope, Queue}
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
@@ -50,7 +50,7 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
     }
   }
 
-  val consumerVersion: ConsumerVersion = ConsumerVersion.fromConfig(ConfigFactory.load("version"))
+  val consumerVersion: Version = Version.fromConfig(ConfigFactory.load("version"))
 
   private val optConfig: ConsumerConfig = parseArgsWithConfiguration()
 

@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.loader
 
-import io.mdcatapult.doclib.util.stringToInputStream
+import io.mdcatapult.doclib.path.stringToInputStream
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

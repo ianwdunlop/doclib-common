@@ -2,8 +2,6 @@ package io.mdcatapult.doclib.models.ner
 
 import java.util.UUID
 
-import io.mdcatapult.doclib.util.HashUtils
-
 case class Occurrence(
                        _id: UUID,
                        nerDocument: UUID,

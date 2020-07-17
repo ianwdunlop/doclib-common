@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.models.ner
 import java.util.UUID
 
 import io.mdcatapult.doclib.models.DoclibDoc
-import io.mdcatapult.doclib.util.HashUtils.md5
+import .md5
 
 object StatsKey {
 

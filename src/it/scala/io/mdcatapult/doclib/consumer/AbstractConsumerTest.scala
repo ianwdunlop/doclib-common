@@ -6,9 +6,9 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.IntegrationFixture.longTimeout
+import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.messages.DoclibMsg
 import io.mdcatapult.doclib.models.MessageDoc
-import io.mdcatapult.doclib.util.MongoCodecs
 import io.mdcatapult.klein.mongo.Mongo
 import org.bson.codecs.configuration.CodecRegistry
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
