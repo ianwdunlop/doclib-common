@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.util
 import java.util.UUID.randomUUID
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.ner.Fixture.docUuid
+import io.mdcatapult.doclib.models.ner.Fixture.docId
 import io.mdcatapult.doclib.models.ner.{NerDocument, Occurrence}
 import io.mdcatapult.klein.mongo.Mongo
 import org.mongodb.scala.MongoCollection
@@ -41,7 +41,7 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
       entityGroup = Some("entity-group"),
       resolvedEntity = Some("resolved-entity"),
       resolvedEntityHash = Some("resolved-entity-hash"),
-      document = docUuid,
+      document = docId,
     )
     val written = nerCollection.insertOne(nerDoc).toFutureOption()
     val read = written.flatMap(_ => nerCollection.find(Mequal("_id", nerDoc._id)).toFuture())

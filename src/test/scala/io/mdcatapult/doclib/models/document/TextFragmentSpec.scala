@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.models.document
 
 import io.mdcatapult.doclib.models.BsonCodecCompatible
-import io.mdcatapult.doclib.models.ner.Fixture.{docUuid, docUuidMongoBinary, uuid, uuidMongoBinary}
+import io.mdcatapult.doclib.models.ner.Fixture.{docId, docIdMongo, uuid, uuidMongoBinary}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -10,7 +10,7 @@ class TextFragmentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatibl
   "Model" can "be encoded and decoded successfully to BSON" in {
     roundTrip(TextFragment(
       _id = uuid,
-      document = docUuid,
+      document = docId,
       index = 1,
       startAt = 2,
       endAt = 3,
@@ -18,7 +18,7 @@ class TextFragmentSpec extends AnyFlatSpec with Matchers with BsonCodecCompatibl
     ),
       s"""{
         |"_id": $uuidMongoBinary,
-        |"document": $docUuidMongoBinary,
+        |"document": $docIdMongo,
         |"index": 1,
         |"startAt": 2,
         |"endAt": 3,
