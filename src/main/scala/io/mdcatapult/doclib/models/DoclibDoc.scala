@@ -4,9 +4,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
+import org.mongodb.scala.bson.ObjectId
 
 case class DoclibDoc(
-                      _id: UUID,
+                      _id: ObjectId,
                       source: String,
                       hash: String,
                       mimetype: String,

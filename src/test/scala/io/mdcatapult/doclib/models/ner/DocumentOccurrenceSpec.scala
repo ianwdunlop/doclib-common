@@ -12,13 +12,13 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
   "Model" can "be encoded and decoded successfully to BSON" in {
     roundTrip(Occurrence(
       _id = uuid,
-      nerDocument = docUuid,
+      nerDocument = uuid,
       characterStart = 1,
       characterEnd = 2
     ),
       s"""{
         |"_id": $uuidMongoBinary,
-        |"nerDocument": $docUuidMongoBinary,
+        |"nerDocument": $uuidMongoBinary,
         |"characterStart": 1,
         |"characterEnd": 2,
         |"fragment": null,
@@ -32,7 +32,7 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
   it can "give old known hash for same document occurrence" in {
     val doc = Occurrence(
       _id = uuid,
-      nerDocument = docUuid,
+      nerDocument = uuid,
       characterStart = 12,
       characterEnd = 15,
       fragment = Option(fragmentUuid),
@@ -46,7 +46,7 @@ class DocumentOccurrenceSpec extends AnyFlatSpec with Matchers with BsonCodecCom
   it can "give old known hash for same document occurrence with optionals are None" in {
     val doc = Occurrence(
       _id = uuid,
-      nerDocument = docUuid,
+      nerDocument = uuid,
       characterStart = 12,
       characterEnd = 15,
       fragment = None,

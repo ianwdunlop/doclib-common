@@ -41,7 +41,7 @@ trait PrefetchUtils {
           metadata = List(
             MetaString("db", doclibConfig.getString("mongo.database")),
             MetaString("collection", doclibConfig.getString("mongo.collection")),
-            MetaString("_id", doc._id.toString)).some
+            MetaString("_id", doc._id.toHexString)).some
         ))),
         tags = doc.tags,
         metadata = (filterDerivatives(doc)::: derivativeMetadata).some,
