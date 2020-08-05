@@ -1,13 +1,11 @@
 package io.mdcatapult.doclib.flag
 
-import java.util.UUID
-
 import io.mdcatapult.doclib.models.result.ResultConverters.toUpdatedResult
 import io.mdcatapult.doclib.models.result.UpdatedResult
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibDocExtractor, DoclibFlag, DoclibFlagState}
 import io.mdcatapult.doclib.util.{ImplicitOrdering, Now}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.BsonNull
+import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.model.Filters.{and, equal, in, nin}
 import org.mongodb.scala.model.Updates.{combine, currentDate, pullByFilter, push, set}
 
@@ -181,7 +179,7 @@ class MongoFlagStore(
           } yield result
         } else notStarted("reset", doc)
 
-      private def getFlags(id: UUID): Future[List[DoclibFlag]] =
+      private def getFlags(id: ObjectId): Future[List[DoclibFlag]] =
         collection.find(equal("_id", id)).toFuture()
           .map(_.toList.flatMap(_.doclib).filter(_.key == flagName))
 

@@ -1,10 +1,10 @@
 package io.mdcatapult.doclib.util
 
 import java.time.LocalDateTime
-import java.util.UUID
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
+import org.mongodb.scala.bson.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -27,7 +27,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   private val later: LocalDateTime = created.plusHours(1)
 
   val newDoc: DoclibDoc = DoclibDoc(
-    _id = UUID.randomUUID(),
+    _id = new ObjectId(),
     source = "/path/to/file.txt",
     hash = "0123456789",
     mimetype =  "text/plain",

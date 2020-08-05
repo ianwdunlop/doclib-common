@@ -1,22 +1,21 @@
 package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
-import java.util.UUID
 
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
+import org.mongodb.scala.bson.ObjectId
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class DoclibDocSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
 
-  val uuid: UUID = UUID.fromString("dc83cac6-4daa-4a0b-8e52-df1543af1e8f")
-
-  val uuidMongoBinary = """{"$binary": "3IPKxk2qSguOUt8VQ68ejw==", "$type": "04"}"""
+  val docId: ObjectId = new ObjectId("5d9f0662679b3e75b2781c94")
+  val docIdMongo = """{"$oid": "5d9f0662679b3e75b2781c94"}"""
 
   "Model" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(DoclibDoc(
-        _id = uuid,
+        _id = docId,
         source = "/path/to/file.txt",
         hash = "01234567890",
         mimetype = "text/plain",
@@ -24,7 +23,7 @@ class DoclibDocSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible {
         updated = LocalDateTime.parse("2019-10-01T12:00:01")
     ),
       s"""{
-        |"_id": $uuidMongoBinary,
+        |"_id": $docIdMongo,
         |"source": "/path/to/file.txt",
         |"hash": "01234567890",
         |"mimetype": "text/plain",
