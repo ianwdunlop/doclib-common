@@ -9,8 +9,8 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
 
   "Derivative" can "be encoded and decoded successfully to BSON" in {
     val id = uuid
-    val parentId = uuid
-    val childId = childDocUuid
+    val parentId = docId
+    val childId = childDocId
     val metadataMap = List(MetaString("doi", "10.1101/327015"), MetaInt("a-value", 10))
 
     roundTrip(ParentChildMapping(
@@ -23,8 +23,8 @@ class ParentChildSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible
     ),
       s"""{
         |"_id": $uuidMongoBinary,
-        |"parent": $uuidMongoBinary,
-        |"child": $childDocUuidMongoBinary,
+        |"parent": $docIdMongo,
+        |"child": $childDocIdMongo,
         |"childPath": "/a/path/to/child",
         |"metadata": [{"key": "doi", "value": "10.1101/327015"}, {"key": "a-value", "value": 10}],
         |"consumer": "consumer"
