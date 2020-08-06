@@ -26,3 +26,19 @@ Common utility classes
 * **DoclibFlag** - Object to allow easy checking and manipulatoin of v2 flags
 * **MongoCodecs** - Simple generation of Mongo Codecs based on models in the common library
 * **TargetPath** - Trait to include tooling for the generation of target paths that intersect with the source path
+
+# Testing
+To run tests, do
+```bash
+sbt +clean +test
+```
+For integration tests, do
+```bash
+docker-compose up -d
+MONGO_HOST=localhost sbt +clean +it:test
+```
+To do all tests and get a coverage report, do
+```bash
+docker-compose up -d
+MONGO_HOST=localhost sbt +clean coverage +test +it:test coverageReport
+```

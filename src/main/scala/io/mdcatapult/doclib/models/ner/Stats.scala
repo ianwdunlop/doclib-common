@@ -1,7 +1,8 @@
 package io.mdcatapult.doclib.models.ner
 
 import java.time.LocalDateTime
-import java.util.UUID
+
+import org.mongodb.scala.bson.ObjectId
 
 /** Stats holds precomputed statistics about the occurrences in a document from this consumer.  This will reduce the
  * load on Mongo server when making analytic queries.
@@ -19,7 +20,7 @@ import java.util.UUID
  */
 case class Stats(
                   _id: String,
-                  document: UUID,
+                  document: ObjectId,
                   schema: String,
                   tool: String,
                   config: String,
