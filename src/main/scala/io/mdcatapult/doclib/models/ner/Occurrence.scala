@@ -2,6 +2,8 @@ package io.mdcatapult.doclib.models.ner
 
 import java.util.UUID
 
+import io.mdcatapult.util.hash.Md5
+
 case class Occurrence(
                        _id: UUID,
                        nerDocument: UUID,
@@ -62,6 +64,6 @@ object Occurrence {
 
     val allOccurrencesAsText = allPairedKeyValues.sorted.mkString(",")
 
-    HashUtils.md5(allOccurrencesAsText)
+    Md5.md5(allOccurrencesAsText)
   }
 }

@@ -6,10 +6,11 @@ import java.util.Date
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.flag.{MongoFlagStore, NotStartedException}
-import io.mdcatapult.doclib.models.result.UpdatedResult
+import io.mdcatapult.util.time.{AdvancingNow, Now, nowUtc}
 import io.mdcatapult.doclib.models._
-import io.mdcatapult.doclib.path.ImplicitOrdering.localDateOrdering
 import io.mdcatapult.klein.mongo.Mongo
+import io.mdcatapult.util.models.Version
+import io.mdcatapult.util.models.result.UpdatedResult
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.{equal => Mequal}
@@ -51,7 +52,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
 
   private val flags =
     new MongoFlagStore(
-      ConsumerVersion.fromConfig(config),
+      Version.fromConfig(config),
       DoclibDocExtractor(),
       collection,
       time
@@ -71,7 +72,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     source = "/path/to/started.txt",
     doclib = List(DoclibFlag(
       key = "test",
-      version = ConsumerVersion(
+      version = Version(
         number = "0.0.1",
         major = 0,
         minor = 0,
@@ -88,7 +89,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     doclib = List(
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -98,7 +99,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
       ),
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -108,7 +109,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
       ),
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.1",
           major = 0,
           minor = 0,
@@ -119,7 +120,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
       ),
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -129,7 +130,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
       ),
       DoclibFlag(
         key = "keep",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -146,7 +147,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     doclib = List(
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -166,7 +167,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
     doclib = List(
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,

@@ -6,6 +6,7 @@ import java.util.UUID.randomUUID
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.klein.mongo.Mongo
+import io.mdcatapult.util.time.nowUtc
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.{equal => Mequal}
 import org.mongodb.scala.model.Updates.combine

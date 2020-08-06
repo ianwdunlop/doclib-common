@@ -1,9 +1,10 @@
 package io.mdcatapult.doclib.flag
 
-import io.mdcatapult.doclib.models.result.ResultConverters.toUpdatedResult
-import io.mdcatapult.doclib.models.result.UpdatedResult
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibDocExtractor, DoclibFlag, DoclibFlagState}
-import io.mdcatapult.doclib.path.ImplicitOrdering
+import io.mdcatapult.klein.mongo.ResultConverters.toUpdatedResult
+import io.mdcatapult.doclib.models.{DoclibDoc, DoclibDocExtractor, DoclibFlag, DoclibFlagState}
+import io.mdcatapult.util.models.Version
+import io.mdcatapult.util.models.result.UpdatedResult
+import io.mdcatapult.util.time.{ImplicitOrdering, Now}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.{BsonNull, ObjectId}
 import org.mongodb.scala.model.Filters.{and, equal, in, nin}
@@ -23,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
   *       If not true then it is possible for all flags to be removed.
   */
 class MongoFlagStore(
-                      version: ConsumerVersion,
+                      version: Version,
                       docExtractor: DoclibDocExtractor,
                       collection: MongoCollection[DoclibDoc],
                       time: Now,
@@ -192,7 +193,7 @@ class MongoFlagStore(
         */
       private def deDuplicate(doc: DoclibDoc): Future[UpdatedResult] = {
 
-        import .localDateOrdering
+        import ImplicitOrdering.localDateOrdering
 
         val timeOrderedFlags: Future[List[DoclibFlag]] =
           getFlags(doc._id).map(_.sortBy(_.started).reverse)

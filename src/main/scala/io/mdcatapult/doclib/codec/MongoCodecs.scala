@@ -5,6 +5,7 @@ import io.mdcatapult.doclib.models.{Derivative, DoclibDoc, DoclibFlag, DoclibFla
 import io.mdcatapult.doclib.models.document.TextFragment
 import io.mdcatapult.doclib.models.metadata.{MetaBoolean, MetaDateTime, MetaDouble, MetaInt, MetaString}
 import io.mdcatapult.doclib.models.ner.{Count, NerDocument, Occurrence, Schema, Stats}
+import io.mdcatapult.util.models.Version
 import org.bson.UuidRepresentation
 import org.bson.codecs.UuidCodec
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
@@ -54,10 +55,10 @@ object MongoCodecs {
       classOf[Occurrence],
       classOf[Schema],
       classOf[TextFragment],
-      classOf[ConsumerVersion],
+      classOf[Version],
       classOf[Count],
       classOf[Stats],
-      classOf[ConsumerVersion],
+      classOf[Version],
       classOf[PrefetchMsg],
       classOf[ArchiveMsg],
       classOf[EmptyMsg],

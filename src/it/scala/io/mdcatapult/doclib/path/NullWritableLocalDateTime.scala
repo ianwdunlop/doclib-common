@@ -2,7 +2,8 @@ package io.mdcatapult.doclib.path
 
 import java.time.LocalDateTime
 
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibFlag}
+import io.mdcatapult.doclib.models.{DoclibFlag}
+import io.mdcatapult.util.models.Version
 import org.bson.{BsonReader, BsonWriter}
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.codecs.configuration.CodecRegistry
@@ -18,7 +19,7 @@ import org.bson.codecs.configuration.CodecRegistry
 class NullWritableLocalDateTime(codecs: CodecRegistry) extends Codec[DoclibFlag] {
 
   private val doclibFlagCodec = codecs.get(classOf[DoclibFlag])
-  private val consumerVersionCodec = codecs.get(classOf[ConsumerVersion])
+  private val consumerVersionCodec = codecs.get(classOf[Version])
   private val localDateTimeCodec = codecs.get(classOf[LocalDateTime])
 
   override def getEncoderClass: Class[DoclibFlag] = classOf[DoclibFlag]

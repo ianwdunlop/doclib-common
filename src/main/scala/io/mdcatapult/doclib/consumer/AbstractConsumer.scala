@@ -9,7 +9,7 @@ import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.codec.MongoCodecs
-import io.mdcatapult.doclib.models.ConsumerVersion
+import io.mdcatapult.util.models.Version
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Envelope, Queue}
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}

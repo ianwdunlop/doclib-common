@@ -7,6 +7,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.models.ParentChildMapping
 import io.mdcatapult.doclib.models.metadata.{MetaInt, MetaString}
 import io.mdcatapult.klein.mongo.Mongo
+import io.mdcatapult.util.time.nowUtc
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.{equal => Mequal}
