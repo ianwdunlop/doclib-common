@@ -10,6 +10,7 @@ import org.bson.UuidRepresentation
 import org.bson.codecs.UuidCodec
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
+import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 
 object MongoCodecs {

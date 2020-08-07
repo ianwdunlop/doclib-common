@@ -3,7 +3,9 @@ package io.mdcatapult.doclib.path
 import java.time.LocalDateTime
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.models.{ConsumerVersion, DoclibDoc, DoclibFlag, DoclibFlagState}
+import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlag, DoclibFlagState}
+import io.mdcatapult.util.models.Version
+import io.mdcatapult.util.time.nowUtc
 import org.mongodb.scala.bson.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
@@ -38,7 +40,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
   val startedDoc: DoclibDoc = newDoc.copy(
     doclib = List(DoclibFlag(
       key = "test",
-      version = ConsumerVersion(
+      version = Version(
         number = "0.0.1",
         major = 0,
         minor = 0,
@@ -53,7 +55,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
     doclib = List(
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -63,7 +65,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
       ),
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.1",
           major = 0,
           minor = 0,
@@ -73,7 +75,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
       ),
       DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.2",
           major = 0,
           minor = 0,
@@ -104,7 +106,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
     val stateDoc: DoclibDoc = newDoc.copy(
       doclib = List(DoclibFlag(
         key = "test",
-        version = ConsumerVersion(
+        version = Version(
           number = "0.0.1",
           major = 0,
           minor = 0,
@@ -123,7 +125,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
       doclib = List(
         DoclibFlag(
           key = "test",
-          version = ConsumerVersion(
+          version = Version(
             number = "0.0.2",
             major = 0,
             minor = 0,
@@ -142,7 +144,7 @@ class DoclibFlagsSpec extends AnyFlatSpec with Matchers with MockFactory {
       doclib = List(
         DoclibFlag(
           key = "test",
-          version = ConsumerVersion(
+          version = Version(
             number = "0.0.2",
             major = 0,
             minor = 0,

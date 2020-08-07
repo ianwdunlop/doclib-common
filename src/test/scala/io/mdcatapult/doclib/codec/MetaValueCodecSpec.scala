@@ -3,7 +3,7 @@ package io.mdcatapult.doclib.codec
 import java.time.format.DateTimeFormatter
 
 import io.mdcatapult.doclib.models.metadata._
-import io.mdcatapult.doclib.path._
+import io.mdcatapult.util.time.nowUtc
 
 class MetaValueCodecSpec extends CodecSpec {
 

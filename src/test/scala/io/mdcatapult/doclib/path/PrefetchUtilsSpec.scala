@@ -9,6 +9,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
 import io.mdcatapult.doclib.models.{DoclibDoc, FileAttrs}
+import io.mdcatapult.doclib.util.PrefetchUtils
+import io.mdcatapult.util.time.nowUtc
 import io.mdcatapult.klein.queue.Sendable
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId

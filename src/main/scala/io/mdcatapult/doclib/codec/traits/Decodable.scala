@@ -32,7 +32,7 @@ trait Decodable {
     r.readStartArray()
     while ({
       r.readBsonType ne BsonType.END_OF_DOCUMENT
-    }) buffer.append(getValue(r,c))
+    }) buffer.addOne(getValue(r,c))
     r.readEndArray()
     buffer.toList
   }
