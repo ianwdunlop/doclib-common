@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.models.ner
 
 import io.mdcatapult.doclib.models.DoclibDoc
-import io.mdcatapult.doclib.util.HashUtils.md5
+import io.mdcatapult.util.hash.Md5
 import org.mongodb.scala.bson.ObjectId
 
 object StatsKey {
@@ -33,5 +33,5 @@ case class StatsKey(
                    ) {
 
   /** Calculate the hash value that is required to be used as the _id for the corresponding Stats object. */
-  def key: String = md5(document.toHexString + schema + config + tool)
+  def key: String = Md5.md5(document.toHexString + schema + config + tool)
 }

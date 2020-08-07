@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.flag
 
-import io.mdcatapult.doclib.models.result.UpdatedResult
+import io.mdcatapult.util.models.result.UpdatedResult
 import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlagState}
 
 import scala.concurrent.{ExecutionContext, Future}
