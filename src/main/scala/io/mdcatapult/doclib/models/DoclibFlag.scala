@@ -2,6 +2,7 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
+import io.mdcatapult.util.models.Version
 import play.api.libs.json.{Format, Json}
 
 object DoclibFlag  {
@@ -16,7 +17,7 @@ object DoclibFlag  {
   */
 case class DoclibFlag(
                        key: String,
-                       version: ConsumerVersion,
+                       version: Version,
                        started: Option[LocalDateTime] = None,
                        ended: Option[LocalDateTime] = None,
                        errored: Option[LocalDateTime] = None,

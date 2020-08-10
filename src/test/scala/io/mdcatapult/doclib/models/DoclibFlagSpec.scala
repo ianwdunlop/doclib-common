@@ -2,6 +2,7 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 
+import io.mdcatapult.util.models.Version
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -10,7 +11,7 @@ class DoclibFlagSpec extends AnyFlatSpec with Matchers with BsonCodecCompatible 
   "Origin" should "be able to be encoded and decoded successfully to BSON" in {
     roundTrip(DoclibFlag(
       key = "test",
-      version = ConsumerVersion(
+      version = Version(
         number = "2.0.0",
         major = 2,
         minor = 0,

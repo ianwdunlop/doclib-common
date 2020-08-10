@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.models
 
 import java.nio.ByteBuffer
 
-import io.mdcatapult.doclib.util.MongoCodecs
+import io.mdcatapult.doclib.codec.MongoCodecs
 import org.bson._
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.io.{BasicOutputBuffer, ByteBufferBsonInput, OutputBuffer}

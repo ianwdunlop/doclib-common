@@ -41,10 +41,15 @@ lazy val root = (project in file(".")).
       val monixVersion = "3.2.2"
 
       Seq(
+        "io.mdcatapult.klein" %% "queue"                % "0.0.22",
+        "io.mdcatapult.klein" %% "mongo"                % "1.0.0",
+        "io.mdcatapult.klein" %% "util"                 % "1.1.0",
+
         "org.scalactic" %% "scalactic"                  % "3.2.0",
         "org.scalatest" %% "scalatest"                  % "3.2.0" % "it, test",
         "org.scalamock" %% "scalamock"                  % "4.4.0" % "it, test",
         "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
+        "com.typesafe.akka" %% "akka-slf4j"             % akkaVersion,
         "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
         "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
         "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
@@ -54,8 +59,6 @@ lazy val root = (project in file(".")).
         "org.typelevel" %% "cats-kernel"                % catsVersion,
         "org.typelevel" %% "cats-core"                  % catsVersion,
         "io.lemonlabs" %% "scala-uri"                   % "2.2.3",
-        "io.mdcatapult.klein" %% "queue"                % "0.0.22",
-        "io.mdcatapult.klein" %% "mongo"                % "0.0.15",
         "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
         "org.apache.tika" % "tika-core"                 % tikaVersion,
         "org.apache.tika" % "tika-parsers"              % tikaVersion,
