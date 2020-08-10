@@ -63,8 +63,6 @@ publish-snapshot:
 
 release:
   stage: publish
-  tags:
-    - wopr
   script:
     - /scripts/release.sh -b -r develop
   only:
