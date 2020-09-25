@@ -36,7 +36,7 @@ trait PrefetchUtils {
     source.foreach(path => {
       prefetchQueue.send(PrefetchMsg(
         source = path,
-        origin = Some(List(Origin(
+        origins = Some(List(Origin(
           scheme = "mongodb",
           metadata = List(
             MetaString("db", doclibConfig.getString("mongo.database")),
