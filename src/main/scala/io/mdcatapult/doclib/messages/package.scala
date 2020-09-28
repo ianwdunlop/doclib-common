@@ -37,7 +37,7 @@ package object messages {
     } else if (values.contains("source")) {
       PrefetchMsg(
         source = getValFrom[String]("source", values).get,
-        origins = getValFrom[List[Map[String, _]]]("origin", values).map(a => a.map(o => Origin(
+        origins = getValFrom[List[Map[String, _]]]("origins", values).map(a => a.map(o => Origin(
             scheme= o("scheme").asInstanceOf[String],
             hostname = getValFrom[String]("hostname", o),
             uri = getValFrom[String]("uri", o).map(Uri.parse),
