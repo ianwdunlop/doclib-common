@@ -10,7 +10,7 @@ class EnvelopeCodecSpec extends CodecSpec{
   "EnvelopeSpec" should "encode & decode a Prefetch Message" in {
     val original = PrefetchMsg(
       source = "path/to/file",
-      origin = Some(List(Origin(scheme="file", hostname=Some("example.com")))),
+      origins = Some(List(Origin(scheme="file", hostname=Some("example.com")))),
       tags = Some(List("tag1", "tag2")),
       metadata = Some(List(MetaString("metakey1", "metavalue1"), MetaInt("metakey2", 100))),
       derivative = Some(false)

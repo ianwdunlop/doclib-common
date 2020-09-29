@@ -39,10 +39,10 @@ class EnvelopeCodec extends Codec[Envelope] with Decodable {
         }
       case v: PrefetchMsg =>
         w.writeString("source", v.source)
-        if (v.origin.isDefined) {
-          w.writeName("origin")
+        if (v.origins.isDefined) {
+          w.writeName("origins")
           w.writeStartArray()
-          v.origin.get.foreach(t => originCodec.encode(w, t, c))
+          v.origins.get.foreach(t => originCodec.encode(w, t, c))
           w.writeEndArray()
         }
         if (v.metadata.isDefined) {

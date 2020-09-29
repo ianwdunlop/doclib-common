@@ -12,7 +12,7 @@ object PrefetchMsg extends BsonDocumentJson  with MetaValueJson{
 
 case class PrefetchMsg(
                         source: String,
-                        origin: Option[List[Origin]] = None,
+                        origins: Option[List[Origin]] = None,
                         tags: Option[List[String]] = None,
                         metadata: Option[List[MetaValueUntyped]] = None,
                         derivative: Option[Boolean] = None,
