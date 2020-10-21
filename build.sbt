@@ -39,6 +39,7 @@ lazy val root = (project in file(".")).
       val betterFilesVersion = "3.9.1"
       val akkaVersion = "2.6.4"
       val monixVersion = "3.2.2"
+      val prometheusClientVersion = "0.9.0"
 
       Seq(
         "io.mdcatapult.klein" %% "queue"                % "0.0.22",
@@ -65,6 +66,9 @@ lazy val root = (project in file(".")).
         "org.apache.tika" % "tika-langdetect"           % tikaVersion,
         "com.github.pathikrit"  %% "better-files"       % betterFilesVersion,
         "io.monix" %% "monix"                           % monixVersion,
+        "io.prometheus" % "simpleclient"                % prometheusClientVersion,
+        "io.prometheus" % "simpleclient_hotspot"        % prometheusClientVersion,
+        "io.prometheus" % "simpleclient_httpserver"     % prometheusClientVersion
       )
     }
   )
