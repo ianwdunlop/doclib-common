@@ -85,9 +85,6 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
       val mongo: Mongo = new Mongo()
       val ref = start()(system, m, mongo)
 
-      // Initialise prometheus exporter
-      DefaultExports.initialize()
-
       ref.initialized.foreach(_ => initialised.countDown())
 
     case Some(_) =>
