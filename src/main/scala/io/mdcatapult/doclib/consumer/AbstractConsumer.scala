@@ -12,7 +12,6 @@ import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.util.models.Version
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Envelope, Queue}
-import io.prometheus.client.hotspot.DefaultExports
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 import play.api.libs.json.Format
 import scopt.OParser
