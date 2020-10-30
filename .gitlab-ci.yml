@@ -70,15 +70,3 @@ release:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
-
-publish-master:
-  stage: publish
-  tags:
-    - wopr
-  script:
-    - sbt +publish
-  only:
-    refs:
-      - tags
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
