@@ -43,7 +43,7 @@ lazy val root = (project in file(".")).
 
       Seq(
         "io.mdcatapult.klein" %% "queue"                % "0.1.1",
-        "io.mdcatapult.klein" %% "mongo"                % "1.1.1",
+        "io.mdcatapult.klein" %% "mongo"                % "2.0.0",
         "io.mdcatapult.klein" %% "util"                 % "1.2.0",
 
         "org.scalactic" %% "scalactic"                  % "3.2.0",

@@ -18,15 +18,14 @@ import scopt.OParser
 
 abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
 
-  private case class ConsumerConfig(
-                                     action: Option[String] = None,
-                                     config: Config = ConfigFactory.load())
+  private case class ConsumerConfig(config: Config = ConfigFactory.load())
 
   private def parseArgsWithConfiguration(): ConsumerConfig = {
     val optBuilder = OParser.builder[ConsumerConfig]
     val optParser: OParser[Unit, ConsumerConfig] = {
       import optBuilder._
       OParser.sequence(
+        programName("consumer"),
         opt[String]('c', "config")
           .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
           .text("optional: path to additional config for the consumer")
@@ -61,27 +60,14 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
 
   def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): SubscriptionRef
 
-  optConfig.action match {
-    case Some("start") =>
-      // initialise actor system
-      val system: ActorSystem = ActorSystem(config.getString("consumer.name"))
-      val m: Materializer = Materializer(system)
-      import system.dispatcher
+  val system: ActorSystem = ActorSystem(config.getString("consumer.name"))
+  val m: Materializer = Materializer(system)
+  import system.dispatcher
 
-      // Initialise Mongo
-      implicit val codecs: CodecRegistry = MongoCodecs.include(codecProviders)
-      val mongo: Mongo = new Mongo()
-      val ref = start()(system, m, mongo)
+  // Initialise Mongo
+  implicit val codecs: CodecRegistry = MongoCodecs.include(codecProviders)
+  val mongo: Mongo = new Mongo()
+  val ref = start()(system, m, mongo)
 
-      ref.initialized.foreach(_ => initialised.countDown())
-
-    case Some(_) =>
-      println(s"${optConfig.action} is not a recognised action")
-      sys.exit(1)
-
-    case None =>
-      println("You must specify a command valid command or `start`, see --help for more information")
-      sys.exit(1)
-  }
-
+  ref.initialized.foreach(_ => initialised.countDown())
 }
