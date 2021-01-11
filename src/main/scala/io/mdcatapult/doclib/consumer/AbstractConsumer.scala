@@ -16,7 +16,7 @@ import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 import play.api.libs.json.Format
 import scopt.OParser
 
-abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
+abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
 
   private case class ConsumerConfig(
                                      action: Option[String] = None,
@@ -27,20 +27,9 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
     val optParser: OParser[Unit, ConsumerConfig] = {
       import optBuilder._
       OParser.sequence(
-        programName(name),
-        head(name, consumerVersion.number),
-        version("version").text("prints the current version"),
-        help("help").text("prints this usage text"),
-
-        cmd("start")
-          .action((_, c) => c.copy(action = Some("start")))
-          .text("start the consumer")
-          .children(
-            opt[String]('c', "config")
-              .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
-              .text("optional: path to additional config for the consumer")
-
-          )
+        opt[String]('c', "config")
+          .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
+          .text("optional: path to additional config for the consumer")
       )
     }
     val consumerConfig = ConsumerConfig()
@@ -61,7 +50,7 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
   logger.debug(config.root().render(ConfigRenderOptions.concise()))
 
   def queue[T <: Envelope](property: String)(implicit f: Format[T], s: ActorSystem): Queue[T] = {
-    val consumerName = config.getString("op-rabbit.consumer-name")
+    val consumerName = config.getString("consumer.name")
 
     new Queue[T](config.getString(property), consumerName = Option(consumerName))
   }
@@ -75,7 +64,7 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
   optConfig.action match {
     case Some("start") =>
       // initialise actor system
-      val system: ActorSystem = ActorSystem(name)
+      val system: ActorSystem = ActorSystem(config.getString("consumer.name"))
       val m: Materializer = Materializer(system)
       import system.dispatcher
 
