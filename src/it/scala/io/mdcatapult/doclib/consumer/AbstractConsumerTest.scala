@@ -22,7 +22,7 @@ class AbstractConsumerTest
     with ScalaFutures
     with Eventually {
 
-  EchoConsumer.main(Array("start"))
+  EchoConsumer.main(Array())
 
   Thread.sleep(10 * 1000)
 
@@ -35,10 +35,10 @@ class AbstractConsumerTest
     implicit val codecs: CodecRegistry = MongoCodecs.get
     val mongo: Mongo = new Mongo()
 
-    mongo.database.getCollection[MessageDoc]("echo_test")
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection[MessageDoc]("echo_test")
   }
 
-  private val queue = EchoConsumer.queue[DoclibMsg]("upstream.queue")
+  private val queue = EchoConsumer.queue[DoclibMsg]("consumer.queue")
 
   "An AbstractConsumer" - {
     "when it is set-up to echo a message from rabbit into Mongo" - {
