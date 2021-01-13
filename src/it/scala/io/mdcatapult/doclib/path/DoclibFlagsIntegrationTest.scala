@@ -42,7 +42,7 @@ class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter wit
   implicit private val mongo: Mongo = new Mongo()
 
   implicit private val collection: MongoCollection[DoclibDoc] =
-    mongo.database.getCollection(collectionName(suffix = "doclibflags"))
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection(collectionName(suffix = "doclibflags"))
 
   private val current: LocalDateTime = nowUtc.now()
   private val time: Now = AdvancingNow.fromCurrentTime()

@@ -35,7 +35,7 @@ class ParentChildIntegrationTest  extends IntegrationSpec with BeforeAndAfter wi
   implicit val mongo: Mongo = new Mongo()
 
   implicit val collection: MongoCollection[ParentChildMapping] =
-    mongo.database.getCollection(collectionName(suffix = "parent_child"))
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection(collectionName(suffix = "parent_child"))
 
   val created: LocalDateTime = nowUtc.now()
 

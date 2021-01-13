@@ -23,7 +23,7 @@ trait IntegrationSpec extends AnyFlatSpec with Matchers {
     )
   }
 
-  protected def collectionName(suffix: String, prefixConfigName: String = "mongo.collection")(implicit config: Config): String = {
+  protected def collectionName(suffix: String, prefixConfigName: String = "mongo.documents-collection")(implicit config: Config): String = {
     val prefix = config.getString(prefixConfigName)
 
     s"${prefix}_$suffix"

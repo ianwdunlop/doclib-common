@@ -23,9 +23,9 @@ class NerOccurrencesIntegrationTest  extends IntegrationSpec with BeforeAndAfter
   implicit val mongo: Mongo = new Mongo()
 
   val nerCollection: MongoCollection[NerDocument] =
-    mongo.database.getCollection(collectionName(suffix = "ner", prefixConfigName = "mongo.ner-collection"))
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection(collectionName(suffix = "ner", prefixConfigName = "mongo.ner-collection"))
   val occurrenceCollection: MongoCollection[Occurrence] =
-    mongo.database.getCollection(collectionName(suffix = "occurrences", prefixConfigName = "mongo.ner-collection"))
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection(collectionName(suffix = "occurrences", prefixConfigName = "mongo.ner-collection"))
 
   override def beforeAll(): Unit = {
     Await.result(nerCollection.deleteMany(combine()).toFuture(), Duration.Inf) // empty collection
