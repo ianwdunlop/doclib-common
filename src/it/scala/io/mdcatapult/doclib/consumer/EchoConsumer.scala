@@ -8,12 +8,12 @@ import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.Queue
 import org.mongodb.scala.bson.ObjectId
 
-object EchoConsumer extends AbstractConsumer(name = "echo") {
+object EchoConsumer extends AbstractConsumer() {
 
   override def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): SubscriptionRef = {
 
-    val upstream: Queue[DoclibMsg] = queue("upstream.queue")
-    val collection = mongo.database.getCollection[MessageDoc]("echo_test")
+    val upstream: Queue[DoclibMsg] = queue("consumer.queue")
+    val collection = mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection[MessageDoc]("echo_test")
 
     upstream.subscribe(
       (message: DoclibMsg, _: String) => {

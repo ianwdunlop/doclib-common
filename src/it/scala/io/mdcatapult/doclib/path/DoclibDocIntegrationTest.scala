@@ -35,7 +35,7 @@ class DoclibDocIntegrationTest extends IntegrationSpec with BeforeAndAfter with 
   implicit val mongo: Mongo = new Mongo()
 
   implicit val collection: MongoCollection[DoclibDoc] =
-    mongo.database.getCollection(collectionName(suffix = "doclibdoc"))
+    mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection(collectionName(suffix = "doclibdoc"))
 
   val created: LocalDateTime = nowUtc.now()
 

@@ -16,31 +16,21 @@ import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 import play.api.libs.json.Format
 import scopt.OParser
 
-abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
+import scala.util.Try
 
-  private case class ConsumerConfig(
-                                     action: Option[String] = None,
-                                     config: Config = ConfigFactory.load())
+abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
+
+  private case class ConsumerConfig(config: Config = ConfigFactory.load())
 
   private def parseArgsWithConfiguration(): ConsumerConfig = {
     val optBuilder = OParser.builder[ConsumerConfig]
     val optParser: OParser[Unit, ConsumerConfig] = {
       import optBuilder._
       OParser.sequence(
-        programName(name),
-        head(name, consumerVersion.number),
-        version("version").text("prints the current version"),
-        help("help").text("prints this usage text"),
-
-        cmd("start")
-          .action((_, c) => c.copy(action = Some("start")))
-          .text("start the consumer")
-          .children(
-            opt[String]('c', "config")
-              .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
-              .text("optional: path to additional config for the consumer")
-
-          )
+        programName("consumer"),
+        opt[String]('c', "config")
+          .action((x, c) => c.copy(config = ConfigFactory.parseFile(new File(x)).withFallback(c.config)))
+          .text("optional: path to additional config for the consumer")
       )
     }
     val consumerConfig = ConsumerConfig()
@@ -61,9 +51,12 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
   logger.debug(config.root().render(ConfigRenderOptions.concise()))
 
   def queue[T <: Envelope](property: String)(implicit f: Format[T], s: ActorSystem): Queue[T] = {
-    val consumerName = config.getString("op-rabbit.consumer-name")
-
-    new Queue[T](config.getString(property), consumerName = Option(consumerName))
+    val consumerName = config.getString("consumer.name")
+    val errorQueue = Try(config.getString("doclib.error.queue")).toOption
+    if (errorQueue.isEmpty) {
+      logger.warn("error queue has not been set")
+    }
+    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue)
   }
 
   def waitForInitialisation(timeout: Long, unit: TimeUnit): Unit = {
@@ -72,27 +65,14 @@ abstract class AbstractConsumer(name: String, codecProviders: Seq[CodecProvider]
 
   def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): SubscriptionRef
 
-  optConfig.action match {
-    case Some("start") =>
-      // initialise actor system
-      val system: ActorSystem = ActorSystem(name)
-      val m: Materializer = Materializer(system)
-      import system.dispatcher
+  val system: ActorSystem = ActorSystem(config.getString("consumer.name"))
+  val m: Materializer = Materializer(system)
+  import system.dispatcher
 
-      // Initialise Mongo
-      implicit val codecs: CodecRegistry = MongoCodecs.include(codecProviders)
-      val mongo: Mongo = new Mongo()
-      val ref = start()(system, m, mongo)
+  // Initialise Mongo
+  implicit val codecs: CodecRegistry = MongoCodecs.include(codecProviders)
+  val mongo: Mongo = new Mongo()
+  val ref = start()(system, m, mongo)
 
-      ref.initialized.foreach(_ => initialised.countDown())
-
-    case Some(_) =>
-      println(s"${optConfig.action} is not a recognised action")
-      sys.exit(1)
-
-    case None =>
-      println("You must specify a command valid command or `start`, see --help for more information")
-      sys.exit(1)
-  }
-
+  ref.initialized.foreach(_ => initialised.countDown())
 }
