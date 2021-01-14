@@ -27,15 +27,16 @@ import scala.util.{Failure, Success}
 class DoclibFlagsIntegrationTest extends IntegrationSpec with BeforeAndAfter with ScalaFutures {
 
   implicit val config: Config = ConfigFactory.parseString(
-    """doclib {
-      |  flag = test
-      |}
+    """
       |version {
       |  number = "2.0.6-SNAPSHOT",
       |  major = 2,
       |  minor =  0,
       |  patch = 6,
       |  hash =  "20837d29"
+      |}
+      |consumer {
+      |  name = test
       |}
     """.stripMargin).withFallback(ConfigFactory.load())
 

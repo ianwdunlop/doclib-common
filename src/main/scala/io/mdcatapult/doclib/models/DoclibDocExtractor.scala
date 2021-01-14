@@ -10,7 +10,7 @@ object DoclibDocExtractor {
   def apply()(implicit config: Config): DoclibDocExtractor = {
 
     val defaultFlagKey =
-      config.getString("doclib.flag")
+      config.getString("consumer.name")
 
     val recentRunTolerance: TemporalAmount =
       if (config.hasPath("doclib.tolerance"))
