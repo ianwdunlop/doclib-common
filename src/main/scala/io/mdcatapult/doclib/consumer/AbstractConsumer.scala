@@ -9,6 +9,7 @@ import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.codec.MongoCodecs
+import io.mdcatapult.doclib.util.sanitizeName
 import io.mdcatapult.util.models.Version
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Envelope, Queue}
@@ -53,10 +54,11 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
   def queue[T <: Envelope](property: String)(implicit f: Format[T], s: ActorSystem): Queue[T] = {
     val consumerName = config.getString("consumer.name")
     val errorQueue = Try(config.getString("doclib.error.queue")).toOption
+    val exchange = Try(config.getString("consumer.exchange")).toOption
     if (errorQueue.isEmpty) {
       logger.warn("error queue has not been set")
     }
-    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue)
+    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue, exchange = exchange)
   }
 
   def waitForInitialisation(timeout: Long, unit: TimeUnit): Unit = {
@@ -64,8 +66,8 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
   }
 
   def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): SubscriptionRef
-
-  val system: ActorSystem = ActorSystem(config.getString("consumer.name"))
+  val sanitisedName = sanitizeName(config.getString("consumer.name"))
+  val system: ActorSystem = ActorSystem(sanitisedName)
   val m: Materializer = Materializer(system)
   import system.dispatcher
 
