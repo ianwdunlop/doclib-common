@@ -30,15 +30,15 @@ Common utility classes
 # Testing
 To run tests, do
 ```bash
-sbt +clean +test
+sbt clean test
 ```
 For integration tests, do
 ```bash
 docker-compose up -d
-MONGO_HOST=localhost sbt +clean +it:test
+sbt clean it:test
 ```
 To do all tests and get a coverage report, do
 ```bash
 docker-compose up -d
-MONGO_HOST=localhost sbt +clean coverage +test +it:test coverageReport
+sbt clean coverage test it:test coverageReport
 ```
