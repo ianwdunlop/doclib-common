@@ -5,8 +5,14 @@ import io.mdcatapult.klein.queue.Envelope
 
 import scala.concurrent.Future
 
-trait ConsumerHandler {
+trait ConsumerHandler[T <: Envelope] {
 
-  def handle(message: Envelope, key: String): Future[Option[DoclibDoc]]
+  /**
+   * Process a message and return a DoclibDoc.
+   * @param message One of the various Envelopes eg PrefetchMsg, SupervisorMsg
+   * @param key
+   * @return DoclibDoc
+   */
+  def handle(message: T, key: String): Future[Option[DoclibDoc]]
 
 }
