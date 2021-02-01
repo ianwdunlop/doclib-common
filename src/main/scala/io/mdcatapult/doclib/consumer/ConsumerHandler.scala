@@ -7,6 +7,6 @@ import scala.concurrent.Future
 
 trait ConsumerHandler {
 
-  def handle(message: Envelope): Future[Option[DoclibDoc]]
+  def handle(message: Envelope, key: String): Future[Option[DoclibDoc]]
 
 }
