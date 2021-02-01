@@ -54,11 +54,10 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
   def queue[T <: Envelope](property: String)(implicit f: Format[T], s: ActorSystem): Queue[T] = {
     val consumerName = config.getString("consumer.name")
     val errorQueue = Try(config.getString("doclib.error.queue")).toOption
-    val exchange = Try(config.getString("consumer.exchange")).toOption
     if (errorQueue.isEmpty) {
       logger.warn("error queue has not been set")
     }
-    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue, exchange = exchange)
+    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue)
   }
 
   def waitForInitialisation(timeout: Long, unit: TimeUnit): Unit = {
