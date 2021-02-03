@@ -57,7 +57,7 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
     if (errorQueue.isEmpty) {
       logger.warn("error queue has not been set")
     }
-    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue)
+    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue = errorQueue)
   }
 
   def waitForInitialisation(timeout: Long, unit: TimeUnit): Unit = {
