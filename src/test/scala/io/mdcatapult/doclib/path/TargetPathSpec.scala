@@ -38,9 +38,7 @@ class TargetPathSpec extends AnyFlatSpec with Matchers {
       |}
     """.stripMargin)
 
-  class MyTargetPath(implicit config: Config) extends TargetPath {
-    override val doclibConfig: Config = config
-  }
+  class MyTargetPath extends TargetPath
 
   val targetPath = new MyTargetPath
 

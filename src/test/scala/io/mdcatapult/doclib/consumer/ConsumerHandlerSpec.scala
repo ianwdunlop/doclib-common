@@ -1,4 +1,5 @@
 package io.mdcatapult.doclib.consumer
+import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.DoclibDoc
 import io.mdcatapult.util.time.nowUtc
@@ -13,7 +14,24 @@ import scala.concurrent.Future
 
 class ConsumerHandlerSpec extends AnyFlatSpecLike {
 
+  implicit val config: Config = ConfigFactory.parseString(
+    """
+      |consumer {
+      |  name = dummy
+      |  concurrency: 1
+      |  queue: none
+      |}
+      |version {
+      |   number: 1
+      |   major: 1
+      |   minor: 1
+      |   patch: 1
+      |   hash: 1
+      |}
+    """.stripMargin)
+
   class MyConsumerHandler extends ConsumerHandler[PrefetchMsg] {
+
     override def handle(message: PrefetchMsg, key: String): Future[Option[DoclibDoc]] = {
       val doc = DoclibDoc(
         _id = new ObjectId(),
