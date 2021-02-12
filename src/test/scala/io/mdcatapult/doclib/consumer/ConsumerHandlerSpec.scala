@@ -30,9 +30,11 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike {
       |}
     """.stripMargin)
 
+  case class ExampleReturn(doclibDoc: DoclibDoc, pathsOpt: Option[List[String]]) extends HandlerReturn
+
   class MyConsumerHandler extends ConsumerHandler[PrefetchMsg] {
 
-    override def handle(message: PrefetchMsg, key: String): Future[Option[DoclibDoc]] = {
+    override def handle(message: PrefetchMsg, key: String): Future[Option[ExampleReturn]] = {
       val doc = DoclibDoc(
         _id = new ObjectId(),
         source = message.source,
@@ -42,7 +44,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike {
         mimetype = "text/plain")
 
       Future {
-        Some(doc)
+        Some(ExampleReturn(doc, None))
       }
     }
   }
@@ -51,7 +53,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike {
     val myHandler = new MyConsumerHandler()
     val prefetchMsg = PrefetchMsg("a-source")
     whenReady(myHandler.handle(prefetchMsg, "a-key"), Timeout(Span(20, Seconds))) { result =>
-      assert(result.get.source == "a-source")
+      assert(result.get.doclibDoc.source == "a-source")
     }
   }
 

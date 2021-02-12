@@ -1,7 +1,5 @@
 package io.mdcatapult.doclib.models
 
-import io.mdcatapult.doclib.consumer.HandlerReturn
-
 import java.time.LocalDateTime
 import java.util.UUID
 import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
@@ -22,7 +20,7 @@ case class DoclibDoc(
                       origin: Option[List[Origin]] = None,
                       metadata: Option[List[MetaValueUntyped]] = None,
                       uuid: Option[UUID] = None
-                    ) extends HandlerReturn {
+                    )  {
 
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)
   def getFlag(key: String): List[DoclibFlag] = doclib.filter(_.key == key)
