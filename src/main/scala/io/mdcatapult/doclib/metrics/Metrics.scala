@@ -16,4 +16,6 @@ object Metrics {
     .help("Counts number of requests received by the handler.")
     .labelNames("consumer", "source", "result")
     .register()
+
+  val test = handlerCount
 }

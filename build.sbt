@@ -17,7 +17,7 @@ lazy val root = (project in file(".")).
       "-deprecation",
       "-explaintypes",
       "-feature",
-      "-Xlint",
+//      "-Xlint",
       "-Xfatal-warnings",
     ),
     resolvers         ++= Seq(

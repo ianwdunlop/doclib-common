@@ -60,9 +60,9 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
 
             // TODO do we need to log any info about paths? trying to cover edge cases
             if (handlerReturn.pathsOpt.isDefined) {
-              logger.info(f"COMPLETE: ${message.id} - Paths ${handlerReturn.pathsOpt.get.length}")
+              logger.info(f"SUCCESS: ${message.id} - Paths ${handlerReturn.pathsOpt.get.length}")
             } else {
-              logger.info(f"COMPLETE: ${message.id} - ${handlerReturn.doclibDoc._id}")
+              logger.info(f"SUCCESS: ${message.id} - ${handlerReturn.doclibDoc._id}")
             }
 
           case None =>
@@ -83,17 +83,17 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
 
       case Failure(e) if collectionOpt.isDefined =>
         incrementHandlerCount("unknown_error")
-        failureWithCollection(e, collectionOpt.get, message.id, flagContext)
+        failureWithDefinedCollection(e, collectionOpt.get, message.id, flagContext)
 
       case Failure(e) =>
         // TODO the leadmine handler tests require a document to write the error flag to at this stage,
-        // TODO so maybe wrap in a DoclibDocException to be caught further up
+        // TODO so maybe in leadmine code wrap in a DoclibDocException to be caught further up
         incrementHandlerCount("unknown_error")
         logger.error("error during handle process", e)
     }
   }
 
-  def failureWithCollection(e: Throwable, collection: MongoCollection[DoclibDoc], messageId: String, flagContext: FlagContext): Unit = {
+  def failureWithDefinedCollection(e: Throwable, collection: MongoCollection[DoclibDoc], messageId: String, flagContext: FlagContext): Unit = {
     logger.error("error during handle process", e)
 
     findDocById(collection, messageId, readLimiter)
