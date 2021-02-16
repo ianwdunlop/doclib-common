@@ -76,10 +76,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
         val doclibDoc = doclibException.getDoc
         logger.error(s"ERROR: doclib_doc_exception doclib doc id: ${doclibDoc._id}")
 
-        flagContext.error(doclibDoc, noCheck = true).andThen {
-          case Failure(e) =>
-            logger.error(s"ERROR: couldn't write error flag for doclib doc id: ${doclibDoc._id}", e)
-        }
+        writeErrorFlag(flagContext, doclibDoc)
 
       case Failure(e) if collectionOpt.isDefined =>
         incrementHandlerCount("unknown_error")
@@ -93,22 +90,28 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
     }
   }
 
-  def failureWithDefinedCollection(e: Throwable, collection: MongoCollection[DoclibDoc], messageId: String, flagContext: FlagContext): Unit = {
+  def failureWithDefinedCollection(e: Throwable, collection: MongoCollection[DoclibDoc],
+                                   messageId: String,
+                                   flagContext: FlagContext): Unit = {
     logger.error("error during handle process", e)
 
     findDocById(collection, messageId, readLimiter)
       .onComplete {
         case Success(doclibDocOpt) => doclibDocOpt match {
-          case Some(doc) =>
-            flagContext.error(doc, noCheck = true)
-              .andThen {
-                case Failure(e) => logger.error("error attempting error flag write", e)
-              }
+          case Some(doc) => writeErrorFlag(flagContext, doc)
           case None =>
             val exceptionMessage = s"$messageId - no document found"
             logger.error(exceptionMessage, new Exception(exceptionMessage))
         }
         case Failure(e) => logger.error(s"error retrieving document", e)
+      }
+  }
+
+  def writeErrorFlag(flagContext: FlagContext, doclibDoc: DoclibDoc): Unit = {
+    flagContext.error(doclibDoc, noCheck = true)
+      .andThen {
+        case Failure(e) =>
+          logger.error(s"ERROR: couldn't write error flag for doclib doc id: ${doclibDoc._id}", e)
       }
   }
 

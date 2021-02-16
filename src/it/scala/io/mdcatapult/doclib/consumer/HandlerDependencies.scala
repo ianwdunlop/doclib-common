@@ -2,6 +2,7 @@ package io.mdcatapult.doclib.consumer
 
 import akka.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
+import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.flag.{FlagContext, MongoFlagStore}
 import io.mdcatapult.doclib.messages.{DoclibMsg, SupervisorMsg}
 import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc, DoclibDocExtractor}
@@ -11,6 +12,7 @@ import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
 import io.mdcatapult.util.models.Version
 import io.mdcatapult.util.time.nowUtc
 import io.prometheus.client.CollectorRegistry
+import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Format
@@ -35,14 +37,10 @@ trait HandlerDependencies extends MockFactory {
   val downstream: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
   val archiver: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
 
-   implicit val  formatter: Format[SupervisorMsg] = SupervisorMsg.msgFormatter
+  implicit val formatter: Format[SupervisorMsg] = SupervisorMsg.msgFormatter
 
-  val supervisor: Queue[SupervisorMsg] =
-    Queue(
-      name = config.getString("doclib.supervisor.queue"),
-      consumerName = Option("test"),
-      errorQueue = None
-    )
+  implicit val codecs: CodecRegistry = MongoCodecs.get
+
 
   val mongo: Mongo = new Mongo()
   implicit val collection: MongoCollection[DoclibDoc] =
