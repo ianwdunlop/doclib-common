@@ -17,5 +17,4 @@ object Metrics {
     .labelNames("consumer", "source", "result")
     .register()
 
-  val test = handlerCount
 }

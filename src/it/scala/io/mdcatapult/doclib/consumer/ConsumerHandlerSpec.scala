@@ -1,21 +1,15 @@
 package io.mdcatapult.doclib.consumer
 
-import akka.actor.ActorSystem
 import com.spingo.op_rabbit.properties.MessageProperty
-import com.typesafe.config.{Config, ConfigFactory}
-import io.mdcatapult.doclib.flag.{FlagContext, MongoFlagStore}
-import io.mdcatapult.doclib.messages.{DoclibMsg, PrefetchMsg, SupervisorMsg}
+import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
-import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc, DoclibDocExtractor}
-import io.mdcatapult.klein.mongo.Mongo
-import io.mdcatapult.klein.queue.{EnvelopeWithId, Queue, Sendable}
+import io.mdcatapult.doclib.models.DoclibDoc
+import io.mdcatapult.klein.queue.{EnvelopeWithId, Sendable}
 import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
-import io.mdcatapult.util.models.Version
 import io.mdcatapult.util.time.nowUtc
-import io.prometheus.client.CollectorRegistry
 import org.bson.types.ObjectId
-import org.mongodb.scala.MongoCollection
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
@@ -26,13 +20,13 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 
-class ConsumerHandlerSpec extends AnyFlatSpecLike with MockFactory {
+class ConsumerHandlerSpec extends AnyFlatSpecLike
+  with MockFactory
+  with BeforeAndAfterEach
+  with HandlerDependencies {
 
-  implicit val actorSystem: ActorSystem = ActorSystem("Test")
 
   import actorSystem.dispatcher
-
-  implicit val config: Config = ConfigFactory.load()
 
   private val prefetchMsg = PrefetchMsg("a-source")
 
@@ -45,35 +39,12 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike with MockFactory {
     mimetype = "text/plain"
   )
 
-
-  val defaultPrometheusRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
   private val pathsOpt = Option(List("a/cool/path", "some/other/path"))
 
-  private implicit val consumerNameAndQueue: ConsumerNameAndQueue =
-    ConsumerNameAndQueue(config.getString("consumer.name"), config.getString("consumer.queue"))
-
-  val version: Version = Version.fromConfig(config)
-
-  private val readLimiter = SemaphoreLimitedExecution.create(1)
   private val handlerReturnSuccess: Future[Option[GenericHandlerReturn]] = Future(Option(GenericHandlerReturn(doc, pathsOpt)))
   private val handlerReturnFailure: Future[Option[GenericHandlerReturn]] = Future(Option(throw new Exception("error")))
 
-
-  val downstream: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
-  val archiver: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
-
-  val supervisor: Queue[SupervisorMsg] = Queue(config.getString("doclib.supervisor.queue"), consumerName = Option("test"), errorQueue = None)
-
-  // TODO investigate why declaring MongoFlagStore outside of this fn causes large numbers DoclibDoc objects on the heap
-  val mongo: Mongo = new Mongo()
-  implicit val collection: MongoCollection[DoclibDoc] = mongo.getCollection(config.getString("mongo.doclib-database"), config.getString("mongo.documents-collection"))
-
-  val flags = new MongoFlagStore(version, DoclibDocExtractor(), collection, nowUtc)
-  val flagContext: FlagContext = flags.findFlagContext(Some(consumerNameAndQueue.name))
-
-
   class MyConsumerHandler(val readLimiter: SemaphoreLimitedExecution) extends ConsumerHandler[PrefetchMsg] {
-
     override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerReturn]] = {
       handlerReturnSuccess
     }
@@ -83,34 +54,34 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike with MockFactory {
 
   case class Message(id: String) extends EnvelopeWithId
 
-  val message = Message("1")
+  private val postHandleMessage = Message("1")
 
   "The postHandleProcess method" should
     "do some success stuff" in {
 
-    val hc = handlerCount
     val testSupervisorMsg = SupervisorMsg(id = doc._id.toHexString)
-    implicit val asdfx = SupervisorMsg.msgFormatter
 
     val emptySeq: Seq[MessageProperty] = Seq()
     val supervisorStub = stub[Sendable[SupervisorMsg]]
     (supervisorStub.send _).when(testSupervisorMsg, emptySeq).returns(())
 
     Await.result(
-      handler.postHandleProcess(message, handlerReturnSuccess, Option(supervisorStub), flagContext, Option(collection)),
+      handler.postHandleProcess(
+        message = postHandleMessage,
+        handlerReturn = handlerReturnSuccess,
+        supervisorQueueOpt = Option(supervisorStub),
+        flagContext = flagContext,
+        collectionOpt = Option(collection)
+      ),
       Duration.Inf
     )
 
-    prometheusCollectorCalledWithLabel("handler_count", "success") shouldBe true
+    prometheusCollectorCalledWithLabelValue("handler_count", "success") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, emptySeq).once()
-
   }
 
   it should "do some failure stuff" in {
-
-    val hc = handlerCount
     val testSupervisorMsg = SupervisorMsg(id = doc._id.toHexString)
-    implicit val asdfx = SupervisorMsg.msgFormatter
 
     val emptySeq: Seq[MessageProperty] = Seq()
     val supervisorStub = stub[Sendable[SupervisorMsg]]
@@ -118,27 +89,35 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike with MockFactory {
 
     intercept[Exception] {
       Await.result(
-        handler.postHandleProcess(message, handlerReturnFailure, None, flagContext, Option(collection)),
+        handler.postHandleProcess(postHandleMessage, handlerReturnFailure, None, flagContext, None),
         Duration.Inf
       )
     }
 
-    prometheusCollectorCalledWithLabel("handler_count", "unknown_error") shouldBe true
+    prometheusCollectorCalledWithLabelValue("handler_count", "unknown_error") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, emptySeq).never()
   }
 
-  private def prometheusCollectorCalledWithLabel(collectorName: String, label: String): Boolean = {
+  private def prometheusCollectorCalledWithLabelValue(collectorName: String, labelValue: String): Boolean = {
     defaultPrometheusRegistry
       .filteredMetricFamilySamples(util.Set.of(collectorName))
       .asIterator()
       .asScala
       .exists(collector => {
-        val collectorSamples = collector.samples.asScala
+        val collectorSamples = collector
+          .samples
+          .asScala
 
         collectorSamples
-          .head
-          .labelValues
-          .contains(label)
+          .headOption
+          .exists(samples => {
+            samples.labelValues.contains(labelValue)
+          })
       })
+  }
+
+  // clear the handlerCount collector to only have one sample to search from when querying the prometheus registry
+  override def beforeEach(): Unit = {
+    handlerCount.clear()
   }
 }
