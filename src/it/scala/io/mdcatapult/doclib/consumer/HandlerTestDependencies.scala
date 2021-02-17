@@ -1,10 +1,12 @@
 package io.mdcatapult.doclib.consumer
 
 import akka.actor.ActorSystem
+import com.spingo.op_rabbit.properties.MessageProperty
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.codec.MongoCodecs
+import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.flag.{FlagContext, MongoFlagStore}
-import io.mdcatapult.doclib.messages.{DoclibMsg, SupervisorMsg}
+import io.mdcatapult.doclib.messages.{DoclibMsg, PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc, DoclibDocExtractor}
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Queue, Sendable}
@@ -13,19 +15,19 @@ import io.mdcatapult.util.models.Version
 import io.mdcatapult.util.time.nowUtc
 import io.prometheus.client.CollectorRegistry
 import org.bson.codecs.configuration.CodecRegistry
+import org.bson.types.ObjectId
 import org.mongodb.scala.MongoCollection
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Format
 
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 
-trait HandlerDependencies extends MockFactory {
-
+trait HandlerTestDependencies extends MockFactory {
   implicit val config: Config = ConfigFactory.load()
 
   implicit val actorSystem: ActorSystem = ActorSystem("Test")
-
   import actorSystem.dispatcher
 
   val version: Version = Version.fromConfig(config)
@@ -53,6 +55,6 @@ trait HandlerDependencies extends MockFactory {
   val flagContext: FlagContext = flags.findFlagContext(Some(consumerNameAndQueue.name))
 
   val defaultPrometheusRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
+
+
 }
-
-

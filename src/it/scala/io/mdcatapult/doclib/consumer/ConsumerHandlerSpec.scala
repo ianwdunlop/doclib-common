@@ -2,14 +2,9 @@ package io.mdcatapult.doclib.consumer
 
 import com.spingo.op_rabbit.properties.MessageProperty
 import com.typesafe.scalalogging.Logger
-import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
-import io.mdcatapult.doclib.models.DoclibDoc
-import io.mdcatapult.klein.queue.{EnvelopeWithId, Sendable}
 import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
-import io.mdcatapult.util.time.nowUtc
-import org.bson.types.ObjectId
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -26,54 +21,19 @@ import scala.language.postfixOps
 class ConsumerHandlerSpec extends AnyFlatSpecLike
   with MockFactory
   with BeforeAndAfterEach
-  with HandlerDependencies {
-
-
-  case class TestMessage(id: String) extends EnvelopeWithId
-
-  private val awaitDuration = 7 seconds
+  with HandlerTestDependencies
+  with HandlerTestData {
 
   import actorSystem.dispatcher
 
-  private val prefetchMsg = PrefetchMsg("a-source")
-
-  private val testDoclibDoc = DoclibDoc(
-    _id = new ObjectId(),
-    source = prefetchMsg.source,
-    hash = "12345",
-    created = nowUtc.now(),
-    updated = nowUtc.now(),
-    mimetype = "text/plain"
-  )
-
-  private val pathsOpt = Option(List("a/cool/path", "some/other/path"))
-
-  private val handlerReturnSuccess: Future[Option[GenericHandlerReturn]] = Future(Option(GenericHandlerReturn(testDoclibDoc, pathsOpt)))
-  private val handlerReturnEmptySuccess: Future[Option[GenericHandlerReturn]] = Future(None)
-  private val handlerReturnFailure: Future[Option[GenericHandlerReturn]] = Future(Option(throw new Exception("error")))
-  private val handlerReturnDoclibExceptionFailure: Future[Option[GenericHandlerReturn]] =
-    Future(Option(throw new DoclibDocException(testDoclibDoc, "oh dear")))
-
-  val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
-
-  class MyConsumerHandler(val readLimiter: SemaphoreLimitedExecution) extends ConsumerHandler[PrefetchMsg] {
-    override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerReturn]] = {
-      handlerReturnSuccess
-    }
-
-    override lazy val logger: Logger = Logger(underlyingMockLogger)
-  }
+  private val awaitDuration = 2 seconds
 
   val handler = new MyConsumerHandler(readLimiter)
-  private val testSupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
-  private val postHandleMessage = TestMessage(testDoclibDoc._id.toHexString)
+  (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
 
   "The postHandleProcess method" should
     "send a message to the supervisor, call log.info, and increment the correct prometheus collector " +
       "given a defined supervisor queue, and a successful handler return value" in {
-
-    val supervisorStub = stub[Sendable[SupervisorMsg]]
-    (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
 
     Await.result(
       handler.postHandleProcess(
@@ -86,15 +46,13 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       awaitDuration
     )
 
-    prometheusCollectorCalledWithLabelValue("handler_count", "success") shouldBe true
+    prometheusCollectorCalledWithLabelValue("success") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).once()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
 
   it should "not send a message to the supervisor, call log.info, and increment the correct prometheus collector " +
     "given an undefined supervisor queue, and a successful handler return value" in {
-    val supervisorStub = stub[Sendable[SupervisorMsg]]
-    (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
 
     Await.result(
       handler.postHandleProcess(
@@ -107,7 +65,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       awaitDuration
     )
 
-    prometheusCollectorCalledWithLabelValue("handler_count", "success") shouldBe true
+    prometheusCollectorCalledWithLabelValue("success") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).never()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
@@ -126,17 +84,13 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       awaitDuration
     )
 
-    prometheusCollectorCalledWithLabelValue("handler_count", "error_no_document") shouldBe true
+    prometheusCollectorCalledWithLabelValue("error_no_document") shouldBe true
     (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
   it should "call the expected prometheus collector, log.error, and not send a message to the supervisor " +
     "given a handler return failure and an undefined supervisor queue" in {
     val testSupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
-
-    val emptySeq: Seq[MessageProperty] = Seq()
-    val supervisorStub = stub[Sendable[SupervisorMsg]]
-    (supervisorStub.send _).when(testSupervisorMsg, emptySeq).returns(())
 
     intercept[Exception] {
       Await.result(
@@ -151,19 +105,18 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       )
     }
 
-    prometheusCollectorCalledWithLabelValue("handler_count", "unknown_error") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, emptySeq).never()
+    prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
+    (supervisorStub.send _).verify(testSupervisorMsg, Seq()).never()
     (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
-  it should "asdf" in {
-
-    Await.result(collection.insertOne(testDoclibDoc).toFuture(), awaitDuration)
-    val preDoc = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
+  it should "write an error flag to the doclib document, call the prometheus collector with the correct label," +
+    "and log.error, given a doclib doc exists in the db, and the handler return value is a doclib doc exception" in {
 
     val futureResult =
       for {
-        //        _ <- collection.insertOne(testDoclibDoc).toFuture()
+        _ <- collection.insertOne(testDoclibDoc).toFuture()
+        _ <- flagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
           message = postHandleMessage,
           handlerReturn = handlerReturnDoclibExceptionFailure,
@@ -173,23 +126,62 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         )
       } yield ()
 
-    val blah = intercept[Exception] {
+    intercept[Exception] {
       Await.result(futureResult, awaitDuration)
     }
 
+    val doclibDocAfterPostHandleProcess =
+      Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration).get
 
-    prometheusCollectorCalledWithLabelValue("handler_count", "doclib_doc_exception") shouldBe true
-
-    val postDoc = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
-
-    assert(preDoc == postDoc)
-
-    val test = postDoc
+    prometheusCollectorCalledWithLabelValue("doclib_doc_exception") shouldBe true
+    doclibDocAfterPostHandleProcess.doclib.head.errored.isDefined shouldBe true
+    (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
-  private def prometheusCollectorCalledWithLabelValue(collectorName: String, labelValue: String): Boolean = {
+  it should "write an error flag to the doclib document, call the prometheus collector with the correct label," +
+    "and log.error, given a doclib doc exists in the db, there is a defined mongo collection, " +
+    "and the handler return value is a generic exception" in {
+
+    val futureResult =
+      for {
+        _ <- collection.insertOne(testDoclibDoc).toFuture()
+        _ <- flagContext.start(testDoclibDoc)
+        _ <- handler.postHandleProcess(
+          message = postHandleMessage,
+          handlerReturn = handlerReturnFailure,
+          supervisorQueueOpt = None,
+          flagContext = flagContext,
+          collectionOpt = Some(collection)
+        )
+      } yield ()
+
+    intercept[Exception] {
+      Await.result(futureResult, awaitDuration)
+    }
+
+    Thread.sleep(500) // allow error flag to be written
+
+    val doclibDocAfterPostHandleProcess =
+      Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration).get
+
+    prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
+    doclibDocAfterPostHandleProcess.doclib.head.errored.isDefined shouldBe true
+    (underlyingMockLogger.error(_: String)).verify(_: String).once()
+  }
+
+
+  // clear the handlerCount collector to only have one sample to search from when querying the prometheus registry
+  override def beforeEach(): Unit = {
+    Await.result(collection.drop().toFuture(), awaitDuration)
+    handlerCount.clear()
+  }
+
+
+  private def prometheusCollectorCalledWithLabelValue(labelValue: String): Boolean = {
+    val prometheusHandlerCountName = "handler_count"
+
     defaultPrometheusRegistry
-      .filteredMetricFamilySamples(util.Set.of(collectorName))
+      .filteredMetricFamilySamples(util.Set.of(prometheusHandlerCountName))
       .asIterator()
       .asScala
       .exists(collector => {
@@ -205,8 +197,15 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       })
   }
 
-  // clear the handlerCount collector to only have one sample to search from when querying the prometheus registry
-  override def beforeEach(): Unit = {
-    handlerCount.clear()
+
+  lazy val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
+
+  class MyConsumerHandler(val readLimiter: SemaphoreLimitedExecution) extends ConsumerHandler[PrefetchMsg] {
+    override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerReturn]] = {
+      handlerReturnSuccess
+    }
+
+    override lazy val logger: Logger = Logger(underlyingMockLogger)
   }
+
 }

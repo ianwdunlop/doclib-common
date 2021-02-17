@@ -14,8 +14,9 @@ import org.bson.types.ObjectId
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters._
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: ExecutionContext) extends LazyLogging {
 
@@ -74,9 +75,10 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
         incrementHandlerCount("doclib_doc_exception")
 
         val doclibDoc = doclibException.getDoc
-        logger.error(s"ERROR: doclib_doc_exception doclib doc id: ${doclibDoc._id}")
 
         writeErrorFlag(flagContext, doclibDoc)
+        logger.error(s"ERROR: doclib_doc_exception doclib doc id: ${doclibDoc._id}")
+
 
       case Failure(e) if collectionOpt.isDefined =>
         incrementHandlerCount("unknown_error")
@@ -98,7 +100,8 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
     findDocById(collection, messageId, readLimiter)
       .onComplete {
         case Success(doclibDocOpt) => doclibDocOpt match {
-          case Some(doc) => writeErrorFlag(flagContext, doc)
+          case Some(doc) =>
+            writeErrorFlag(flagContext, doc)
           case None =>
             val exceptionMessage = s"$messageId - no document found"
             logger.error(exceptionMessage, new Exception(exceptionMessage))
