@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.consumer
 
 import com.spingo.op_rabbit.properties.MessageProperty
-import com.typesafe.scalalogging.{LazyLogging, Logger}
+import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
@@ -17,19 +17,21 @@ import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.slf4j.{Logger => UnderlyingLogger}
 
 import java.util
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
+
 
 class ConsumerHandlerSpec extends AnyFlatSpecLike
   with MockFactory
   with BeforeAndAfterEach
-  with HandlerDependencies with LazyLogging {
+  with HandlerDependencies {
+
 
   case class TestMessage(id: String) extends EnvelopeWithId
 
-  private val awaitDuration = 5 seconds
+  private val awaitDuration = 7 seconds
 
   import actorSystem.dispatcher
 
@@ -52,7 +54,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   private val handlerReturnDoclibExceptionFailure: Future[Option[GenericHandlerReturn]] =
     Future(Option(throw new DoclibDocException(testDoclibDoc, "oh dear")))
 
-  val underlyingMockLogger: UnderlyingLogger = mock[UnderlyingLogger]
+  val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
 
   class MyConsumerHandler(val readLimiter: SemaphoreLimitedExecution) extends ConsumerHandler[PrefetchMsg] {
     override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerReturn]] = {
@@ -157,7 +159,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   it should "asdf" in {
 
     Await.result(collection.insertOne(testDoclibDoc).toFuture(), awaitDuration)
-    val doca = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
+    val preDoc = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
 
     val futureResult =
       for {
@@ -174,19 +176,16 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     val blah = intercept[Exception] {
       Await.result(futureResult, awaitDuration)
     }
-    Thread.sleep(2000)
 
-    //    (underlyingMockLogger.error(_: String)).verify(_: String).once()
 
     prometheusCollectorCalledWithLabelValue("handler_count", "doclib_doc_exception") shouldBe true
 
-    val doc = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
+    val postDoc = Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration)
 
-    assert(doca == doc)
+    assert(preDoc == postDoc)
 
-    val test = doc
+    val test = postDoc
   }
-
 
   private def prometheusCollectorCalledWithLabelValue(collectorName: String, labelValue: String): Boolean = {
     defaultPrometheusRegistry
