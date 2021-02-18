@@ -10,7 +10,6 @@ import org.bson.types.ObjectId
 import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.Future
-import scala.language.postfixOps
 
 /**
   * Implemented as a trait over an object, as we need some test data to throw an exception inside a future,

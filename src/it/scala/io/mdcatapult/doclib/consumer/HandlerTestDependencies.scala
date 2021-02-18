@@ -17,7 +17,6 @@ import org.mongodb.scala.MongoCollection
 import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.Format
 
-import scala.language.postfixOps
 
 trait HandlerTestDependencies extends MockFactory {
 
