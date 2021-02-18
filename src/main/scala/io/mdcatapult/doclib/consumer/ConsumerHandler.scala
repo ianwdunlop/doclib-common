@@ -118,7 +118,8 @@ abstract class ConsumerHandler[T <: Envelope](implicit config: Config, ec: Execu
     * @param messageId   the message id passed to the handler and postHandleProcess methods
     * @param flagContext flag context
     */
-  def failureWithDefinedCollection(e: Throwable, collection: MongoCollection[DoclibDoc],
+  def failureWithDefinedCollection(e: Throwable,
+                                   collection: MongoCollection[DoclibDoc],
                                    messageId: String,
                                    flagContext: FlagContext): Unit = {
 
