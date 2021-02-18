@@ -4,7 +4,7 @@ import com.spingo.op_rabbit.properties.MessageProperty
 import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
-import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
+import io.mdcatapult.util.concurrency.LimitedExecution
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -28,7 +28,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
   private val awaitDuration = 2 seconds
 
-  val handler = new MyConsumerHandler(readLimiter)
+  val handler = new MyConsumerHandler(readLimiter, writeLimiter)
   (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
 
   "The postHandleProcess method" should
@@ -38,7 +38,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     Await.result(
       handler.postHandleProcess(
         message = postHandleMessage,
-        handlerReturn = handlerReturnSuccess,
+        handlerResult = handlerResultSuccess,
         supervisorQueueOpt = Option(supervisorStub),
         flagContext = flagContext,
         collectionOpt = Option(collection)
@@ -57,7 +57,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     Await.result(
       handler.postHandleProcess(
         message = postHandleMessage,
-        handlerReturn = handlerReturnSuccess,
+        handlerResult = handlerResultSuccess,
         supervisorQueueOpt = None,
         flagContext = flagContext,
         collectionOpt = Option(collection)
@@ -76,7 +76,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     Await.result(
       handler.postHandleProcess(
         message = postHandleMessage,
-        handlerReturn = handlerReturnEmptySuccess,
+        handlerResult = handlerResultEmptySuccess,
         supervisorQueueOpt = None,
         flagContext = flagContext,
         collectionOpt = None
@@ -96,7 +96,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       Await.result(
         handler.postHandleProcess(
           message = postHandleMessage,
-          handlerReturn = handlerReturnFailure,
+          handlerResult = handlerResultFailure,
           supervisorQueueOpt = None,
           flagContext = flagContext,
           collectionOpt = None
@@ -119,7 +119,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         _ <- flagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
           message = postHandleMessage,
-          handlerReturn = handlerReturnDoclibExceptionFailure,
+          handlerResult = handlerResultDoclibExceptionFailure,
           supervisorQueueOpt = None,
           flagContext = flagContext,
           collectionOpt = None
@@ -131,7 +131,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     }
 
     val doclibDocAfterPostHandleProcess =
-      Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration).get
+      Await.result(handler.findDocById(collection, postHandleMessage.id), awaitDuration).get
 
     prometheusCollectorCalledWithLabelValue("doclib_doc_exception") shouldBe true
     doclibDocAfterPostHandleProcess.doclib.head.errored.isDefined shouldBe true
@@ -148,7 +148,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         _ <- flagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
           message = postHandleMessage,
-          handlerReturn = handlerReturnFailure,
+          handlerResult = handlerResultFailure,
           supervisorQueueOpt = None,
           flagContext = flagContext,
           collectionOpt = Some(collection)
@@ -162,7 +162,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     Thread.sleep(500) // allow error flag to be written
 
     val doclibDocAfterPostHandleProcess =
-      Await.result(handler.findDocById(collection, postHandleMessage.id, readLimiter), awaitDuration).get
+      Await.result(handler.findDocById(collection, postHandleMessage.id), awaitDuration).get
 
     prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
     doclibDocAfterPostHandleProcess.doclib.head.errored.isDefined shouldBe true
@@ -176,7 +176,12 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     handlerCount.clear()
   }
 
-
+  /**
+    * Queries the prometheus registry for a label value found on the handler_count collector
+    *
+    * @note the handlerCount collector should be cleared before running each test if using this method,
+    *       as label values are appended to an array
+    */
   private def prometheusCollectorCalledWithLabelValue(labelValue: String): Boolean = {
     val prometheusHandlerCountName = "handler_count"
 
@@ -197,12 +202,12 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       })
   }
 
-
   lazy val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
 
-  class MyConsumerHandler(val readLimiter: SemaphoreLimitedExecution) extends ConsumerHandler[PrefetchMsg] {
-    override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerReturn]] = {
-      handlerReturnSuccess
+  class MyConsumerHandler(val readLimiter: LimitedExecution,
+                          val writeLimiter: LimitedExecution) extends ConsumerHandler[PrefetchMsg] {
+    override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerResult]] = {
+      handlerResultSuccess
     }
 
     override lazy val logger: Logger = Logger(underlyingMockLogger)

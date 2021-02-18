@@ -19,8 +19,8 @@ import play.api.libs.json.Format
 
 import scala.language.postfixOps
 
-
 trait HandlerTestDependencies extends MockFactory {
+
   implicit val config: Config = ConfigFactory.load()
 
   implicit val actorSystem: ActorSystem = ActorSystem("Test")
@@ -32,6 +32,7 @@ trait HandlerTestDependencies extends MockFactory {
     ConsumerNameAndQueue(config.getString("consumer.name"), config.getString("consumer.queue"))
 
   val readLimiter: SemaphoreLimitedExecution = SemaphoreLimitedExecution.create(config.getInt("mongo.read-limit"))
+  val writeLimiter: SemaphoreLimitedExecution = SemaphoreLimitedExecution.create(config.getInt("mongo.write-limit"))
 
   val downstream: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
   val archiver: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]

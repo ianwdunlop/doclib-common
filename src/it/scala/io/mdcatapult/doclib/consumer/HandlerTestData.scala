@@ -14,14 +14,13 @@ import scala.language.postfixOps
 
 /**
   * Implemented as a trait over an object, as we need some test data to throw an exception inside a future,
-  * which needs the actor system's execution context that is used throughout the test and dependencies
+  * which needs the actor system's execution context that is used throughout the test and handler test dependencies
   */
 trait HandlerTestData extends MockFactory {
 
   implicit val actorSystem: ActorSystem
 
   import actorSystem.dispatcher
-
 
   val prefetchMsg: PrefetchMsg = PrefetchMsg("a-source")
 
@@ -42,15 +41,14 @@ trait HandlerTestData extends MockFactory {
   val testSupervisorMsg: SupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
   val supervisorStub: Sendable[SupervisorMsg] = stub[Sendable[SupervisorMsg]]
 
-  // handler return values
-  val handlerReturnSuccess: Future[Option[GenericHandlerReturn]] =
-    Future(Option(GenericHandlerReturn(testDoclibDoc, pathsOpt)))
+  val handlerResultSuccess: Future[Option[GenericHandlerResult]] =
+    Future(Option(GenericHandlerResult(testDoclibDoc, pathsOpt)))
 
-  val handlerReturnFailure: Future[Option[GenericHandlerReturn]] =
+  val handlerResultFailure: Future[Option[GenericHandlerResult]] =
     Future(Option(throw new Exception("error")))
 
-  val handlerReturnDoclibExceptionFailure: Future[Option[GenericHandlerReturn]] =
+  val handlerResultDoclibExceptionFailure: Future[Option[GenericHandlerResult]] =
     Future(Option(throw new DoclibDocException(testDoclibDoc, "oh dear")))
 
-  val handlerReturnEmptySuccess: Future[Option[GenericHandlerReturn]] = Future(None)
+  val handlerResultEmptySuccess: Future[Option[GenericHandlerResult]] = Future(None)
 }
