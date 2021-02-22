@@ -19,7 +19,6 @@ import scala.concurrent.{ExecutionContext, Future}
   * [[FlagContext]] implemented for MongoDB.
   *
   * @param key The flag key. This should be the consumer name under most circumstances.
-  * @param doc The doclib document for which we need context.
   * @param version The version of the current consumer.
   * @param collection Mongo doclib document collection
   * @param time gives current time (is an argument to help with testing).
@@ -62,6 +61,12 @@ class MongoFlagContext(
     _.started.exists { _.plus(recentRunTolerance).isAfter(time.now()) }
   )
 
+  /**
+    * Set the started timestamp to the current time, the version, and set the summary to "started".
+    *
+    * @param doc the doc to start
+    * @return
+    */
   override def start(doc: DoclibDoc)(implicit ec: ExecutionContext): Future[UpdatedResult] = {
     if (doc.hasFlag(key))
       restart(doc)
@@ -84,7 +89,13 @@ class MongoFlagContext(
   }
 
   /**
-   * Update the doclib ended flag with a new state if the NER occurrences have changed
+   * Set the ended value to now and nullify other end timestamps. Set queued to false and summary "ended".
+    * Set the state to be the passed in state.
+    *
+    * @param doc the doc for which processing has completed.
+    * @param state the state to add to the flag
+    * @param noCheck if true, executes mongo operations whether the document contains the correct flag key or not.
+    * @return
    */
   override def end(
                     doc: DoclibDoc,
@@ -119,6 +130,13 @@ class MongoFlagContext(
     } else notStarted("end", doc)
   }
 
+  /**
+    * Set the ended and reset times to null. Set errored to current time.
+    * Set queued to false and state to "errored"
+    *
+    * @param doc the doc to restart
+    * @return
+    */
   override def error(
                       doc: DoclibDoc,
                       noCheck: Boolean = false
@@ -141,6 +159,12 @@ class MongoFlagContext(
     } else notStarted("error", doc)
   }
 
+  /**
+    * Sets queued = true on the flag which matches the context flag key
+    *
+    * @param doc the doc to queue
+    * @return
+    */
   def queue(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key))
       for {
@@ -173,6 +197,12 @@ class MongoFlagContext(
       } yield result
   }
 
+  /**
+    * Resets the flag state to null and sets queued to true.
+    *
+    * @param doc the doc to restart
+    * @return
+    */
   def reset(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key)) {
       for {
@@ -201,6 +231,7 @@ class MongoFlagContext(
     * function to self heal in the event duplicate flags appear. Assumes the latest flag is the most relevant and
     * retains that while removing flags with older started timestamps.
     *
+    * @param doc the doc to deduplicate flags on
     * @return
     */
   private def deDuplicate(doc: DoclibDoc): Future[UpdatedResult] = {
@@ -233,6 +264,7 @@ class MongoFlagContext(
    * Set the started timestamp to the current time. Clear the
    * ended and errored timestamps.
    *
+   * @param doc the doc to restart
    * @return
    */
   private def restart(doc: DoclibDoc): Future[UpdatedResult] = {
