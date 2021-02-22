@@ -32,7 +32,6 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class MongoFlagContext(
                         key: String,
-                        doc: DoclibDoc,
                         version: Version,
                         collection: MongoCollection[DoclibDoc],
                         time: Now,
@@ -45,8 +44,8 @@ class MongoFlagContext(
       java.time.Duration.ofSeconds(10)
   }
 
-  private def notStarted: (String) => Future[Nothing] =
-    (flag: String) => Future.failed(NotStartedException(key)(flag, doc))
+  private def notStarted: (String, DoclibDoc) => Future[Nothing] =
+    (flag: String, doc: DoclibDoc) => Future.failed(NotStartedException(key)(flag, doc))
 
   private val flagField = "doclib"
   private val flagKey = s"$flagField.key"
@@ -59,16 +58,16 @@ class MongoFlagContext(
   private val flagSummary = s"$flagField.$$.summary"
   private val flagQueued = s"$flagField.$$.queued"
 
-  override def isRunRecently(): Boolean = doc.getFlag(key).exists(
+  override def isRunRecently(doc: DoclibDoc): Boolean = doc.getFlag(key).exists(
     _.started.exists { _.plus(recentRunTolerance).isAfter(time.now()) }
   )
 
-  override def start()(implicit ec: ExecutionContext): Future[UpdatedResult] = {
+  override def start(doc: DoclibDoc)(implicit ec: ExecutionContext): Future[UpdatedResult] = {
     if (doc.hasFlag(key))
-      restart()
+      restart(doc)
     else
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           combine(
             equal("_id", doc._id),
@@ -88,6 +87,7 @@ class MongoFlagContext(
    * Update the doclib ended flag with a new state if the NER occurrences have changed
    */
   override def end(
+                    doc: DoclibDoc,
                     state: Option[DoclibFlagState] = None,
                     noCheck: Boolean = false
                   )(implicit ec: ExecutionContext): Future[UpdatedResult] = {
@@ -105,7 +105,7 @@ class MongoFlagContext(
         ) ++ stateUpdates
 
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           and(
             equal("_id", doc._id),
@@ -116,15 +116,16 @@ class MongoFlagContext(
         ).toFuture().map(toUpdatedResult)
       } yield result
 
-    } else notStarted("end")
+    } else notStarted("end", doc)
   }
 
   override def error(
+                      doc: DoclibDoc,
                       noCheck: Boolean = false
                     )(implicit ec: ExecutionContext): Future[UpdatedResult] = {
     if (noCheck || doc.hasFlag(key)) {
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           and(
             equal("_id", doc._id),
@@ -137,13 +138,13 @@ class MongoFlagContext(
             set(flagQueued, false)
           )).toFuture().map(toUpdatedResult)
       } yield result
-    } else notStarted("error")
+    } else notStarted("error", doc)
   }
 
-  def queue(): Future[UpdatedResult] = {
+  def queue(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key))
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- if (doc.getFlag(key).head.isNotQueued) {
           collection.updateOne(
             and(
@@ -157,7 +158,7 @@ class MongoFlagContext(
       } yield result
     else
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           combine(
             equal("_id", doc._id),
@@ -172,10 +173,10 @@ class MongoFlagContext(
       } yield result
   }
 
-  def reset(): Future[UpdatedResult] = {
+  def reset(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key)) {
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           and(
             equal("_id", doc._id),
@@ -188,7 +189,7 @@ class MongoFlagContext(
           )
         ).toFuture().map(toUpdatedResult)
       } yield result
-    } else notStarted("reset")
+    } else notStarted("reset", doc)
   }
 
   private def getFlags(id: ObjectId): Future[List[DoclibFlag]] = {
@@ -202,7 +203,7 @@ class MongoFlagContext(
     *
     * @return
     */
-  private def deDuplicate(): Future[UpdatedResult] = {
+  private def deDuplicate(doc: DoclibDoc): Future[UpdatedResult] = {
 
     import ImplicitOrdering.localDateOrdering
 
@@ -234,10 +235,10 @@ class MongoFlagContext(
    *
    * @return
    */
-  private def restart(): Future[UpdatedResult] = {
+  private def restart(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key)) {
       for {
-        _ <- deDuplicate()
+        _ <- deDuplicate(doc)
         result <- collection.updateOne(
           and(
             equal("_id", doc._id),
@@ -251,6 +252,6 @@ class MongoFlagContext(
           )
         ).toFuture().map(toUpdatedResult)
       } yield result
-    } else notStarted("restart")
+    } else notStarted("restart", doc)
   }
 }

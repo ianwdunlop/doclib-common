@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.flag
 
 import io.mdcatapult.util.models.result.UpdatedResult
-import io.mdcatapult.doclib.models.DoclibFlagState
+import io.mdcatapult.doclib.models.{DoclibDoc, DoclibFlagState}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -14,14 +14,14 @@ trait FlagContext {
     * Check if the document has already been processed recently for this flag context.
     * @return true if it hasn't been run recently
     */
-  def isRunRecently(): Boolean
+  def isRunRecently(doc: DoclibDoc): Boolean
 
   /**
     * Declare that processing has started for a document.
     * @param ec execution context
     * @return result of update indicating if update succeeded
     */
-  def start()(implicit ec: ExecutionContext): Future[UpdatedResult]
+  def start(doc: DoclibDoc)(implicit ec: ExecutionContext): Future[UpdatedResult]
 
   /**
     * Declare that processing of a document has finished successfully.
@@ -32,6 +32,7 @@ trait FlagContext {
     * @return result of update indicating if update succeeded
     */
   def end(
+           doc: DoclibDoc,
            state: Option[DoclibFlagState] = None,
            noCheck: Boolean = false
          )(implicit ec: ExecutionContext): Future[UpdatedResult]
@@ -44,6 +45,7 @@ trait FlagContext {
     * @return result of update indicating if update succeeded
     */
   def error(
+             doc: DoclibDoc,
              noCheck: Boolean = false
            )(implicit ec: ExecutionContext): Future[UpdatedResult]
 
@@ -51,12 +53,12 @@ trait FlagContext {
    * If doc is not currently queued then set queued to true otherwise do nothing.
    * @return
    */
-  def queue(): Future[UpdatedResult]
+  def queue(doc: DoclibDoc): Future[UpdatedResult]
 
   /**
    * Set the started and restart timestamp to the current time. Clear the
    * ended and errored timestamps. Set queued to true.
    * @return
    */
-  def reset(): Future[UpdatedResult]
+  def reset(doc: DoclibDoc): Future[UpdatedResult]
 }
