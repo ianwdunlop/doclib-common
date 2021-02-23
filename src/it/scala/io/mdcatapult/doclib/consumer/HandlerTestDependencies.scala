@@ -3,9 +3,9 @@ package io.mdcatapult.doclib.consumer
 import akka.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.codec.MongoCodecs
-import io.mdcatapult.doclib.flag.{FlagContext, MongoFlagStore}
+import io.mdcatapult.doclib.flag.MongoFlagContext
 import io.mdcatapult.doclib.messages.{DoclibMsg, SupervisorMsg}
-import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc, DoclibDocExtractor}
+import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc}
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.Sendable
 import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
@@ -47,8 +47,7 @@ trait HandlerTestDependencies extends MockFactory {
       collectionName = config.getString("mongo.documents-collection")
     )
 
-  val flags = new MongoFlagStore(version, DoclibDocExtractor(), collection, nowUtc)
-  val flagContext: FlagContext = flags.findFlagContext(Some(consumerNameAndQueue.name))
+  val mongoFlagContext = new MongoFlagContext("", version, collection, nowUtc)
 
   val defaultPrometheusRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
 }

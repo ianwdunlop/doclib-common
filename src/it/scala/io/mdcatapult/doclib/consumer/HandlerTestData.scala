@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.models.DoclibDoc
-import io.mdcatapult.klein.queue.{EnvelopeWithId, Sendable}
+import io.mdcatapult.klein.queue.{Envelope, Sendable}
 import io.mdcatapult.util.time.nowUtc
 import org.bson.types.ObjectId
 import org.scalamock.scalatest.MockFactory
@@ -32,16 +32,15 @@ trait HandlerTestData extends MockFactory {
     mimetype = "text/plain"
   )
 
-  case class TestMessage(id: String) extends EnvelopeWithId
+  case class TestMessage(id: String) extends Envelope
 
   val postHandleMessage: TestMessage = TestMessage(testDoclibDoc._id.toHexString)
 
-  val pathsOpt: Option[List[String]] = Option(List("a/cool/path", "some/other/path"))
   val testSupervisorMsg: SupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
   val supervisorStub: Sendable[SupervisorMsg] = stub[Sendable[SupervisorMsg]]
 
   val handlerResultSuccess: Future[Option[GenericHandlerResult]] =
-    Future(Option(GenericHandlerResult(testDoclibDoc, pathsOpt)))
+    Future(Option(GenericHandlerResult(testDoclibDoc)))
 
   val handlerResultFailure: Future[Option[GenericHandlerResult]] =
     Future(Option(throw new Exception("error")))

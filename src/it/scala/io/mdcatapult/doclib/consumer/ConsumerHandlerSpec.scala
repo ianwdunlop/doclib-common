@@ -37,11 +37,11 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        message = postHandleMessage,
+        messageId = postHandleMessage.id,
         handlerResult = handlerResultSuccess,
-        supervisorQueueOpt = Option(supervisorStub),
-        flagContext = flagContext,
-        collectionOpt = Option(collection)
+        supervisorStub,
+        mongoFlagContext,
+        collection
       ),
       awaitDuration
     )
@@ -56,11 +56,10 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        message = postHandleMessage,
+        messageId = postHandleMessage.id,
         handlerResult = handlerResultSuccess,
-        supervisorQueueOpt = None,
-        flagContext = flagContext,
-        collectionOpt = Option(collection)
+        mongoFlagContext,
+        collection
       ),
       awaitDuration
     )
@@ -75,11 +74,9 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        message = postHandleMessage,
+        messageId = postHandleMessage.id,
         handlerResult = handlerResultEmptySuccess,
-        supervisorQueueOpt = None,
-        flagContext = flagContext,
-        collectionOpt = None
+        mongoFlagContext,
       ),
       awaitDuration
     )
@@ -95,11 +92,9 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     intercept[Exception] {
       Await.result(
         handler.postHandleProcess(
-          message = postHandleMessage,
+          messageId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
-          supervisorQueueOpt = None,
-          flagContext = flagContext,
-          collectionOpt = None
+          mongoFlagContext,
         ),
         awaitDuration
       )
@@ -116,13 +111,11 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     val futureResult =
       for {
         _ <- collection.insertOne(testDoclibDoc).toFuture()
-        _ <- flagContext.start(testDoclibDoc)
+        _ <- mongoFlagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
-          message = postHandleMessage,
+          messageId = postHandleMessage.id,
           handlerResult = handlerResultDoclibExceptionFailure,
-          supervisorQueueOpt = None,
-          flagContext = flagContext,
-          collectionOpt = None
+          mongoFlagContext,
         )
       } yield ()
 
@@ -145,13 +138,12 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     val futureResult =
       for {
         _ <- collection.insertOne(testDoclibDoc).toFuture()
-        _ <- flagContext.start(testDoclibDoc)
+        _ <- mongoFlagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
-          message = postHandleMessage,
+          messageId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
-          supervisorQueueOpt = None,
-          flagContext = flagContext,
-          collectionOpt = Some(collection)
+          mongoFlagContext,
+          collection
         )
       } yield ()
 
