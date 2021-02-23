@@ -55,8 +55,8 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 
   def postHandleProcess[R <: HandlerResult](messageId: String,
                                             handlerResult: Future[Option[R]],
-                                            supervisorQueue: Sendable[SupervisorMsg],
-                                            flagContext: FlagContext)
+                                            flagContext: FlagContext,
+                                            supervisorQueue: Sendable[SupervisorMsg])
                                            (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, Option(supervisorQueue), None)
@@ -64,8 +64,8 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 
   def postHandleProcess[R <: HandlerResult](messageId: String,
                                             handlerResult: Future[Option[R]],
-                                            supervisorQueue: Sendable[SupervisorMsg],
                                             flagContext: FlagContext,
+                                            supervisorQueue: Sendable[SupervisorMsg],
                                             collection: MongoCollection[DoclibDoc])
                                            (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
@@ -224,3 +224,5 @@ trait HandlerResult {
 
 // generic class which covers most handler result types
 case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
+
+case class HandlerResultWithDerivatives(doclibDoc: DoclibDoc, derivatives: Option[List[String]]) extends HandlerResult

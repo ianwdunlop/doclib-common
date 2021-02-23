@@ -18,13 +18,12 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * [[FlagContext]] implemented for MongoDB.
   *
-  * @param key The flag key. This should be the consumer name under most circumstances.
-  * @param version The version of the current consumer.
+  * @param key        The flag key. This should be the consumer name under most circumstances.
+  * @param version    The version of the current consumer.
   * @param collection Mongo doclib document collection
-  * @param time gives current time (is an argument to help with testing).
-  * @param config the consumer config.
-  * @param ec execution context.
-  *
+  * @param time       qgives current time (is an argument to help with testing).
+  * @param config     the consumer config.
+  * @param ec         execution context.
   * @note flag deduplication occurs to avoid the rare circumstance when multiple flags are added with the same key.
   *       This assumes however that all flags have a different started timestamp.
   *       If not true then it is possible for all flags to be removed.
@@ -34,17 +33,7 @@ class MongoFlagContext(
                         version: Version,
                         collection: MongoCollection[DoclibDoc],
                         time: Now,
-                    )(implicit config: Config, ec: ExecutionContext) extends FlagContext {
-
-  val recentRunTolerance: TemporalAmount = {
-    if (config.hasPath("doclib.tolerance"))
-      config.getTemporal("doclib.tolerance")
-    else
-      java.time.Duration.ofSeconds(10)
-  }
-
-  private def notStarted: (String, DoclibDoc) => Future[Nothing] =
-    (flag: String, doc: DoclibDoc) => Future.failed(NotStartedException(key)(flag, doc))
+                      )(implicit config: Config, ec: ExecutionContext) extends FlagContext {
 
   private val flagField = "doclib"
   private val flagKey = s"$flagField.key"
@@ -57,9 +46,24 @@ class MongoFlagContext(
   private val flagSummary = s"$flagField.$$.summary"
   private val flagQueued = s"$flagField.$$.queued"
 
-  override def isRunRecently(doc: DoclibDoc): Boolean = doc.getFlag(key).exists(
-    _.started.exists { _.plus(recentRunTolerance).isAfter(time.now()) }
-  )
+  val recentRunTolerance: TemporalAmount =
+    if (config.hasPath("doclib.tolerance")) {
+      config.getTemporal("doclib.tolerance")
+    } else {
+      java.time.Duration.ofSeconds(10)
+    }
+
+  private def notStarted: (String, DoclibDoc) => Future[Nothing] =
+    (flag: String, doc: DoclibDoc) => Future.failed(NotStartedException(key)(flag, doc))
+
+  override def isRunRecently(doc: DoclibDoc): Boolean = {
+    doc.getFlag(key)
+      .exists(doclibFlag =>
+        doclibFlag.started.exists(localDateTime =>
+          localDateTime.plus(recentRunTolerance).isAfter(time.now())
+        )
+      )
+  }
 
   /**
     * Set the started timestamp to the current time, the version, and set the summary to "started".
@@ -89,14 +93,14 @@ class MongoFlagContext(
   }
 
   /**
-   * Set the ended value to now and nullify other end timestamps. Set queued to false and summary "ended".
+    * Set the ended value to now and nullify other end timestamps. Set queued to false and summary "ended".
     * Set the state to be the passed in state.
     *
-    * @param doc the doc for which processing has completed.
-    * @param state the state to add to the flag
+    * @param doc     the doc for which processing has completed.
+    * @param state   the state to add to the flag
     * @param noCheck if true, executes mongo operations whether the document contains the correct flag key or not.
     * @return
-   */
+    */
   override def end(
                     doc: DoclibDoc,
                     state: Option[DoclibFlagState] = None,
@@ -261,12 +265,12 @@ class MongoFlagContext(
   }
 
   /**
-   * Set the started timestamp to the current time. Clear the
-   * ended and errored timestamps.
-   *
-   * @param doc the doc to restart
-   * @return
-   */
+    * Set the started timestamp to the current time. Clear the
+    * ended and errored timestamps.
+    *
+    * @param doc the doc to restart
+    * @return
+    */
   private def restart(doc: DoclibDoc): Future[UpdatedResult] = {
     if (doc.hasFlag(key)) {
       for {
