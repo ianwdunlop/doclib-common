@@ -39,8 +39,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       handler.postHandleProcess(
         messageId = postHandleMessage.id,
         handlerResult = handlerResultSuccess,
-        supervisorStub,
         mongoFlagContext,
+        supervisorStub,
         collection
       ),
       awaitDuration
@@ -151,7 +151,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       Await.result(futureResult, awaitDuration)
     }
 
-    Thread.sleep(500) // allow error flag to be written
+    Thread.sleep(1000) // allow error flag to be written
 
     val doclibDocAfterPostHandleProcess =
       Await.result(handler.findDocById(collection, postHandleMessage.id), awaitDuration).get
@@ -198,7 +198,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
   class MyConsumerHandler(val readLimiter: LimitedExecution,
                           val writeLimiter: LimitedExecution) extends ConsumerHandler[PrefetchMsg] {
-    override def handle(message: PrefetchMsg, key: String): Future[Option[GenericHandlerResult]] = {
+    override def handle(message: PrefetchMsg): Future[Option[GenericHandlerResult]] = {
       handlerResultSuccess
     }
 

@@ -29,10 +29,9 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
     * the Queue subscribe method.
     *
     * @param message One of the various Envelopes eg PrefetchMsg, SupervisorMsg
-    * @param key     AMQP Exchange
     * @return
     */
-  def handle(message: T, key: String): Future[Option[HandlerResult]]
+  def handle(message: T): Future[Option[HandlerResult]]
 
 
   def postHandleProcess[R <: HandlerResult](messageId: String,
@@ -95,7 +94,8 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                                    (implicit consumerNameAndQueue: ConsumerNameAndQueue): Future[Option[R]] = {
     handlerResult.andThen {
       case Success(handlerResultOpt) => handlerSuccess(messageId, handlerResultOpt, supervisorQueueOpt)
-      case Failure(doclibException: DoclibDocException) => failureWithDoclibDocException(doclibException, flagContext)
+      case Failure(doclibException: DoclibDocException) =>
+        failureWithDoclibDocException(doclibException, flagContext)
       case Failure(exception) if collectionOpt.isDefined =>
         incrementHandlerCount("unknown_error")
 
@@ -139,11 +139,10 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
           case Some(doc) =>
             writeErrorFlag(flagContext, doc)
           case None =>
-            val exceptionMessage = s"FAILURE - no document found for: $messageId"
-            logger.error(exceptionMessage, new Exception(exceptionMessage))
+            logger.error(loggerMessage(Failed, messageId))
         }
         case Failure(e) =>
-          logger.error(s"FAILURE - error retrieving document: $messageId", e)
+          logger.error(loggerMessage(Failed, "error retrieving document", messageId), e)
       }
   }
 
