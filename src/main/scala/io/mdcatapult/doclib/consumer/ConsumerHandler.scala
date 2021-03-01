@@ -99,8 +99,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
         failureWithDoclibDocException(doclibException, flagContext)
 
       case Failure(exception) if collectionOpt.isDefined =>
-        incrementHandlerCount(UnknownError)
-
         failureWithDefinedCollection(collectionOpt.get, messageId, flagContext)
 
         logger.error(
@@ -137,7 +135,10 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 
   private def failureWithDefinedCollection(collection: MongoCollection[DoclibDoc],
                                            messageId: String,
-                                           flagContext: FlagContext): Unit = {
+                                           flagContext: FlagContext)
+                                          (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
+    incrementHandlerCount(UnknownError)
+
     findDocById(collection, messageId)
       .onComplete {
         case Success(doclibDocOpt) => doclibDocOpt match {
