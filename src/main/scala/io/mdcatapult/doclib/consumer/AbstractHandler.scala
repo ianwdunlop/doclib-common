@@ -6,7 +6,7 @@ import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.flag.FlagContext
 import io.mdcatapult.doclib.messages.SupervisorMsg
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
-import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc}
+import io.mdcatapult.doclib.models.{ConsumerConfig, DoclibDoc}
 import io.mdcatapult.klein.queue.{Envelope, Sendable}
 import io.mdcatapult.util.concurrency.LimitedExecution
 import org.bson.types.ObjectId
@@ -17,7 +17,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) extends LazyLogging {
+abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerConfig, ec: ExecutionContext)
+  extends LazyLogging {
 
   val readLimiter: LimitedExecution
   val writeLimiter: LimitedExecution
@@ -37,7 +38,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
   def postHandleProcess[R <: HandlerResult](messageId: String,
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext)
-                                           (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, None, None)
   }
@@ -46,7 +46,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext,
                                             collection: MongoCollection[DoclibDoc])
-                                           (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, None, Option(collection))
   }
@@ -55,7 +54,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg])
-                                           (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, Option(supervisorQueue), None)
   }
@@ -65,7 +63,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg],
                                             collection: MongoCollection[DoclibDoc])
-                                           (implicit consumerNameAndQueue: ConsumerNameAndQueue)
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, Option(supervisorQueue), Option(collection))
   }
@@ -76,12 +73,12 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
     * This may include writing error flags to a document, calling log.info or log.error,
     * and incrementing the prometheus handler count with the correct labels.
     *
-    * @param messageId            a messageId from one of the various messages passed in to the handle method
-    * @param handlerResult        a handler result which must contain a doclibDoc, and a list of optional derived paths
-    * @param supervisorQueueOpt   an optional supervisor queue if a message should be sent to the supervisor queue after a successful handle process
-    * @param flagContext          the mongo flag context used to find doclib documents
-    * @param collectionOpt        an optional mongo collection used to find doclib documents
-    * @param consumerNameAndQueue a consumers name and queue as an implicit parameter
+    * @param messageId          a messageId from one of the various messages passed in to the handle method
+    * @param handlerResult      a handler result which must contain a doclibDoc, and a list of optional derived paths
+    * @param supervisorQueueOpt an optional supervisor queue if a message should be sent to the supervisor queue after a successful handle process
+    * @param flagContext        the mongo flag context used to find doclib documents
+    * @param collectionOpt      an optional mongo collection used to find doclib documents
+    * @param consumerConfig     a consumers name and queue as an implicit parameter
     * @tparam R HandlerResult
     * @return
     */
@@ -90,7 +87,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                                     flagContext: FlagContext,
                                                     supervisorQueueOpt: Option[Sendable[SupervisorMsg]],
                                                     collectionOpt: Option[MongoCollection[DoclibDoc]])
-                                                   (implicit consumerNameAndQueue: ConsumerNameAndQueue): Future[Option[R]] = {
+  : Future[Option[R]] = {
     handlerResult.andThen {
       case Success(handlerResultOpt) =>
         handlerSuccess(messageId, handlerResultOpt, supervisorQueueOpt)
@@ -113,8 +110,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 
   private def handlerSuccess[R <: HandlerResult](messageId: String,
                                                  handlerResultOpt: Option[R],
-                                                 supervisorQueueOpt: Option[Sendable[SupervisorMsg]])
-                                                (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
+                                                 supervisorQueueOpt: Option[Sendable[SupervisorMsg]]): Unit = {
     handlerResultOpt match {
       case Some(handlerResult) =>
         if (supervisorQueueOpt.isDefined) {
@@ -135,8 +131,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 
   private def failureWithDefinedCollection(collection: MongoCollection[DoclibDoc],
                                            messageId: String,
-                                           flagContext: FlagContext)
-                                          (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
+                                           flagContext: FlagContext): Unit = {
     incrementHandlerCount(UnknownError)
 
     findDocById(collection, messageId)
@@ -152,8 +147,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
       }
   }
 
-  private def genericFailure(exception: Throwable, messageId: String)
-                            (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
+  private def genericFailure(exception: Throwable, messageId: String): Unit = {
     incrementHandlerCount(UnknownError)
 
     logger.error(
@@ -162,8 +156,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
     )
   }
 
-  private def failureWithDoclibDocException(doclibDocException: DoclibDocException, flagContext: FlagContext)
-                                           (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
+  private def failureWithDoclibDocException(doclibDocException: DoclibDocException, flagContext: FlagContext): Unit = {
     incrementHandlerCount(DoclibDocumentException)
     val doclibDoc = doclibDocException.getDoc
     writeErrorFlag(flagContext, doclibDoc)
@@ -202,11 +195,10 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
     * Increments the handler count with the given labels
     *
     * @note this should only be used once per call to the handle method in order to derive the correct prometheus metrics
-    * @param labels               a list of label values used to increment the handler count
-    * @param consumerNameAndQueue used to identify the consumer and queue
+    * @param labels         a list of label values used to increment the handler count
     */
-  def incrementHandlerCount(labels: String*)(implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
-    val labelsWithConsumerInfo = Seq(consumerNameAndQueue.name, consumerNameAndQueue.queue) ++ labels
+  def incrementHandlerCount(labels: String*): Unit = {
+    val labelsWithConsumerInfo = Seq(consumerConfig.name, consumerConfig.queue) ++ labels
     handlerCount.labels(labelsWithConsumerInfo: _*).inc()
   }
 

@@ -26,7 +26,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
   import actorSystem.dispatcher
 
-  private val awaitDuration = 2 seconds
+  private val awaitDuration = 5 seconds
 
   val handler = new MyConsumerHandler(readLimiter, writeLimiter)
   (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
@@ -123,6 +123,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       Await.result(futureResult, awaitDuration)
     }
 
+    Thread.sleep(1000) // allow error flag to be written
+
     val doclibDocAfterPostHandleProcess =
       Await.result(handler.findDocById(collection, postHandleMessage.id), awaitDuration).get
 
@@ -197,7 +199,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   lazy val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
 
   class MyConsumerHandler(val readLimiter: LimitedExecution,
-                          val writeLimiter: LimitedExecution) extends ConsumerHandler[PrefetchMsg] {
+                          val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg] {
     override def handle(message: PrefetchMsg): Future[Option[GenericHandlerResult]] = {
       handlerResultSuccess
     }

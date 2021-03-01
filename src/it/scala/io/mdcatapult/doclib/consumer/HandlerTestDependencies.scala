@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.flag.MongoFlagContext
 import io.mdcatapult.doclib.messages.{DoclibMsg, SupervisorMsg}
-import io.mdcatapult.doclib.models.{ConsumerNameAndQueue, DoclibDoc}
+import io.mdcatapult.doclib.models.{ConsumerConfig, DoclibDoc}
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.Sendable
 import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
@@ -27,8 +27,14 @@ trait HandlerTestDependencies extends MockFactory {
   import actorSystem.dispatcher
 
   val version: Version = Version.fromConfig(config)
-  implicit val consumerNameAndQueue: ConsumerNameAndQueue =
-    ConsumerNameAndQueue(config.getString("consumer.name"), config.getString("consumer.queue"))
+
+  implicit val consumerNameAndQueue: ConsumerConfig =
+    ConsumerConfig(
+      config.getString("consumer.name"),
+      config.getInt("consumer.concurrency"),
+      config.getString("consumer.queue"),
+      config.getString("consumer.exchange")
+    )
 
   val readLimiter: SemaphoreLimitedExecution = SemaphoreLimitedExecution.create(config.getInt("mongo.read-limit"))
   val writeLimiter: SemaphoreLimitedExecution = SemaphoreLimitedExecution.create(config.getInt("mongo.write-limit"))
