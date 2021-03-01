@@ -1,23 +1,39 @@
 package io.mdcatapult.doclib.consumer
-import org.mongodb.scala.bson.ObjectId
 
-sealed trait HandleLogStatus
 
-case object Received extends HandleLogStatus
-case object Completed extends HandleLogStatus
-case object Failed extends HandleLogStatus
+sealed trait HandlerLogStatus
 
-object HandleLogStatus {
+case object Received extends HandlerLogStatus
 
-  def loggerMessage(status: HandleLogStatus, loggerMessage: String, messageId: String): String = {
+case object Completed extends HandlerLogStatus
+
+case object Failed extends HandlerLogStatus
+
+object HandlerLogStatus {
+
+  val NoDocumentError = "error_no_document"
+  val UnknownError = "unknown_error"
+  val DoclibDocumentException = "doclib_doc_exception"
+  val ErrorFlagWriteError = "error_flag_write_error"
+
+  /**
+    *
+    * @param status        HandlerLogStatus, Received, Completed, or Failed
+    * @param loggerMessage The message to log, this should normally be one of the string constants defined above
+    * @param messageId     The id of the message
+    * @return
+    */
+  def loggerMessage(status: HandlerLogStatus, loggerMessage: String, messageId: String): String = {
     s"$status - $loggerMessage, id: $messageId"
   }
 
-  def loggerMessage(status: HandleLogStatus, messageId: String, doclibDocId: ObjectId): String = {
-    s"$status - id: $messageId, doclib_doc_id: $doclibDocId"
-  }
-
-  def loggerMessage(status: HandleLogStatus, messageId: String): String = {
+  /**
+    *
+    * @param status    HandlerLogStatus, Received, Completed, or Failed
+    * @param messageId The id of the message
+    * @return
+    */
+  def loggerMessage(status: HandlerLogStatus, messageId: String): String = {
     s"$status - id: $messageId"
   }
 }

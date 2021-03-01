@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.consumer
 
 import com.typesafe.scalalogging.LazyLogging
-import io.mdcatapult.doclib.consumer.HandleLogStatus.loggerMessage
+import io.mdcatapult.doclib.consumer.HandlerLogStatus._
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.flag.FlagContext
 import io.mdcatapult.doclib.messages.SupervisorMsg
@@ -41,7 +41,6 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
   : Future[Option[R]] = {
     postHandleProcess(messageId, handlerResult, flagContext, None, None)
   }
-
 
   def postHandleProcess[R <: HandlerResult](messageId: String,
                                             handlerResult: Future[Option[R]],
@@ -93,21 +92,23 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
                                                     collectionOpt: Option[MongoCollection[DoclibDoc]])
                                                    (implicit consumerNameAndQueue: ConsumerNameAndQueue): Future[Option[R]] = {
     handlerResult.andThen {
-      case Success(handlerResultOpt) => handlerSuccess(messageId, handlerResultOpt, supervisorQueueOpt)
+      case Success(handlerResultOpt) =>
+        handlerSuccess(messageId, handlerResultOpt, supervisorQueueOpt)
+
       case Failure(doclibException: DoclibDocException) =>
         failureWithDoclibDocException(doclibException, flagContext)
+
       case Failure(exception) if collectionOpt.isDefined =>
-        incrementHandlerCount("unknown_error")
+        incrementHandlerCount(UnknownError)
 
         failureWithDefinedCollection(collectionOpt.get, messageId, flagContext)
 
         logger.error(
-          loggerMessage(Failed, "unknown_error", messageId),
+          loggerMessage(Failed, UnknownError, messageId),
           exception
         )
+
       case Failure(e) =>
-        // TODO the leadmine handler tests require a document to write the error flag to at this stage,
-        // TODO so maybe in leadmine code wrap in a DoclibDocException to be caught further up
         genericFailure(e, messageId)
     }
   }
@@ -119,14 +120,18 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
     handlerResultOpt match {
       case Some(handlerResult) =>
         if (supervisorQueueOpt.isDefined) {
-          supervisorQueueOpt.get.send(SupervisorMsg(id = handlerResult.doclibDoc._id.toHexString))
+          supervisorQueueOpt.get.send(
+            SupervisorMsg(id = handlerResult.doclibDoc._id.toHexString)
+          )
         }
 
-        incrementHandlerCount("success")
-        logger.info(loggerMessage(Completed, messageId, handlerResult.doclibDoc._id))
+        incrementHandlerCount(Completed.toString)
+        logger.info(loggerMessage(Completed, messageId))
       case None =>
-        incrementHandlerCount("error_no_document")
-        logger.error(loggerMessage(Failed, "error_no_document", messageId))
+        incrementHandlerCount(NoDocumentError)
+        logger.error(
+          loggerMessage(Failed, NoDocumentError, messageId)
+        )
     }
   }
 
@@ -139,35 +144,34 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
           case Some(doc) =>
             writeErrorFlag(flagContext, doc)
           case None =>
-            logger.error(loggerMessage(Failed, messageId))
+            logger.error(loggerMessage(Failed, NoDocumentError, messageId))
         }
         case Failure(e) =>
-          logger.error(loggerMessage(Failed, "error retrieving document", messageId), e)
+          logger.error(loggerMessage(Failed, NoDocumentError, messageId), e)
       }
   }
 
   private def genericFailure(exception: Throwable, messageId: String)
                             (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
-    incrementHandlerCount("unknown_error")
+    incrementHandlerCount(UnknownError)
 
     logger.error(
-      loggerMessage(Failed, "unknown_error", messageId),
+      loggerMessage(Failed, UnknownError, messageId),
       exception
     )
   }
 
   private def failureWithDoclibDocException(doclibDocException: DoclibDocException, flagContext: FlagContext)
                                            (implicit consumerNameAndQueue: ConsumerNameAndQueue): Unit = {
-    incrementHandlerCount("doclib_doc_exception")
+    incrementHandlerCount(DoclibDocumentException)
     val doclibDoc = doclibDocException.getDoc
     writeErrorFlag(flagContext, doclibDoc)
 
     logger.error(
-      loggerMessage(Failed, "doclib_doc_exception for doclibDoc", doclibDoc._id.toString),
+      loggerMessage(Failed, DoclibDocumentException, doclibDoc._id.toString),
       doclibDocException
     )
   }
-
 
   def writeErrorFlag(flagContext: FlagContext, doclibDoc: DoclibDoc): Unit = {
     writeLimiter(flagContext, "write error flag") {
@@ -176,7 +180,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
           .andThen {
             case Failure(exception) =>
               logger.error(
-                loggerMessage(Failed, "could not write error flag", doclibDoc._id),
+                loggerMessage(Failed, ErrorFlagWriteError, doclibDoc._id.toString),
                 exception
               )
           }
@@ -206,7 +210,7 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
   }
 
   /**
-    * Log when a handler receives a message
+    * Log when a message is received
     *
     * @param messageId the message id of the incoming message
     */
@@ -216,12 +220,11 @@ abstract class ConsumerHandler[T <: Envelope](implicit ec: ExecutionContext) ext
 }
 
 
-// a handler's result type can extend this trait to avoid .asInstanceOf casting in tests
 trait HandlerResult {
   val doclibDoc: DoclibDoc
 }
 
-// generic class which covers most handler result types
+
 case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
 
 case class HandlerResultWithDerivatives(doclibDoc: DoclibDoc, derivatives: Option[List[String]]) extends HandlerResult

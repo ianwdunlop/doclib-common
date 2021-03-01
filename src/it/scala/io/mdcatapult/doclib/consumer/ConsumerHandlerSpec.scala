@@ -46,7 +46,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       awaitDuration
     )
 
-    prometheusCollectorCalledWithLabelValue("success") shouldBe true
+    prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).once()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
@@ -64,7 +64,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
       awaitDuration
     )
 
-    prometheusCollectorCalledWithLabelValue("success") shouldBe true
+    prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).never()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
