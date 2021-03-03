@@ -37,7 +37,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        messageId = postHandleMessage.id,
+        documentId = postHandleMessage.id,
         handlerResult = handlerResultSuccess,
         mongoFlagContext,
         supervisorStub,
@@ -56,7 +56,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        messageId = postHandleMessage.id,
+        documentId = postHandleMessage.id,
         handlerResult = handlerResultSuccess,
         mongoFlagContext,
         collection
@@ -74,7 +74,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
     Await.result(
       handler.postHandleProcess(
-        messageId = postHandleMessage.id,
+        documentId = postHandleMessage.id,
         handlerResult = handlerResultEmptySuccess,
         mongoFlagContext,
       ),
@@ -92,7 +92,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     intercept[Exception] {
       Await.result(
         handler.postHandleProcess(
-          messageId = postHandleMessage.id,
+          documentId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
           mongoFlagContext,
         ),
@@ -113,7 +113,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         _ <- collection.insertOne(testDoclibDoc).toFuture()
         _ <- mongoFlagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
-          messageId = postHandleMessage.id,
+          documentId = postHandleMessage.id,
           handlerResult = handlerResultDoclibExceptionFailure,
           mongoFlagContext,
         )
@@ -142,7 +142,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         _ <- collection.insertOne(testDoclibDoc).toFuture()
         _ <- mongoFlagContext.start(testDoclibDoc)
         _ <- handler.postHandleProcess(
-          messageId = postHandleMessage.id,
+          documentId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
           mongoFlagContext,
           collection

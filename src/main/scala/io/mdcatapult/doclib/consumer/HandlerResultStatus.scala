@@ -17,23 +17,21 @@ object HandlerLogStatus {
   val ErrorFlagWriteError = "error_flag_write_error"
 
   /**
-    *
-    * @param status        HandlerLogStatus, Received, Completed, or Failed
+    * @param status        HandlerLogStatus: Received, Completed, or Failed
     * @param loggerMessage The message to log, this should normally be one of the string constants defined above
-    * @param messageId     The id of the message
+    * @param documentId    The id of the document
     * @return
     */
-  def loggerMessage(status: HandlerLogStatus, loggerMessage: String, messageId: String): String = {
-    s"$status - $loggerMessage, id: $messageId"
+  def loggerMessage(status: HandlerLogStatus, loggerMessage: String, documentId: String): String = {
+    s"$status - $loggerMessage, identifier: $documentId"
   }
 
   /**
-    *
-    * @param status    HandlerLogStatus, Received, Completed, or Failed
-    * @param messageId The id of the message
+    * @param status     HandlerLogStatus: Received, Completed, or Failed
+    * @param documentId The id of document
     * @return
     */
-  def loggerMessage(status: HandlerLogStatus, messageId: String): String = {
-    s"$status - id: $messageId"
+  def loggerMessage(status: HandlerLogStatus, documentId: String): String = {
+    s"$status - identifier: $documentId"
   }
 }

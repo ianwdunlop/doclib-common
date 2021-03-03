@@ -35,36 +35,36 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
   def handle(message: T): Future[Option[HandlerResult]]
 
 
-  def postHandleProcess[R <: HandlerResult](messageId: String,
+  def postHandleProcess[R <: HandlerResult](documentId: String,
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext)
   : Future[Option[R]] = {
-    postHandleProcess(messageId, handlerResult, flagContext, None, None)
+    postHandleProcess(documentId, handlerResult, flagContext, None, None)
   }
 
-  def postHandleProcess[R <: HandlerResult](messageId: String,
+  def postHandleProcess[R <: HandlerResult](documentId: String,
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext,
                                             collection: MongoCollection[DoclibDoc])
   : Future[Option[R]] = {
-    postHandleProcess(messageId, handlerResult, flagContext, None, Option(collection))
+    postHandleProcess(documentId, handlerResult, flagContext, None, Option(collection))
   }
 
-  def postHandleProcess[R <: HandlerResult](messageId: String,
+  def postHandleProcess[R <: HandlerResult](documentId: String,
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg])
   : Future[Option[R]] = {
-    postHandleProcess(messageId, handlerResult, flagContext, Option(supervisorQueue), None)
+    postHandleProcess(documentId, handlerResult, flagContext, Option(supervisorQueue), None)
   }
 
-  def postHandleProcess[R <: HandlerResult](messageId: String,
+  def postHandleProcess[R <: HandlerResult](documentId: String,
                                             handlerResult: Future[Option[R]],
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg],
                                             collection: MongoCollection[DoclibDoc])
   : Future[Option[R]] = {
-    postHandleProcess(messageId, handlerResult, flagContext, Option(supervisorQueue), Option(collection))
+    postHandleProcess(documentId, handlerResult, flagContext, Option(supervisorQueue), Option(collection))
   }
 
 
@@ -73,16 +73,15 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
     * This may include writing error flags to a document, calling log.info or log.error,
     * and incrementing the prometheus handler count with the correct labels.
     *
-    * @param messageId          a messageId from one of the various messages passed in to the handle method
+    * @param documentId         a documentId from one of the various messages passed in to the handle method
     * @param handlerResult      a handler result which must contain a doclibDoc, and a list of optional derived paths
     * @param supervisorQueueOpt an optional supervisor queue if a message should be sent to the supervisor queue after a successful handle process
     * @param flagContext        the mongo flag context used to find doclib documents
     * @param collectionOpt      an optional mongo collection used to find doclib documents
-    * @param consumerConfig     a consumers name and queue as an implicit parameter
     * @tparam R HandlerResult
     * @return
     */
-  private def postHandleProcess[R <: HandlerResult](messageId: String,
+  private def postHandleProcess[R <: HandlerResult](documentId: String,
                                                     handlerResult: Future[Option[R]],
                                                     flagContext: FlagContext,
                                                     supervisorQueueOpt: Option[Sendable[SupervisorMsg]],
@@ -90,25 +89,25 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
   : Future[Option[R]] = {
     handlerResult.andThen {
       case Success(handlerResultOpt) =>
-        handlerSuccess(messageId, handlerResultOpt, supervisorQueueOpt)
+        handlerSuccess(documentId, handlerResultOpt, supervisorQueueOpt)
 
       case Failure(doclibException: DoclibDocException) =>
         failureWithDoclibDocException(doclibException, flagContext)
 
       case Failure(exception) if collectionOpt.isDefined =>
-        failureWithDefinedCollection(collectionOpt.get, messageId, flagContext)
+        failureWithDefinedCollection(collectionOpt.get, documentId, flagContext)
 
         logger.error(
-          loggerMessage(Failed, UnknownError, messageId),
+          loggerMessage(Failed, UnknownError, documentId),
           exception
         )
 
       case Failure(e) =>
-        genericFailure(e, messageId)
+        genericFailure(e, documentId)
     }
   }
 
-  private def handlerSuccess[R <: HandlerResult](messageId: String,
+  private def handlerSuccess[R <: HandlerResult](documentId: String,
                                                  handlerResultOpt: Option[R],
                                                  supervisorQueueOpt: Option[Sendable[SupervisorMsg]]): Unit = {
     handlerResultOpt match {
@@ -120,38 +119,38 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
         }
 
         incrementHandlerCount(Completed.toString)
-        logger.info(loggerMessage(Completed, messageId))
+        logger.info(loggerMessage(Completed, documentId))
       case None =>
         incrementHandlerCount(NoDocumentError)
         logger.error(
-          loggerMessage(Failed, NoDocumentError, messageId)
+          loggerMessage(Failed, NoDocumentError, documentId)
         )
     }
   }
 
   private def failureWithDefinedCollection(collection: MongoCollection[DoclibDoc],
-                                           messageId: String,
+                                           documentId: String,
                                            flagContext: FlagContext): Unit = {
     incrementHandlerCount(UnknownError)
 
-    findDocById(collection, messageId)
+    findDocById(collection, documentId)
       .onComplete {
         case Success(doclibDocOpt) => doclibDocOpt match {
           case Some(doc) =>
             writeErrorFlag(flagContext, doc)
           case None =>
-            logger.error(loggerMessage(Failed, NoDocumentError, messageId))
+            logger.error(loggerMessage(Failed, NoDocumentError, documentId))
         }
         case Failure(e) =>
-          logger.error(loggerMessage(Failed, NoDocumentError, messageId), e)
+          logger.error(loggerMessage(Failed, NoDocumentError, documentId), e)
       }
   }
 
-  private def genericFailure(exception: Throwable, messageId: String): Unit = {
+  private def genericFailure(exception: Throwable, documentId: String): Unit = {
     incrementHandlerCount(UnknownError)
 
     logger.error(
-      loggerMessage(Failed, UnknownError, messageId),
+      loggerMessage(Failed, UnknownError, documentId),
       exception
     )
   }
@@ -182,10 +181,10 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
   }
 
   def findDocById(collection: MongoCollection[DoclibDoc],
-                  messageId: String): Future[Option[DoclibDoc]] = {
+                  documentId: String): Future[Option[DoclibDoc]] = {
     readLimiter(collection, "fetch document by id") { collection =>
       collection
-        .find(equal("_id", new ObjectId(messageId)))
+        .find(equal("_id", new ObjectId(documentId)))
         .first()
         .toFutureOption()
     }
@@ -195,7 +194,7 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
     * Increments the handler count with the given labels
     *
     * @note this should only be used once per call to the handle method in order to derive the correct prometheus metrics
-    * @param labels         a list of label values used to increment the handler count
+    * @param labels a list of label values used to increment the handler count
     */
   def incrementHandlerCount(labels: String*): Unit = {
     val labelsWithConsumerInfo = Seq(consumerConfig.name, consumerConfig.queue) ++ labels
@@ -205,10 +204,10 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
   /**
     * Log when a message is received
     *
-    * @param messageId the message id of the incoming message
+    * @param documentId the document id referenced in the incoming message
     */
-  def logReceived(messageId: String): Unit = {
-    logger.info(loggerMessage(Received, messageId))
+  def logReceived(documentId: String): Unit = {
+    logger.info(loggerMessage(Received, documentId))
   }
 }
 
