@@ -33,7 +33,7 @@ trait HandlerTestDependencies extends MockFactory {
       config.getString("consumer.name"),
       config.getInt("consumer.concurrency"),
       config.getString("consumer.queue"),
-      config.getString("consumer.exchange")
+      Option(config.getString("consumer.exchange"))
     )
 
   val readLimiter: SemaphoreLimitedExecution = SemaphoreLimitedExecution.create(config.getInt("mongo.read-limit"))
