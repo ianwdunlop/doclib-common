@@ -18,12 +18,12 @@ object HandlerLogStatus {
 
   /**
     * @param status        HandlerLogStatus: Received, Completed, or Failed
-    * @param loggerMessage The message to log, this should normally be one of the string constants defined above
+    * @param loggerMessages The message to log, this should normally be one of the string constants defined above
     * @param documentId    The id of the document
     * @return
     */
-  def loggerMessage(status: HandlerLogStatus, loggerMessage: String, documentId: String): String = {
-    s"$status - $loggerMessage, documentId: $documentId"
+  def loggerMessage(status: HandlerLogStatus, documentId: String, loggerMessages: String*): String = {
+    s"$status - ${loggerMessages.mkString(",")}, documentId: $documentId"
   }
 
   /**
