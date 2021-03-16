@@ -23,7 +23,7 @@ object HandlerLogStatus {
     * @return
     */
   def loggerMessage(status: HandlerLogStatus, loggerMessage: String, documentId: String): String = {
-    s"$status - $loggerMessage, identifier: $documentId"
+    s"$status - $loggerMessage, documentId: $documentId"
   }
 
   /**
@@ -32,6 +32,6 @@ object HandlerLogStatus {
     * @return
     */
   def loggerMessage(status: HandlerLogStatus, documentId: String): String = {
-    s"$status - identifier: $documentId"
+    s"$status - documentId: $documentId"
   }
 }
