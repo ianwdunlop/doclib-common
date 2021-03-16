@@ -74,7 +74,7 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
     * and incrementing the prometheus handler count with the correct labels.
     *
     * @param documentId         a documentId from one of the various messages passed in to the handle method
-    * @param handlerResult      a handler result which must contain a doclibDoc, and a list of optional derived paths
+    * @param handlerResult      a handler result which must contain a doclibDoc, and extend the HandlerResult trait
     * @param supervisorQueueOpt an optional supervisor queue if a message should be sent to the supervisor queue after a successful handle process
     * @param flagContext        the mongo flag context used to find doclib documents
     * @param collectionOpt      an optional mongo collection used to find doclib documents
