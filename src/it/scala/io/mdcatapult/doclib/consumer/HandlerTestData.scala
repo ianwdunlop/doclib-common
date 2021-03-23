@@ -32,6 +32,7 @@ trait HandlerTestData extends MockFactory {
     mimetype = "text/plain"
   )
 
+  case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
   case class TestMessage(id: String) extends Envelope
 
   val postHandleMessage: TestMessage = TestMessage(testDoclibDoc._id.toHexString)

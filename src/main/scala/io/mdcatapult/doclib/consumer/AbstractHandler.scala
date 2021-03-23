@@ -256,7 +256,3 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
 trait HandlerResult {
   val doclibDoc: DoclibDoc
 }
-
-case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
-
-case class HandlerResultWithDerivatives(doclibDoc: DoclibDoc, derivatives: Option[List[String]]) extends HandlerResult
