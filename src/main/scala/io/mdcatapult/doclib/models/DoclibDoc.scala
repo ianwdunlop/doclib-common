@@ -2,7 +2,6 @@ package io.mdcatapult.doclib.models
 
 import java.time.LocalDateTime
 import java.util.UUID
-
 import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import org.mongodb.scala.bson.ObjectId
 
@@ -21,7 +20,7 @@ case class DoclibDoc(
                       origin: Option[List[Origin]] = None,
                       metadata: Option[List[MetaValueUntyped]] = None,
                       uuid: Option[UUID] = None
-                    ) {
+                    )  {
 
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)
   def getFlag(key: String): List[DoclibFlag] = doclib.filter(_.key == key)
