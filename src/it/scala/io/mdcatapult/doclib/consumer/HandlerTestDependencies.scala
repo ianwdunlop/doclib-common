@@ -28,7 +28,7 @@ trait HandlerTestDependencies extends MockFactory {
 
   val version: Version = Version.fromConfig(config)
 
-  implicit val consumerNameAndQueue: AppConfig =
+  implicit val appConfig: AppConfig =
     AppConfig(
       config.getString("consumer.name"),
       config.getInt("consumer.concurrency"),
