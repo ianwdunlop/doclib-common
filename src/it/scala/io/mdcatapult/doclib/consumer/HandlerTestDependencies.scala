@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.flag.MongoFlagContext
 import io.mdcatapult.doclib.messages.{DoclibMsg, SupervisorMsg}
-import io.mdcatapult.doclib.models.{ConsumerConfig, DoclibDoc}
+import io.mdcatapult.doclib.models.{AppConfig, DoclibDoc}
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.Sendable
 import io.mdcatapult.util.concurrency.SemaphoreLimitedExecution
@@ -28,8 +28,8 @@ trait HandlerTestDependencies extends MockFactory {
 
   val version: Version = Version.fromConfig(config)
 
-  implicit val consumerNameAndQueue: ConsumerConfig =
-    ConsumerConfig(
+  implicit val appConfig: AppConfig =
+    AppConfig(
       config.getString("consumer.name"),
       config.getInt("consumer.concurrency"),
       config.getString("consumer.queue"),

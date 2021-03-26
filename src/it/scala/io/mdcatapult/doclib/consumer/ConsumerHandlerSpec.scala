@@ -115,7 +115,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         _ <- handler.postHandleProcess(
           documentId = postHandleMessage.id,
           handlerResult = handlerResultDoclibExceptionFailure,
-          mongoFlagContext,
+          mongoFlagContext
         )
       } yield ()
 

@@ -6,7 +6,7 @@ import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.flag.FlagContext
 import io.mdcatapult.doclib.messages.SupervisorMsg
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
-import io.mdcatapult.doclib.models.{ConsumerConfig, DoclibDoc}
+import io.mdcatapult.doclib.models.{AppConfig, DoclibDoc}
 import io.mdcatapult.klein.queue.{Envelope, Sendable}
 import io.mdcatapult.util.concurrency.LimitedExecution
 import io.mdcatapult.util.models.result.UpdatedResult
@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerConfig, ec: ExecutionContext)
+abstract class AbstractHandler[T <: Envelope](implicit appConfig: AppConfig, ec: ExecutionContext)
   extends LazyLogging {
 
   val readLimiter: LimitedExecution
@@ -238,7 +238,7 @@ abstract class AbstractHandler[T <: Envelope](implicit consumerConfig: ConsumerC
     * @param labels a list of label values used to increment the handler count
     */
   def incrementHandlerCount(labels: String*): Unit = {
-    val labelsWithConsumerInfo = Seq(consumerConfig.name, consumerConfig.queue) ++ labels
+    val labelsWithConsumerInfo = Seq(appConfig.name, appConfig.queue) ++ labels
     handlerCount.labels(labelsWithConsumerInfo: _*).inc()
   }
 

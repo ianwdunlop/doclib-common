@@ -23,9 +23,18 @@ Common object models
 ## Util
 Common utility classes
 
-* **DoclibFlag** - Object to allow easy checking and manipulatoin of v2 flags
+* **DoclibFlag** - Object to allow easy checking and manipulation of v2 flags
 * **MongoCodecs** - Simple generation of Mongo Codecs based on models in the common library
 * **TargetPath** - Trait to include tooling for the generation of target paths that intersect with the source path
+
+# Consumer
+
+**Abstract Handler**
+To be used by a doclib consumer's handler class. The handle method accepts a rabbit message that extends the Envelope trait.
+The postHandleProcess receives messages that extend the HandlerResult trait, ensuring a message's associated DoclibDoc
+has the correct post processing operations applied. This includes logging, optionally sending a message to the supervisor,
+and writing appropriate flags to the DoclibDoc.
+
 
 # Testing
 To run tests, do
