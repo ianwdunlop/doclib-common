@@ -16,7 +16,7 @@ object EchoConsumer extends AbstractConsumer() {
     val collection = mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection[MessageDoc]("echo_test")
 
     upstream.subscribe(
-      (message: DoclibMsg, _: String) => {
+      (message: DoclibMsg) => {
         collection.insertOne(MessageDoc(new ObjectId(), message)).toFuture()
       },
       concurrent = 1,

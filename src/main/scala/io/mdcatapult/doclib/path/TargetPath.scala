@@ -8,8 +8,6 @@ import scala.annotation.tailrec
 
 trait TargetPath {
 
-  val doclibConfig: Config
-
   /**
     * determines common root paths for two path string
     * @param paths List[String]
@@ -41,11 +39,11 @@ trait TargetPath {
     * @param source String
     * @return String full path to new target
     */
-  def getTargetPath(source: String, target: String, prefix: Option[String] = None): String = {
+  def getTargetPath(source: String, target: String, prefix: Option[String] = None)(implicit config: Config): String = {
     val targetRoot = target.replaceAll("/+$", "")
     val regex = """(.*)/(.*)$""".r
 
-    val archiveDirName = doclibConfig.getString("doclib.archive.target-dir")
+    val archiveDirName = config.getString("doclib.archive.target-dir")
 
     deduplicateDerivatives(
       if (targetRoot == archiveDirName)
@@ -68,8 +66,8 @@ trait TargetPath {
     )
   }
 
-  private def deduplicateDerivatives(path: String): String = {
-    val derivative = doclibConfig.getString("doclib.derivative.target-dir")
+  private def deduplicateDerivatives(path: String)(implicit config: Config): String = {
+    val derivative = config.getString("doclib.derivative.target-dir")
     val doubleDerivatives = s"$derivative/$derivative"
 
     @tailrec
@@ -93,12 +91,10 @@ trait TargetPath {
     * @param path to scrub repeated path entries from
     * @return scrubbed path
     */
-  private def scrub(path: String): String  = {
-    val string = doclibConfig.getString _
-
-    val localTempDir = string("doclib.local.temp-dir")
-    val localTargetDir = string("doclib.local.target-dir")
-    val remoteTargetDir = string("doclib.remote.target-dir")
+  private def scrub(path: String)(implicit config: Config): String  = {
+    val localTempDir = config.getString("doclib.local.temp-dir")
+    val localTargetDir = config.getString("doclib.local.target-dir")
+    val remoteTargetDir = config.getString("doclib.remote.target-dir")
 
     val ingressPath = s"^$localTempDir/?(.*)$$".r
     val localPath = s"^$localTargetDir/?(.*)$$".r
