@@ -42,9 +42,9 @@ lazy val root = (project in file(".")).
       val prometheusClientVersion = "0.9.0"
 
       Seq(
-        "io.mdcatapult.klein" %% "queue"                % "1.1.5",
-        "io.mdcatapult.klein" %% "mongo"                % "2.0.1",
-        "io.mdcatapult.klein" %% "util"                 % "1.2.0",
+        "io.mdcatapult.klein" %% "queue"                % "1.1.8",
+        "io.mdcatapult.klein" %% "mongo"                % "2.0.4",
+        "io.mdcatapult.klein" %% "util"                 % "1.2.3",
 
         "org.scalactic" %% "scalactic"                  % "3.2.0",
         "org.scalatest" %% "scalatest"                  % "3.2.0" % "it, test",
