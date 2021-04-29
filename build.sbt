@@ -21,12 +21,12 @@ lazy val root = (project in file(".")).
       "-Xfatal-warnings",
     ),
     resolvers         ++= Seq(
-      "MDC Nexus Releases" at "https://nexus.mdcatapult.io/repository/maven-releases/",
-      "MDC Nexus Snapshots" at "https://nexus.mdcatapult.io/repository/maven-snapshots/"),
+      "MDC Nexus Releases" at "https://nexus.wopr.inf.mdc/repository/maven-releases/",
+      "MDC Nexus Snapshots" at "https://nexus.wopr.inf.mdc/repository/maven-snapshots/"),
     credentials       += {
       sys.env.get("NEXUS_PASSWORD") match {
         case Some(p) =>
-          Credentials("Sonatype Nexus Repository Manager", "nexus.mdcatapult.io", "gitlab", p)
+          Credentials("Sonatype Nexus Repository Manager", "nexus.wopr.inf.mdc", "gitlab", p)
         case None =>
           Credentials(Path.userHome / ".sbt" / ".credentials")
       }
@@ -79,7 +79,7 @@ lazy val root = (project in file(".")).
 lazy val publishSettings = Seq(
   publishTo := {
     val version = if (isSnapshot.value) "snapshots" else "releases"
-    Some("MDC Maven Repo" at s"https://nexus.mdcatapult.io/repository/maven-$version/")
+    Some("MDC Maven Repo" at s"https://nexus.wopr.inf.mdc/repository/maven-$version/")
   },
   credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 )
