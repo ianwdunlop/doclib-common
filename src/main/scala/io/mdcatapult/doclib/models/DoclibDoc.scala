@@ -19,7 +19,8 @@ case class DoclibDoc(
                       derivatives: Option[List[Derivative]] = None,
                       origin: Option[List[Origin]] = None,
                       metadata: Option[List[MetaValueUntyped]] = None,
-                      uuid: Option[UUID] = None
+                      uuid: Option[UUID] = None,
+                      rogueFile: Option[Boolean] = None,
                     )  {
 
   def hasFlag(key: String): Boolean = doclib.exists(_.key == key)
