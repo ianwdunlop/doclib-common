@@ -14,6 +14,13 @@ import org.mongodb.scala.result.UpdateResult
 
 import scala.concurrent.Future
 
+/**
+ * Convenience methods to:
+ *   - add derivatives to a parent document mongo record
+ *   - filter out derivative docs from a parent document's metadata
+ *   - send prefetch messages to rabbit for a parent document's derivatives
+ *   - fetch a document from mongo
+ */
 trait PrefetchUtils {
 
   val doclibConfig: Config
