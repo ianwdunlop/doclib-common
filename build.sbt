@@ -32,24 +32,26 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= {
+      val kleinUtilVersion = "1.2.4-SNAPSHOT"
+      val kleinMongoVersion = "2.0.7-SNAPSHOT"
+      val kleinQueueVersion = "1.1.8"
+
       val configVersion = "1.4.1"
-      val catsVersion = "2.3.0"
+      val catsVersion = "2.6.1"
       val playVersion = "2.9.2"
       val tikaVersion = "2.2.1"
       val betterFilesVersion = "3.9.1"
       val akkaVersion = "2.6.18"
       val prometheusClientVersion = "0.9.0"
       val scalacticVersion = "3.2.10"
-      val kleinUtilVersion = "1.2.4-SNAPSHOT"
-      val kleinMongoVersion = "2.0.7-SNAPSHOT"
       val scalaTestVersion = "3.2.11"
       val scalaMockVersion = "5.2.0"
       val scalaCheckVersion = "1.15.4"
       val scoptVersion = "4.0.1"
-      val lemonLabsURIVersion = "2.2.3"
+      val lemonLabsURIVersion = "3.6.0"
 
       Seq(
-        "io.mdcatapult.klein" %% "queue"                % "1.1.8",
+        "io.mdcatapult.klein" %% "queue"                % kleinQueueVersion,
         "io.mdcatapult.klein" %% "mongo"                % kleinMongoVersion,
         "io.mdcatapult.klein" %% "util"                 % kleinUtilVersion,
 
