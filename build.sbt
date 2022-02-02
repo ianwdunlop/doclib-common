@@ -34,7 +34,7 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= {
       val kleinUtilVersion = "1.2.4-SNAPSHOT"
       val kleinMongoVersion = "2.0.7-SNAPSHOT"
-      val kleinQueueVersion = "1.1.8"
+      val kleinQueueVersion = "1.1.9-SNAPSHOT"
 
       val configVersion = "1.4.1"
       val catsVersion = "2.6.1"
