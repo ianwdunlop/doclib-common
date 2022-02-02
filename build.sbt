@@ -32,12 +32,12 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= {
-      val configVersion = "1.3.2"
-      val catsVersion = "2.1.1"
-      val playVersion = "2.9.0"
-      val tikaVersion = "1.24.1"
+      val configVersion = "1.4.1"
+      val catsVersion = "2.3.0"
+      val playVersion = "2.9.2"
+      val tikaVersion = "2.2.1"
       val betterFilesVersion = "3.9.1"
-      val akkaVersion = "2.6.4"
+      val akkaVersion = "2.6.18"
       val monixVersion = "3.2.2"
       val prometheusClientVersion = "0.9.0"
 
@@ -46,7 +46,7 @@ lazy val root = (project in file(".")).
         "io.mdcatapult.klein" %% "mongo"                % "2.0.6",
         "io.mdcatapult.klein" %% "util"                 % "1.2.3",
 
-        "org.scalactic" %% "scalactic"                  % "3.2.0",
+        "org.scalactic" %% "scalactic"                  % "3.2.10",
         "org.scalatest" %% "scalatest"                  % "3.2.0" % "it, test",
         "org.scalamock" %% "scalamock"                  % "4.4.0" % "it, test",
         "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
@@ -56,11 +56,11 @@ lazy val root = (project in file(".")).
         "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
         "com.typesafe.play" %% "play-json"              % playVersion,
         "com.typesafe" % "config"                       % configVersion,
-        "org.typelevel" %% "cats-macros"                % catsVersion,
+//        "org.typelevel" %% "cats-macros"                % catsVersion,
         "org.typelevel" %% "cats-kernel"                % catsVersion,
         "org.typelevel" %% "cats-core"                  % catsVersion,
         "io.lemonlabs" %% "scala-uri"                   % "2.2.3",
-        "com.github.scopt" %% "scopt"                   % "4.0.0-RC2",
+        "com.github.scopt" %% "scopt"                   % "4.0.1",
         "org.apache.tika" % "tika-core"                 % tikaVersion,
         "org.apache.tika" % "tika-parsers"              % tikaVersion,
         "org.apache.tika" % "tika-langdetect"           % tikaVersion,
