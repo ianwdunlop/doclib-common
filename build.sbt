@@ -1,15 +1,5 @@
 lazy val scala_2_13 = "2.13.3"
 
-lazy val configVersion = "1.4.1"
-lazy val catsVersion = "2.3.0"
-lazy val playVersion = "2.9.2"
-lazy val tikaVersion = "2.2.1"
-lazy val betterFilesVersion = "3.9.1"
-lazy val akkaVersion = "2.6.18"
-lazy val monixVersion = "3.2.2"
-lazy val prometheusClientVersion = "0.9.0"
-lazy val scalacticVersion = "3.2.10"
-
 lazy val IntegrationTest = config("it") extend Test
 
 lazy val root = (project in file(".")).
@@ -42,31 +32,45 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= {
+      val configVersion = "1.4.1"
+      val catsVersion = "2.3.0"
+      val playVersion = "2.9.2"
+      val tikaVersion = "2.2.1"
+      val betterFilesVersion = "3.9.1"
+      val akkaVersion = "2.6.18"
+      val prometheusClientVersion = "0.9.0"
+      val scalacticVersion = "3.2.10"
+      val kleinUtilVersion = "1.2.4-SNAPSHOT"
+      val kleinMongoVersion = "2.0.7-SNAPSHOT"
+      val scalaTestVersion = "3.2.11"
+      val scalaMockVersion = "5.2.0"
+      val scalaCheckVersion = "1.15.4"
+      val scoptVersion = "4.0.1"
+      val lemonLabsURIVersion = "2.2.3"
+
       Seq(
         "io.mdcatapult.klein" %% "queue"                % "1.1.8",
-        "io.mdcatapult.klein" %% "mongo"                % "2.0.6",
-        "io.mdcatapult.klein" %% "util"                 % "1.2.3",
+        "io.mdcatapult.klein" %% "mongo"                % kleinMongoVersion,
+        "io.mdcatapult.klein" %% "util"                 % kleinUtilVersion,
 
         "org.scalactic" %% "scalactic"                  % scalacticVersion,
-        "org.scalatest" %% "scalatest"                  % "3.2.0" % "it, test",
-        "org.scalamock" %% "scalamock"                  % "4.4.0" % "it, test",
-        "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
+        "org.scalatest" %% "scalatest"                  % scalaTestVersion % "it, test",
+        "org.scalamock" %% "scalamock"                  % scalaMockVersion % "it, test",
+        "org.scalacheck" %% "scalacheck"                % scalaCheckVersion % Test,
         "com.typesafe.akka" %% "akka-slf4j"             % akkaVersion,
         "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
         "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
         "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
         "com.typesafe.play" %% "play-json"              % playVersion,
         "com.typesafe" % "config"                       % configVersion,
-//        "org.typelevel" %% "cats-macros"                % catsVersion,
         "org.typelevel" %% "cats-kernel"                % catsVersion,
         "org.typelevel" %% "cats-core"                  % catsVersion,
-        "io.lemonlabs" %% "scala-uri"                   % "2.2.3",
-        "com.github.scopt" %% "scopt"                   % "4.0.1",
+        "io.lemonlabs" %% "scala-uri"                   % lemonLabsURIVersion,
+        "com.github.scopt" %% "scopt"                   % scoptVersion,
         "org.apache.tika" % "tika-core"                 % tikaVersion,
         "org.apache.tika" % "tika-parsers"              % tikaVersion,
         "org.apache.tika" % "tika-langdetect"           % tikaVersion,
         "com.github.pathikrit"  %% "better-files"       % betterFilesVersion,
-        "io.monix" %% "monix"                           % monixVersion,
         "io.prometheus" % "simpleclient"                % prometheusClientVersion,
         "io.prometheus" % "simpleclient_hotspot"        % prometheusClientVersion,
         "io.prometheus" % "simpleclient_httpserver"     % prometheusClientVersion
