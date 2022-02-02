@@ -1,5 +1,15 @@
 lazy val scala_2_13 = "2.13.3"
 
+lazy val configVersion = "1.4.1"
+lazy val catsVersion = "2.3.0"
+lazy val playVersion = "2.9.2"
+lazy val tikaVersion = "2.2.1"
+lazy val betterFilesVersion = "3.9.1"
+lazy val akkaVersion = "2.6.18"
+lazy val monixVersion = "3.2.2"
+lazy val prometheusClientVersion = "0.9.0"
+lazy val scalacticVersion = "3.2.10"
+
 lazy val IntegrationTest = config("it") extend Test
 
 lazy val root = (project in file(".")).
@@ -32,21 +42,12 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= {
-      val configVersion = "1.4.1"
-      val catsVersion = "2.3.0"
-      val playVersion = "2.9.2"
-      val tikaVersion = "2.2.1"
-      val betterFilesVersion = "3.9.1"
-      val akkaVersion = "2.6.18"
-      val monixVersion = "3.2.2"
-      val prometheusClientVersion = "0.9.0"
-
       Seq(
         "io.mdcatapult.klein" %% "queue"                % "1.1.8",
         "io.mdcatapult.klein" %% "mongo"                % "2.0.6",
         "io.mdcatapult.klein" %% "util"                 % "1.2.3",
 
-        "org.scalactic" %% "scalactic"                  % "3.2.10",
+        "org.scalactic" %% "scalactic"                  % scalacticVersion,
         "org.scalatest" %% "scalatest"                  % "3.2.0" % "it, test",
         "org.scalamock" %% "scalamock"                  % "4.4.0" % "it, test",
         "org.scalacheck" %% "scalacheck"                % "1.14.3" % Test,
