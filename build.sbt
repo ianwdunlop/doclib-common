@@ -32,14 +32,14 @@ lazy val root = (project in file(".")).
       }
     },
     libraryDependencies ++= {
-      val kleinUtilVersion = "1.2.4-SNAPSHOT"
-      val kleinMongoVersion = "2.0.7-SNAPSHOT"
-      val kleinQueueVersion = "1.1.9-SNAPSHOT"
+      val kleinUtilVersion = "1.2.4"
+      val kleinMongoVersion = "2.0.7"
+      val kleinQueueVersion = "1.1.9"
 
       val configVersion = "1.4.1"
       val catsVersion = "2.6.1"
       val playVersion = "2.9.2"
-      val tikaVersion = "2.2.1"
+      val tikaVersion = "1.28"
       val betterFilesVersion = "3.9.1"
       val akkaVersion = "2.6.18"
       val prometheusClientVersion = "0.9.0"
