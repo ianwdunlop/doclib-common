@@ -1,10 +1,11 @@
 package io.mdcatapult.doclib.path
 
-import java.io.File
+import akka.Done
 
+import java.io.File
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestKit
-import com.spingo.op_rabbit.properties.MessageProperty
+import com.rabbitmq.client.AMQP
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
@@ -18,6 +19,8 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+
+import scala.concurrent.Future
 
 class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigFactory.parseString(
   """
@@ -63,8 +66,11 @@ class PrefetchUtilsSpec extends TestKit(ActorSystem("PrefetchUtilsSpec", ConfigF
   class FakePrefetchQ extends Sendable[PrefetchMsg] {
     val name = "prefetch-message-queue"
     val rabbit: ActorRef = testActor
-    def send(envelope: PrefetchMsg,  properties: Seq[MessageProperty] = Seq.empty): Unit = {
+    override val persistent: Boolean = true
+    def send(envelope: PrefetchMsg,  properties: Option[AMQP.BasicProperties] = None): Future[Done] = {
+      Future.successful(Done)
     }
+
   }
 
   private val prefetchQ = mock[FakePrefetchQ]

@@ -1,11 +1,9 @@
 package io.mdcatapult.doclib.consumer
 
 import java.io.File
-import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import com.spingo.op_rabbit.SubscriptionRef
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.codec.MongoCodecs
@@ -14,10 +12,8 @@ import io.mdcatapult.util.models.Version
 import io.mdcatapult.klein.mongo.Mongo
 import io.mdcatapult.klein.queue.{Envelope, Queue}
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
-import play.api.libs.json.Format
 import scopt.OParser
-
-import scala.util.Try
+import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
 
@@ -41,31 +37,31 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
     }
   }
 
-  val consumerVersion: Version = Version.fromConfig(ConfigFactory.load("version"))
+  private val consumerVersion: Version = Version.fromConfig(ConfigFactory.load("version"))
+  logger.info(s"Version ${consumerVersion}")
 
   private val optConfig: ConsumerConfig = parseArgsWithConfiguration()
 
   implicit val config: Config = optConfig.config
 
-  private val initialised = new CountDownLatch(1)
-
   logger.debug(config.root().render(ConfigRenderOptions.concise()))
 
-  def queue[T <: Envelope](property: String)(implicit f: Format[T], s: ActorSystem): Queue[T] = {
+  /**
+   * Send messages T and subscribe to response M
+   * @param property
+   * @param s implicit Akka actor
+   * @tparam T Envelop containing message that is sent to the queue
+   * @tparam M HandlerResult containing response from the queue
+   * @return
+   */
+  def queue[T <: Envelope, M <: HandlerResult](property: String)(implicit s: ActorSystem): Queue[T, M] = {
     val consumerName = config.getString("consumer.name")
-    val errorQueue = Try(config.getString("doclib.error.queue")).toOption
-    if (errorQueue.isEmpty) {
-      logger.warn("error queue has not been set")
-    }
-    new Queue[T](config.getString(property), consumerName = Option(consumerName), errorQueue = errorQueue)
+    new Queue[T, M](config.getString(property), consumerName = Option(consumerName))
   }
 
-  def waitForInitialisation(timeout: Long, unit: TimeUnit): Unit = {
-    initialised.await(timeout, unit)
-  }
+  def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): Unit
 
-  def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo): SubscriptionRef
-  val sanitisedName = sanitiseName(config.getString("consumer.name"))
+  private val sanitisedName = sanitiseName(config.getString("consumer.name"))
   val system: ActorSystem = ActorSystem(sanitisedName)
   val m: Materializer = Materializer(system)
   import system.dispatcher
@@ -73,7 +69,5 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
   // Initialise Mongo
   implicit val codecs: CodecRegistry = MongoCodecs.include(codecProviders)
   val mongo: Mongo = new Mongo()
-  val ref = start()(system, m, mongo)
-
-  ref.initialized.foreach(_ => initialised.countDown())
+  start()(system, m, mongo)
 }

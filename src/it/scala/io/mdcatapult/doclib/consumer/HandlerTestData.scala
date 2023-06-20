@@ -8,6 +8,7 @@ import io.mdcatapult.klein.queue.{Envelope, Sendable}
 import io.mdcatapult.util.time.nowUtc
 import org.bson.types.ObjectId
 import org.scalamock.scalatest.MockFactory
+import play.api.libs.json.{Format, Json}
 
 import scala.concurrent.Future
 
@@ -33,7 +34,14 @@ trait HandlerTestData extends MockFactory {
   )
 
   case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
-  case class TestMessage(id: String) extends Envelope
+
+  object TestMessage {
+    implicit val msgFormatter: Format[TestMessage] = Json.format[TestMessage]
+
+  }
+  case class TestMessage(id: String) extends Envelope {
+    override def toJsonString(): String = Json.toJson(this).toString()
+  }
 
   val postHandleMessage: TestMessage = TestMessage(testDoclibDoc._id.toHexString)
 

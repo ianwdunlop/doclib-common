@@ -1,11 +1,12 @@
 package io.mdcatapult.doclib.path
 
+import akka.Done
+
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
-
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestKit
-import com.spingo.op_rabbit.properties.MessageProperty
+import com.rabbitmq.client.AMQP
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg
 import io.mdcatapult.doclib.models.metadata.{MetaString, MetaValueUntyped}
@@ -21,6 +22,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 import scala.collection.mutable
+import scala.concurrent.Future
 
 class PrefetchUtilsIntegrationTest extends TestKit(ActorSystem("PrefetchUtilsIntegrationTest", ConfigFactory.parseString(
   """
@@ -68,9 +70,12 @@ class PrefetchUtilsIntegrationTest extends TestKit(ActorSystem("PrefetchUtilsInt
     val rabbit: ActorRef = testActor
     val sent: AtomicInteger = new AtomicInteger(0)
     val messages: mutable.ListBuffer[MetaValueUntyped] = mutable.ListBuffer[MetaValueUntyped]()
-    def send(envelope: PrefetchMsg,  properties: Seq[MessageProperty] = Seq.empty): Unit = {
+    override val persistent: Boolean = true
+
+    override def send(envelope: PrefetchMsg, properties: Option[AMQP.BasicProperties]): Future[Done] = {
       sent.set(sent.get() + 1)
       messages ++= envelope.metadata.get
+      Future.successful(Done)
     }
   }
 

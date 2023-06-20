@@ -34,14 +34,14 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= {
       val kleinUtilVersion = "1.2.4"
       val kleinMongoVersion = "2.0.7"
-      val kleinQueueVersion = "1.1.9"
+      val kleinQueueVersion = "1.1.10-SNAPSHOT"
 
       val configVersion = "1.4.1"
       val catsVersion = "2.6.1"
       val playVersion = "2.9.2"
       val tikaVersion = "1.28"
       val betterFilesVersion = "3.9.1"
-      val akkaVersion = "2.6.18"
+      val akkaVersion = "2.8.1"
       val prometheusClientVersion = "0.9.0"
       val scalacticVersion = "3.2.10"
       val scalaTestVersion = "3.2.11"
@@ -61,7 +61,7 @@ lazy val root = (project in file(".")).
         "org.scalacheck" %% "scalacheck"                % scalaCheckVersion % Test,
         "com.typesafe.akka" %% "akka-slf4j"             % akkaVersion,
         "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
-        "com.typesafe.akka" %% "akka-protobuf"          % akkaVersion,
+        "com.typesafe.akka" %% "akka-protobuf-v3"       % akkaVersion,
         "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
         "com.typesafe.play" %% "play-json"              % playVersion,
         "com.typesafe" % "config"                       % configVersion,

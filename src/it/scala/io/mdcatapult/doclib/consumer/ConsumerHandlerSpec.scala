@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.consumer
 
-import com.spingo.op_rabbit.properties.MessageProperty
+import akka.Done
 import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
@@ -29,7 +29,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   private val awaitDuration = 5 seconds
 
   val handler = new MyConsumerHandler(readLimiter, writeLimiter)
-  (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
+  (supervisorStub.send _).when(testSupervisorMsg, None).returns(Future[Done](Done.getInstance()))
 
   "The postHandleProcess method" should
     "send a message to the supervisor, call log.info, and increment the correct prometheus collector " +
@@ -47,7 +47,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     )
 
     prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).once()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).once()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
 
@@ -65,7 +65,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     )
 
     prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).never()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).never()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
 
@@ -101,7 +101,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     }
 
     prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq()).never()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).never()
     (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
