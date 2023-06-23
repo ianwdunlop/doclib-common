@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.consumer
 
 import akka.Done
+import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
@@ -16,6 +17,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
+import scala.util.Try
 
 
 class ConsumerHandlerSpec extends AnyFlatSpecLike
@@ -67,22 +69,6 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, None).never()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
-  }
-
-  it should "increment the correct prometheus collector, and call log.error" +
-    "given an undefined successful handler return value " in {
-
-    Await.result(
-      handler.postHandleProcess(
-        documentId = postHandleMessage.id,
-        handlerResult = handlerResultEmptySuccess,
-        mongoFlagContext,
-      ),
-      awaitDuration
-    )
-
-    prometheusCollectorCalledWithLabelValue("error_no_document") shouldBe true
-    (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
   it should "call the expected prometheus collector, log.error, and not send a message to the supervisor " +
@@ -200,7 +186,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
 
   class MyConsumerHandler(val readLimiter: LimitedExecution,
                           val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg] {
-    override def handle(message: PrefetchMsg): Future[Option[GenericHandlerResult]] = {
+    override def handle(message: CommittableReadResult): Future[(CommittableReadResult, Try[HandlerResult])] = {
       handlerResultSuccess
     }
 
