@@ -71,9 +71,9 @@ trait HandlerTestData extends MockFactory {
     Future((GenericCommittableReadResult("hello"), Success(GenericHandlerResult(testDoclibDoc))))
 
   val handlerResultFailure: Future[(CommittableReadResult, Try[GenericHandlerResult])] =
-    Future((GenericCommittableReadResult("hello"), Failure(throw new Exception("error"))))
+    Future((GenericCommittableReadResult("hello"), Failure(new Exception("error"))))
 
   val handlerResultDoclibExceptionFailure: Future[(CommittableReadResult, Try[GenericHandlerResult])] =
-    Future((GenericCommittableReadResult("hello"), Failure(throw new DoclibDocException(testDoclibDoc, "oh dear"))))
+    Future((GenericCommittableReadResult("hello"), Failure(new DoclibDocException(testDoclibDoc, "oh dear"))))
 
 }
