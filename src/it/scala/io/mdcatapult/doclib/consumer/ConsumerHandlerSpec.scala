@@ -75,8 +75,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     "given a handler return failure and an undefined supervisor queue" in {
     val testSupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
 
-    intercept[Exception] {
-      Await.result(
+    Await.result(
         handler.postHandleProcess(
           documentId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
@@ -84,7 +83,6 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         ),
         awaitDuration
       )
-    }
 
     prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
     (supervisorStub.send _).verify(testSupervisorMsg, None).never()
@@ -105,9 +103,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         )
       } yield ()
 
-    intercept[Exception] {
-      Await.result(futureResult, awaitDuration)
-    }
+
+    Await.result(futureResult, awaitDuration)
 
     Thread.sleep(1000) // allow error flag to be written
 
@@ -135,9 +132,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         )
       } yield ()
 
-    intercept[Exception] {
-      Await.result(futureResult, awaitDuration)
-    }
+    Await.result(futureResult, awaitDuration)
 
     Thread.sleep(1000) // allow error flag to be written
 
