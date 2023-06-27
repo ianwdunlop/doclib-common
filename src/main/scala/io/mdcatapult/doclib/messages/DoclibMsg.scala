@@ -9,6 +9,6 @@ object DoclibMsg {
 }
 
 case class DoclibMsg(id: String) extends Envelope {
-  override def toJsonString(): String = msgFormatter.toString
+  override def toJsonString(): String = Json.toJson(this).toString()
 }
 

@@ -9,7 +9,7 @@ object NerMsg {
 }
 
 case class NerMsg(id: String, requires: Option[List[String]]) extends Envelope {
-  override def toJsonString(): String = msgFormatter.toString
+  override def toJsonString(): String = Json.toJson(this).toString()
 }
 
 

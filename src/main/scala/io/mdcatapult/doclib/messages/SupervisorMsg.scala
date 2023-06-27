@@ -14,7 +14,7 @@ object SupervisorMsg {
   * @param reset list of exchanges to force processing
   */
 case class SupervisorMsg(id: String, reset: Option[List[String]] = None) extends Envelope {
-  override def toJsonString(): String = msgFormatter.toString
+  override def toJsonString(): String = Json.toJson(this).toString()
 }
 
 

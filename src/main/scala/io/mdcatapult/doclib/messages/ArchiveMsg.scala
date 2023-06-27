@@ -8,5 +8,5 @@ object ArchiveMsg {
   implicit val msgFormatter: Format[ArchiveMsg] = Json.format[ArchiveMsg]
 }
 case class ArchiveMsg(id: Option[String] = None, source: Option[String] = None) extends Envelope {
-  override def toJsonString(): String = msgFormatter.toString
+  override def toJsonString(): String = Json.toJson(this).toString()
 }

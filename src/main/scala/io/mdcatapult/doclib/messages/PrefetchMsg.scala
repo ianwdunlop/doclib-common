@@ -19,7 +19,7 @@ case class PrefetchMsg(
                         derivative: Option[Boolean] = None,
                         verify: Option[Boolean] = None
                       ) extends Envelope {
-  override def toJsonString(): String = msgFormatter.toString
+  override def toJsonString(): String = Json.toJson(this).toString()
 }
 
 
