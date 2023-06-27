@@ -17,9 +17,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 case class GenericHandlerResult(doclibDoc: DoclibDoc) extends HandlerResult
 
-object EchoConsumer extends AbstractConsumer() {
+object EchoConsumer extends AbstractConsumer[DoclibMsg, HandlerResult] {
 
-  override def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo) = {
+   override def start()(implicit as: ActorSystem, m: Materializer, mongo: Mongo) = {
 
     val createdInstant = LocalDateTime.now().toInstant(ZoneOffset.UTC)
     val createdTime = LocalDateTime.ofInstant(createdInstant, ZoneOffset.UTC)
