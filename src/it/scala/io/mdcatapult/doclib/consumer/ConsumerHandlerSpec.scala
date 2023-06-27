@@ -180,8 +180,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   lazy val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
 
   class MyConsumerHandler(val readLimiter: LimitedExecution,
-                          val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg] {
-    override def handle(message: CommittableReadResult): Future[(CommittableReadResult, Try[HandlerResult])] = {
+                          val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg, GenericHandlerResult] {
+    override def handle(message: CommittableReadResult): Future[(CommittableReadResult, Try[GenericHandlerResult])] = {
       handlerResultSuccess
     }
 
