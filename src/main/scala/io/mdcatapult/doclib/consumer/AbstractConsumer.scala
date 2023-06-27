@@ -15,7 +15,7 @@ import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 import scopt.OParser
 import scala.concurrent.ExecutionContext.Implicits.global
 
-abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
+abstract class AbstractConsumer[T <: Envelope, M <: HandlerResult](codecProviders: Seq[CodecProvider] = Nil) extends App with LazyLogging {
 
   private case class ConsumerConfig(config: Config = ConfigFactory.load())
 
@@ -54,7 +54,7 @@ abstract class AbstractConsumer(codecProviders: Seq[CodecProvider] = Nil) extend
    * @tparam M HandlerResult containing response from the queue
    * @return
    */
-  def queue[T <: Envelope, M <: HandlerResult](property: String)(implicit s: ActorSystem): Queue[T, M] = {
+  def queue(property: String)(implicit s: ActorSystem): Queue[T, M] = {
     val consumerName = config.getString("consumer.name")
     new Queue[T, M](config.getString(property), consumerName = Option(consumerName))
   }

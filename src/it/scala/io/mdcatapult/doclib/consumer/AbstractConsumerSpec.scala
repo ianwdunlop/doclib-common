@@ -37,7 +37,7 @@ class AbstractConsumerSpec
     mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection[MessageDoc]("echo_test")
   }
 
-  private val queue = EchoConsumer.queue[DoclibMsg, HandlerResult]("consumer.queue")
+  private val queue = EchoConsumer.queue("consumer.queue")
 
   "An AbstractConsumer" - {
     "when it is set-up to echo a message from rabbit into Mongo" - {

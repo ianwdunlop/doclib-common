@@ -18,10 +18,10 @@ import org.mongodb.scala.model.Filters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-abstract class AbstractHandler[T <: Envelope](implicit appConfig: AppConfig, ec: ExecutionContext)
+abstract class AbstractHandler[T <: Envelope, R <: HandlerResult](implicit appConfig: AppConfig, ec: ExecutionContext)
   extends LazyLogging {
 
-  type GenericHandlerResult = (CommittableReadResult, Try[HandlerResult])
+  private type GenericHandlerResponse = (CommittableReadResult, Try[R])
 
   val readLimiter: LimitedExecution
   val writeLimiter: LimitedExecution
@@ -35,37 +35,37 @@ abstract class AbstractHandler[T <: Envelope](implicit appConfig: AppConfig, ec:
     * @param message One of the various Envelopes eg PrefetchMsg, SupervisorMsg
     * @return
     */
-  def handle(messageWrapper: CommittableReadResult): Future[(CommittableReadResult, Try[HandlerResult])]
+  def handle(messageWrapper: CommittableReadResult): Future[(CommittableReadResult, Try[R])]
 
-  def postHandleProcess[R <: HandlerResult](documentId: String,
-                                            handlerResult: Future[(CommittableReadResult, Try[HandlerResult])],
+  def postHandleProcess(documentId: String,
+                                            handlerResult: Future[(CommittableReadResult, Try[R])],
                                             flagContext: FlagContext)
   : Future[(CommittableReadResult, Try[HandlerResult])] = {
     postHandleProcess(documentId, handlerResult, flagContext, None, None)
   }
 
-  def postHandleProcess[R <: HandlerResult](documentId: String,
-                                            handlerResult: Future[(CommittableReadResult, Try[HandlerResult])],
+  def postHandleProcess(documentId: String,
+                                            handlerResult: Future[(CommittableReadResult, Try[R])],
                                             flagContext: FlagContext,
                                             collection: MongoCollection[DoclibDoc])
-  : Future[(CommittableReadResult, Try[HandlerResult])] = {
+  : Future[(CommittableReadResult, Try[R])] = {
     postHandleProcess(documentId, handlerResult, flagContext, None, Option(collection))
   }
 
-  def postHandleProcess[R <: HandlerResult](documentId: String,
-                                            handlerResult: Future[(CommittableReadResult, Try[HandlerResult])],
+  def postHandleProcess(documentId: String,
+                                            handlerResult: Future[(CommittableReadResult, Try[R])],
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg])
   : Future[(CommittableReadResult, Try[HandlerResult])] = {
     postHandleProcess(documentId, handlerResult, flagContext, Option(supervisorQueue), None)
   }
 
-  def postHandleProcess[R <: HandlerResult](documentId: String,
-                                            handlerResult: Future[(CommittableReadResult, Try[HandlerResult])],
+  def postHandleProcess(documentId: String,
+                                            handlerResult: Future[(CommittableReadResult, Try[R])],
                                             flagContext: FlagContext,
                                             supervisorQueue: Sendable[SupervisorMsg],
                                             collection: MongoCollection[DoclibDoc])
-  : Future[(CommittableReadResult, Try[HandlerResult])] = {
+  : Future[(CommittableReadResult, Try[R])] = {
     postHandleProcess(documentId, handlerResult, flagContext, Option(supervisorQueue), Option(collection))
   }
 
@@ -83,12 +83,12 @@ abstract class AbstractHandler[T <: Envelope](implicit appConfig: AppConfig, ec:
     * @tparam R HandlerResult
     * @return
     */
-  private def postHandleProcess[R <: HandlerResult](documentId: String,
-                                                    handlerResult: Future[GenericHandlerResult],
-                                                    flagContext: FlagContext,
-                                                    supervisorQueueOpt: Option[Sendable[SupervisorMsg]],
-                                                    collectionOpt: Option[MongoCollection[DoclibDoc]])
-  : Future[(CommittableReadResult, Try[HandlerResult])] = {
+  private def postHandleProcess(documentId: String,
+                                handlerResult: Future[GenericHandlerResponse],
+                                flagContext: FlagContext,
+                                supervisorQueueOpt: Option[Sendable[SupervisorMsg]],
+                                collectionOpt: Option[MongoCollection[DoclibDoc]])
+  : Future[(CommittableReadResult, Try[R])] = {
     handlerResult.andThen {
       case Success(handlerResultOpt) =>
         handlerResultOpt._2 match {
@@ -114,7 +114,7 @@ abstract class AbstractHandler[T <: Envelope](implicit appConfig: AppConfig, ec:
     * @param supervisorQueueOpt An optional supervisor queue if the consumer should send a message to the supervisor
     * @tparam R type must be a subtype of HandlerResult
     */
-  private def handlerSuccess[R <: HandlerResult](documentId: String,
+  private def handlerSuccess(documentId: String,
                                                  handlerResultOpt: Option[R],
                                                  supervisorQueueOpt: Option[Sendable[SupervisorMsg]]): Unit = {
     handlerResultOpt match {
