@@ -14,7 +14,10 @@ Common utilities and components used in the document library including:
 The basic pattern is that the `Consumer` creates the queues and connections to Mongo. Then it creates a handler for the messages.
 The `Consumer` should extend the `AbstractConsumer` class.
 ### Abstract Handler
-Handlers within a consumer should extend the `AbstractHandler` class. The handle method accepts a rabbit message that extends the Envelope trait.
+Handlers within a consumer should extend the `AbstractHandler` class with the appropriate typed parameters that represent the type of message `Envelope` received and
+the `HandlerResult` that is returned. The handle method accepts a `CommittableReadResult` which contains the rabbit message
+that extends the Envelope trait and returns a tuple which contains the original message and a `HandlerResult`. The `handle` method represents the 
+"business logic" that a Queue is subscribed with.
 The postHandleProcess receives messages that extend the HandlerResult trait, ensuring a message's associated DoclibDoc
 has the correct post processing operations applied. This includes logging, optionally sending a message to the supervisor,
 and writing appropriate flags to the DoclibDoc.
@@ -45,3 +48,13 @@ The sbt-dependency-check plugin can be used to create a HTML report under `targe
 ```bash
 sbt dependencyCheck
 ```
+
+## Dependency Issues
+
+Tika > 1.28.5 causes compilation issues
+```bash
+[error] While parsing annotations in /Users/ian.dunlop/.ivy2/cache/org.mongodb/mongodb-driver-core/jars/mongodb-driver-core-4.4.1.jar(com/mongodb/lang/Nullable.class), could not find MAYBE in enum <none>.
+[error] This is likely due to an implementation restriction: an annotation argument cannot refer to a member of the annotated class (scala/bug#7014).
+```
+
+Prometheus > 0.9.0 causes integration test failures in `ConsumerHandlerSpec`.
