@@ -1,7 +1,6 @@
 package io.mdcatapult.doclib.consumer
 
 import java.util.UUID.randomUUID
-import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
@@ -38,7 +37,7 @@ class AbstractConsumerSpec
     mongo.getDatabase(config.getString("mongo.doclib-database")).getCollection[MessageDoc]("echo_test")
   }
 
-  private val queue = EchoConsumer.queue[DoclibMsg]("consumer.queue")
+  private val queue = EchoConsumer.queue("consumer.queue")
 
   "An AbstractConsumer" - {
     "when it is set-up to echo a message from rabbit into Mongo" - {
@@ -47,7 +46,7 @@ class AbstractConsumerSpec
       val messageSent =
         for {
           _ <- collection.drop().toFuture()
-          _ = EchoConsumer.waitForInitialisation(10, TimeUnit.SECONDS)
+          _ = Thread.sleep(10000)
           _ = queue.send(message)
         } yield true
 

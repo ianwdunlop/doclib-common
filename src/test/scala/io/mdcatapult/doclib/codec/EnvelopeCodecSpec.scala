@@ -20,6 +20,13 @@ class EnvelopeCodecSpec extends CodecSpec{
     decodedMsg should equal(original)
   }
 
+  it should "return a JSON string representation of a Doclib Message" in {
+    val doclibMsg = DoclibMsg(
+      id = "5d970056b3e8083540798f90"
+    )
+    doclibMsg.toJsonString() should be("{\"id\":\"5d970056b3e8083540798f90\"}")
+  }
+
   it should "encode & decode a Doclib Message" in {
     val original = DoclibMsg(
       id = "5d970056b3e8083540798f90"
