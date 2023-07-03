@@ -47,7 +47,6 @@ class AbstractConsumerSpec
         for {
           _ <- collection.drop().toFuture()
           _ = Thread.sleep(10000)
-//          _ = EchoConsumer.waitForInitialisation(10, TimeUnit.SECONDS)
           _ = queue.send(message)
         } yield true
 
