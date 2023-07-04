@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.consumer
 
-import com.spingo.op_rabbit.properties.MessageProperty
+import akka.Done
+import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
@@ -16,6 +17,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
+import scala.util.Try
 
 
 class ConsumerHandlerSpec extends AnyFlatSpecLike
@@ -29,7 +31,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   private val awaitDuration = 5 seconds
 
   val handler = new MyConsumerHandler(readLimiter, writeLimiter)
-  (supervisorStub.send _).when(testSupervisorMsg, Seq.empty[MessageProperty]).returns(())
+  (supervisorStub.send _).when(testSupervisorMsg, None).returns(Future[Done](Done.getInstance()))
 
   "The postHandleProcess method" should
     "send a message to the supervisor, call log.info, and increment the correct prometheus collector " +
@@ -47,7 +49,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     )
 
     prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).once()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).once()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
   }
 
@@ -65,32 +67,15 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
     )
 
     prometheusCollectorCalledWithLabelValue("Completed") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq.empty[MessageProperty]).never()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).never()
     (underlyingMockLogger.info(_: String)).verify(_: String).once()
-  }
-
-  it should "increment the correct prometheus collector, and call log.error" +
-    "given an undefined successful handler return value " in {
-
-    Await.result(
-      handler.postHandleProcess(
-        documentId = postHandleMessage.id,
-        handlerResult = handlerResultEmptySuccess,
-        mongoFlagContext,
-      ),
-      awaitDuration
-    )
-
-    prometheusCollectorCalledWithLabelValue("error_no_document") shouldBe true
-    (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
   it should "call the expected prometheus collector, log.error, and not send a message to the supervisor " +
     "given a handler return failure and an undefined supervisor queue" in {
     val testSupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
 
-    intercept[Exception] {
-      Await.result(
+    Await.result(
         handler.postHandleProcess(
           documentId = postHandleMessage.id,
           handlerResult = handlerResultFailure,
@@ -98,10 +83,9 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         ),
         awaitDuration
       )
-    }
 
     prometheusCollectorCalledWithLabelValue("unknown_error") shouldBe true
-    (supervisorStub.send _).verify(testSupervisorMsg, Seq()).never()
+    (supervisorStub.send _).verify(testSupervisorMsg, None).never()
     (underlyingMockLogger.error(_: String)).verify(_: String).once()
   }
 
@@ -119,9 +103,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         )
       } yield ()
 
-    intercept[Exception] {
-      Await.result(futureResult, awaitDuration)
-    }
+
+    Await.result(futureResult, awaitDuration)
 
     Thread.sleep(1000) // allow error flag to be written
 
@@ -149,9 +132,7 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
         )
       } yield ()
 
-    intercept[Exception] {
-      Await.result(futureResult, awaitDuration)
-    }
+    Await.result(futureResult, awaitDuration)
 
     Thread.sleep(1000) // allow error flag to be written
 
@@ -199,8 +180,8 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   lazy val underlyingMockLogger: UnderlyingLogger = stub[UnderlyingLogger]
 
   class MyConsumerHandler(val readLimiter: LimitedExecution,
-                          val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg] {
-    override def handle(message: PrefetchMsg): Future[Option[GenericHandlerResult]] = {
+                          val writeLimiter: LimitedExecution) extends AbstractHandler[PrefetchMsg, GenericHandlerResult] {
+    override def handle(message: CommittableReadResult): Future[(CommittableReadResult, Try[GenericHandlerResult])] = {
       handlerResultSuccess
     }
 

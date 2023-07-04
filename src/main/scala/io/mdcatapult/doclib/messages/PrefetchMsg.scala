@@ -1,6 +1,7 @@
 package io.mdcatapult.doclib.messages
 
 import io.mdcatapult.doclib.json.{BsonDocumentJson, MetaValueJson}
+import io.mdcatapult.doclib.messages.PrefetchMsg.msgFormatter
 import io.mdcatapult.doclib.models.Origin
 import io.mdcatapult.doclib.models.metadata.MetaValueUntyped
 import io.mdcatapult.klein.queue.Envelope
@@ -17,6 +18,8 @@ case class PrefetchMsg(
                         metadata: Option[List[MetaValueUntyped]] = None,
                         derivative: Option[Boolean] = None,
                         verify: Option[Boolean] = None
-                      ) extends Envelope
+                      ) extends Envelope {
+  override def toJsonString(): String = Json.toJson(this).toString()
+}
 
 
