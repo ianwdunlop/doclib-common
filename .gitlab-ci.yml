@@ -30,8 +30,6 @@ default:
 
 test:
   stage: test
-  tags:
-    - wopr
   variables:
     MONGO_HOST: mongo
     MONGO_PORT: 27017
@@ -54,24 +52,20 @@ test:
 
 publish-snapshot:
   stage: publish
-  tags:
-    - wopr
   script:
     - sbt +publish
-  only:
-    - develop
   except:
+    refs:
+      - main
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
 
 release:
   stage: publish
-  tags:
-    - wopr
   script:
-    - /scripts/release.sh -b -r develop
+    - cictl exec release sbt
   only:
-    - master
+    - main
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/

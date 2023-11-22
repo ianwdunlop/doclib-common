@@ -1,3 +1,16 @@
+import com.gilcloud.sbt.gitlab.{GitlabCredentials,GitlabPlugin}
+
+GitlabPlugin.autoImport.gitlabGroupId     :=  Some(73679838)
+GitlabPlugin.autoImport.gitlabProjectId   :=  Some(50550924)
+GitlabPlugin.autoImport.gitlabCredentials  := {
+  sys.env.get("GITLAB_PRIVATE_TOKEN") match {
+    case Some(token) =>
+      Some(GitlabCredentials("Private-Token", token))
+    case None =>
+      Some(GitlabCredentials("Job-Token", sys.env.get("CI_JOB_TOKEN").get))
+  }
+}
+
 lazy val scala_2_13 = "2.13.3"
 
 lazy val IntegrationTest = config("it") extend Test
@@ -20,19 +33,17 @@ lazy val root = (project in file(".")).
       "-Xlint",
       "-Xfatal-warnings",
     ),
-    resolvers         ++= Seq(
-      "MDC Nexus Releases" at "https://nexus.wopr.inf.mdc/repository/maven-releases/",
-      "MDC Nexus Snapshots" at "https://nexus.wopr.inf.mdc/repository/maven-snapshots/"),
-    credentials       += {
-      sys.env.get("NEXUS_PASSWORD") match {
+    resolvers += ("gitlab" at "https://gitlab.com/api/v4/projects/50550924/packages/maven"),
+    credentials += {
+      sys.env.get("CI_JOB_TOKEN") match {
         case Some(p) =>
-          Credentials("Sonatype Nexus Repository Manager", "nexus.wopr.inf.mdc", "gitlab", p)
+          Credentials("GitLab Packages Registry", "gitlab.com", "gitlab-ci-token", p)
         case None =>
           Credentials(Path.userHome / ".sbt" / ".credentials")
       }
     },
     libraryDependencies ++= {
-      val kleinUtilVersion = "1.2.4"
+      val kleinUtilVersion = "1.2.6"
       val kleinMongoVersion = "2.0.7"
       val kleinQueueVersion = "2.0.0"
 
@@ -44,7 +55,7 @@ lazy val root = (project in file(".")).
       val akkaVersion = "2.8.1"
       val prometheusClientVersion = "0.9.0"
       val scalacticVersion = "3.2.15"
-      val scalaTestVersion = "3.2.15"
+      val scalaTestVersion = "3.2.17"
       val scalaMockVersion = "5.2.0"
       val scalaCheckVersion = "1.17.0"
       val scoptVersion = "4.1.0"
@@ -79,14 +90,3 @@ lazy val root = (project in file(".")).
       )
     }
   )
-  .settings(
-    publishSettings: _*
-  )
-
-lazy val publishSettings = Seq(
-  publishTo := {
-    val version = if (isSnapshot.value) "snapshots" else "releases"
-    Some("MDC Maven Repo" at s"https://nexus.wopr.inf.mdc/repository/maven-$version/")
-  },
-  credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-)
