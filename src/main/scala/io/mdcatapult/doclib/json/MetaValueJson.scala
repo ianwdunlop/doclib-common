@@ -45,6 +45,7 @@ trait MetaValueJson {
         case v: MetaDouble => v.asInstanceOf[MetaDouble]
         case v: MetaDateTime => v.asInstanceOf[MetaDateTime]
         case v: MetaString => v.asInstanceOf[MetaString]
+        case other => throw new MatchError(other)
       }
 
       Json.obj(
@@ -56,6 +57,7 @@ trait MetaValueJson {
             case v: String => JsString(v)
             case v: Int => JsNumber(v)
             case v: Double => JsNumber(v)
+            case other => throw new MatchError(other)
           }
         })
     }

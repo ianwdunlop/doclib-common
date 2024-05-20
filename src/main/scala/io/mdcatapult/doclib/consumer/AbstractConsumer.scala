@@ -2,8 +2,8 @@ package io.mdcatapult.doclib.consumer
 
 import java.io.File
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.codec.MongoCodecs

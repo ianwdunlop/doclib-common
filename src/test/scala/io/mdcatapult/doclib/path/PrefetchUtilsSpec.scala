@@ -1,10 +1,10 @@
 package io.mdcatapult.doclib.path
 
-import akka.Done
+import org.apache.pekko.Done
 
 import java.io.File
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.TestKit
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.testkit.TestKit
 import com.rabbitmq.client.AMQP
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.messages.PrefetchMsg

@@ -15,17 +15,19 @@ case class Occurrence(
                        wordIndex: Option[Int],
                        `type`: String) {
 
-  def toMap: Map[String, Any] =
-    Map(
-      "_id" -> _id,
-      "nerDocument" -> nerDocument,
-      "characterStart" -> characterStart,
-      "characterEnd" -> characterEnd,
-      "fragment" -> fragment,
-      "correctedValue" -> correctedValue,
-      "wordIndex" -> wordIndex,
-      "type" -> `type`
-    ).filter(_._2 != None)
+  def toFields: (UUID, UUID, Map[String, Option[_]]) =
+    (
+      _id,
+      nerDocument,
+      Map(
+        "characterStart" -> Some(characterStart),
+        "characterEnd" -> Some(characterEnd),
+        "fragment" -> fragment,
+        "correctedValue" -> correctedValue,
+        "wordIndex" -> wordIndex,
+        "type" -> Some(`type`)
+      ).filter(_._2.isDefined)
+    )
 
 }
 
@@ -51,10 +53,13 @@ object Occurrence {
   }
 
   def md5(occurrences: Seq[Occurrence]): String = {
-    def keyValuesPairsAsText(o: Occurrence): Seq[String] =
+    def keyValuesPairsAsText(o: Occurrence): Seq[String] = {
+      val (_, _, rest) = o.toFields
       for {
-        (key, value) <- o.toMap.view.filterKeys(k => k != "_id" && k != "nerDocument").toSeq.sortBy(_._1)
-      } yield s"$key:$value"
+        (key, option_value) <- rest.view.toSeq.sortBy(_._1)
+        (k, value) = (key, option_value.get)
+      } yield s"$k:$value"
+    }
 
     val allPairedKeyValues =
       for {

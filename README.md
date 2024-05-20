@@ -22,6 +22,13 @@ The postHandleProcess receives messages that extend the HandlerResult trait, ens
 has the correct post processing operations applied. This includes logging, optionally sending a message to the supervisor,
 and writing appropriate flags to the DoclibDoc.
 
+## Fetch dependencies from internal package repositoty
+
+Set the `REGISTRY_HOST_PROJECT_ID` to point to the gitlab internal package repo. ie
+```bash
+export REGISTRY_HOST_PROJECT_ID=12345678
+```
+Ask SE for the actual ID you should use. You may need to set it in any env within your run config in your IDE.
 
 ## Testing
 To run tests, do

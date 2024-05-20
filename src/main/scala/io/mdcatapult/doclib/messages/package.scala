@@ -24,6 +24,7 @@ package object messages {
       case scalarVal: Double => MetaDouble(mv("key").asInstanceOf[String], scalarVal)
       case scalarVal: LocalDateTime => MetaDateTime(mv("key").asInstanceOf[String], scalarVal)
       case scalarVal: String => MetaString(mv("key").asInstanceOf[String], scalarVal)
+      case other => throw new MatchError(other)
     })
   }
 

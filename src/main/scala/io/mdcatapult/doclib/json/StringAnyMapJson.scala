@@ -27,10 +27,11 @@ trait StringAnyMapJson {
       Json.obj(map.map { case (s, o) =>
         val v: JsValueWrapper = o match {
           case b: Boolean => JsBoolean(b)
-          case s: String => JsString(s)
+          case aString: String => JsString(aString)
           case n: Int => JsNumber(n)
           case n: Double => JsNumber(n)
           case n: Float => JsNumber(n.toDouble)
+          case other => throw new MatchError(other)
         }
         val ret: (String, JsValueWrapper) = s -> v
         ret

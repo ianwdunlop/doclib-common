@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.consumer
 
-import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
+import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.consumer.HandlerLogStatus._
 import io.mdcatapult.doclib.exception.DoclibDocException
@@ -92,7 +92,7 @@ abstract class AbstractHandler[T <: Envelope, R <: HandlerResult](implicit appCo
     handlerResult.andThen {
       case Success(handlerResultOpt) =>
         handlerResultOpt._2 match {
-          case Success(handlerResult) => handlerSuccess(documentId, Some(handlerResult), supervisorQueueOpt)
+          case Success(innerHandlerResult) => handlerSuccess(documentId, Some(innerHandlerResult), supervisorQueueOpt)
           case Failure(doclibException: DoclibDocException) =>
             failureWithDoclibDocException(doclibException, flagContext)
           case Failure(exception) if collectionOpt.isDefined =>
