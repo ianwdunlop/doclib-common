@@ -22,10 +22,12 @@ case class Occurrence(
       Map(
         "characterStart" -> Some(characterStart),
         "characterEnd" -> Some(characterEnd),
-        "fragment" -> fragment,
-        "correctedValue" -> correctedValue,
-        "wordIndex" -> wordIndex,
+        "fragment" -> Some(fragment),
+        "correctedValue" -> Some(correctedValue),
+        "wordIndex" -> Some(wordIndex),
         "type" -> Some(`type`)
+        // Note that fragment, correctedValue & wordIndex are already inside
+        // a Some(_) but wrapping it for the md5 (key, option_value.get)
       ).filter(_._2.isDefined)
     )
 
