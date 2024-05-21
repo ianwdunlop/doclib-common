@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.consumer
 
-import akka.Done
-import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
+import org.apache.pekko.Done
+import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.Logger
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount

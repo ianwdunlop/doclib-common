@@ -1,7 +1,7 @@
 package io.mdcatapult.doclib.consumer
-import akka.actor.ActorSystem
-import akka.stream.Materializer
-import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import io.mdcatapult.doclib.messages.DoclibMsg
 import io.mdcatapult.doclib.models.{DoclibDoc, MessageDoc}
 import io.mdcatapult.klein.mongo.Mongo

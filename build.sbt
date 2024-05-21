@@ -86,11 +86,14 @@ lazy val root = (project in file("."))
     }
   )
 
+Global / excludeLintKeys += Test / sourceDirectories
+
 lazy val it = project
   .in(file("it"))  //it test located in a directory named "it"
   .settings(
     name := "common-it",
     scalaVersion := "2.13.14",
+    Test / sourceDirectories ++= (root / Test / sourceDirectories).value,
     libraryDependencies ++= {
       Seq(
         "org.scalatest" %% "scalatest"         % scalaTestVersion,
@@ -102,4 +105,4 @@ lazy val it = project
       )
     }
   )
-  .dependsOn(root)
+  .dependsOn(root % "test->test;compile->compile")

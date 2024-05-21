@@ -28,7 +28,7 @@ case class Occurrence(
         "type" -> Some(`type`)
         // Note that fragment, correctedValue & wordIndex are already inside
         // a Some(_) but wrapping it for the md5 (key, option_value.get)
-      ).filter(_._2.isDefined)
+      ).filter(_._2.get != None)
     )
 
 }

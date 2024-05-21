@@ -1,10 +1,10 @@
 package io.mdcatapult.doclib.consumer
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.stream.alpakka.amqp.ReadResult
-import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
-import akka.util.ByteString
+import org.apache.pekko.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.connectors.amqp.ReadResult
+import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
+import org.apache.pekko.util.ByteString
 import com.rabbitmq.client.AMQP.BasicProperties
 import io.mdcatapult.doclib.exception.DoclibDocException
 import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}

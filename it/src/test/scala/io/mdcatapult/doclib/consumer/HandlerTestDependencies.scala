@@ -1,6 +1,6 @@
 package io.mdcatapult.doclib.consumer
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.codec.MongoCodecs
 import io.mdcatapult.doclib.flag.MongoFlagContext

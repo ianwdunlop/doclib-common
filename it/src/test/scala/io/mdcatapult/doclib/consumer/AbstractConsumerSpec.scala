@@ -2,7 +2,7 @@ package io.mdcatapult.doclib.consumer
 
 import java.util.UUID.randomUUID
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
 import io.mdcatapult.doclib.IntegrationFixture.longTimeout
 import io.mdcatapult.doclib.codec.MongoCodecs
