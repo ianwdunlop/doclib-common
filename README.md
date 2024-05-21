@@ -22,13 +22,16 @@ The postHandleProcess receives messages that extend the HandlerResult trait, ens
 has the correct post processing operations applied. This includes logging, optionally sending a message to the supervisor,
 and writing appropriate flags to the DoclibDoc.
 
-## Fetch dependencies from internal package repositoty
+## Fetch dependencies from internal package repository
 
 Set the `REGISTRY_HOST_PROJECT_ID` to point to the gitlab internal package repo. ie
 ```bash
 export REGISTRY_HOST_PROJECT_ID=12345678
 ```
 Ask SE for the actual ID you should use. You may need to set it in any env within your run config in your IDE.
+
+If updating sbt packages, compiling or running tests inside your IDE you will need to add the env var to the sbt setup within it. For example, for intellij 
+go to the settings and add the env var in the `Environment Variables` field via `Build, Execution, Deployment` > `Build Tools` > `SBT`
 
 ## Testing
 To run tests, do
