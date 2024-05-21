@@ -1,18 +1,17 @@
 package io.mdcatapult.doclib.consumer
 
+import com.rabbitmq.client.AMQP.BasicProperties
+import io.mdcatapult.doclib.exception.DoclibDocException
+import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
+import io.mdcatapult.doclib.models.DoclibDoc
+import io.mdcatapult.klein.queue.Envelope
+import io.mdcatapult.util.time.nowUtc
 import org.apache.pekko.Done
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.connectors.amqp.ReadResult
 import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import org.apache.pekko.util.ByteString
-import com.rabbitmq.client.AMQP.BasicProperties
-import io.mdcatapult.doclib.exception.DoclibDocException
-import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
-import io.mdcatapult.doclib.models.DoclibDoc
-import io.mdcatapult.klein.queue.{Envelope, Sendable}
-import io.mdcatapult.util.time.nowUtc
 import org.bson.types.ObjectId
-import org.scalamock.scalatest.MockFactory
 import play.api.libs.json.{Format, Json}
 
 import scala.concurrent.Future
@@ -22,7 +21,7 @@ import scala.util.{Failure, Success, Try}
   * Implemented as a trait over an object, as we need some test data to throw an exception inside a future,
   * which needs the actor system's execution context that is used throughout the test and handler test dependencies
   */
-trait HandlerTestData extends MockFactory {
+trait HandlerTestData {
 
   implicit val actorSystem: ActorSystem
 
@@ -65,7 +64,6 @@ trait HandlerTestData extends MockFactory {
   val postHandleMessage: TestMessage = TestMessage(testDoclibDoc._id.toHexString)
 
   val testSupervisorMsg: SupervisorMsg = SupervisorMsg(id = testDoclibDoc._id.toHexString)
-  val supervisorStub: Sendable[SupervisorMsg] = stub[Sendable[SupervisorMsg]]
 
   val handlerResultSuccess: Future[(CommittableReadResult, Try[GenericHandlerResult])] =
     Future((GenericCommittableReadResult("hello"), Success(GenericHandlerResult(testDoclibDoc))))

@@ -3,8 +3,9 @@ package io.mdcatapult.doclib.consumer
 import org.apache.pekko.Done
 import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.Logger
-import io.mdcatapult.doclib.messages.{PrefetchMsg, SupervisorMsg}
+import io.mdcatapult.doclib.messages.{DoclibMsg, PrefetchMsg, SupervisorMsg}
 import io.mdcatapult.doclib.metrics.Metrics.handlerCount
+import io.mdcatapult.klein.queue.Sendable
 import io.mdcatapult.util.concurrency.LimitedExecution
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -29,6 +30,11 @@ class ConsumerHandlerSpec extends AnyFlatSpecLike
   import actorSystem.dispatcher
 
   private val awaitDuration = 5 seconds
+
+  val downstream: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
+  val archiver: Sendable[DoclibMsg] = stub[Sendable[DoclibMsg]]
+
+  val supervisorStub: Sendable[SupervisorMsg] = stub[Sendable[SupervisorMsg]]
 
   val handler = new MyConsumerHandler(readLimiter, writeLimiter)
   (supervisorStub.send _).when(testSupervisorMsg, None).returns(Future[Done](Done.getInstance()))
