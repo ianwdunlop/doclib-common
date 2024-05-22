@@ -54,7 +54,7 @@ test:
 publish-snapshot:
   stage: publish
   script:
-    - sbt +publish
+    - sbt publish
   except:
     refs:
       - main
