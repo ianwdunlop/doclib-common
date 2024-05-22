@@ -30,13 +30,6 @@ lazy val creds = {
 // Registry ID is the project ID of the project where the package is published, this should be set in the CI/CD environment
 val registryId = sys.env.get("REGISTRY_HOST_PROJECT_ID").getOrElse("")
 
-//lazy val publishSettings = Seq(
-//  publishTo := {
-//    Some("gitlab" at s"https://gitlab.com/api/v4/projects/$registryId/packages/maven")
-//  },
-//  credentials += creds
-//)
-
 lazy val root = (project in file("."))
   .settings(
     name := "common",
