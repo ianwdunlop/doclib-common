@@ -68,3 +68,6 @@ Tika > 1.28.5 causes compilation issues
 ```
 
 Prometheus > 0.9.0 causes integration test failures in `ConsumerHandlerSpec`.
+
+### License
+This project is licensed under the terms of the Apache 2 license, which can be found in the repository as `LICENSE.txt`
