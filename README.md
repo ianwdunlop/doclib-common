@@ -61,7 +61,7 @@ sbt dependencyCheck
 
 ## Dependency Issues
 
-Tika > 1.28.5 causes compilation issues
+Tika > 1.28.5 causes compilation issues - **Note** this no longer seems an issue since moving to 2.9.2
 ```bash
 [error] While parsing annotations in /Users/ian.dunlop/.ivy2/cache/org.mongodb/mongodb-driver-core/jars/mongodb-driver-core-4.4.1.jar(com/mongodb/lang/Nullable.class), could not find MAYBE in enum <none>.
 [error] This is likely due to an implementation restriction: an annotation argument cannot refer to a member of the annotated class (scala/bug#7014).
