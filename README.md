@@ -22,6 +22,16 @@ The postHandleProcess receives messages that extend the HandlerResult trait, ens
 has the correct post processing operations applied. This includes logging, optionally sending a message to the supervisor,
 and writing appropriate flags to the DoclibDoc.
 
+## Fetch dependencies from internal package repository
+
+Set the `REGISTRY_HOST_PROJECT_ID` to point to the gitlab internal package repo. ie
+```bash
+export REGISTRY_HOST_PROJECT_ID=12345678
+```
+Ask SE for the actual ID you should use. You may need to set it in any env within your run config in your IDE.
+
+If updating sbt packages, compiling or running tests inside your IDE you will need to add the env var to the sbt setup within it. For example, for intellij 
+go to the settings and add the env var in the `Environment Variables` field via `Build, Execution, Deployment` > `Build Tools` > `SBT`
 
 ## Testing
 To run tests, do
@@ -51,10 +61,13 @@ sbt dependencyCheck
 
 ## Dependency Issues
 
-Tika > 1.28.5 causes compilation issues
+Tika > 1.28.5 causes compilation issues - **Note** this no longer seems an issue since moving to 2.9.2
 ```bash
 [error] While parsing annotations in /Users/ian.dunlop/.ivy2/cache/org.mongodb/mongodb-driver-core/jars/mongodb-driver-core-4.4.1.jar(com/mongodb/lang/Nullable.class), could not find MAYBE in enum <none>.
 [error] This is likely due to an implementation restriction: an annotation argument cannot refer to a member of the annotated class (scala/bug#7014).
 ```
 
 Prometheus > 0.9.0 causes integration test failures in `ConsumerHandlerSpec`.
+
+### License
+This project is licensed under the terms of the Apache 2 license, which can be found in the repository as `LICENSE.txt`

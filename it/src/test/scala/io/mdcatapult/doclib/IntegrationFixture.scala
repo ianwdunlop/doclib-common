@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package io.mdcatapult.doclib.messages
+package io.mdcatapult.doclib
 
-import io.mdcatapult.doclib.messages.DoclibMsg.msgFormatter
-import io.mdcatapult.klein.queue.Envelope
-import play.api.libs.json.{Format, Json}
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.time.{Seconds, Span}
 
-object DoclibMsg {
-  implicit val msgFormatter: Format[DoclibMsg] = Json.format[DoclibMsg]
+object IntegrationFixture {
+
+  val longTimeout: Timeout = Timeout(Span(10, Seconds))
+
 }
-
-case class DoclibMsg(id: String) extends Envelope {
-  override def toJsonString(): String = Json.toJson(this).toString()
-}
-
