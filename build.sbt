@@ -1,24 +1,37 @@
-import com.gilcloud.sbt.gitlab.{GitlabCredentials,GitlabPlugin}
+lazy val scala_2_13 = "2.13.14"
 
-GitlabPlugin.autoImport.gitlabGroupId     :=  Some(73679838)
-GitlabPlugin.autoImport.gitlabProjectId   :=  Some(50550924)
-GitlabPlugin.autoImport.gitlabCredentials  := {
-  sys.env.get("GITLAB_PRIVATE_TOKEN") match {
+val pekkoVersion = "1.0.2"
+val kleinUtilVersion = "1.2.6"
+val kleinMongoVersion = "2.0.8"
+val kleinQueueVersion = "3.0.1"
+
+val configVersion = "1.4.3"
+val catsVersion = "2.10.0"
+val playVersion = "2.10.5"
+val tikaVersion = "2.9.2"
+val betterFilesVersion = "3.9.2"
+val prometheusClientVersion = "0.9.0"
+val scalacticVersion = "3.2.18"
+val scalaTestVersion = "3.2.18"
+val scalaMockVersion = "6.0.0"
+val scalaCheckVersion = "1.18.0"
+val scoptVersion = "4.1.0"
+val lemonLabsURIVersion = "4.0.3"
+
+lazy val creds = {
+  sys.env.get("CI_JOB_TOKEN") match {
     case Some(token) =>
-      Some(GitlabCredentials("Private-Token", token))
-    case None =>
-      Some(GitlabCredentials("Job-Token", sys.env.get("CI_JOB_TOKEN").get))
+      Credentials("GitLab Packages Registry", "gitlab.com", "gitlab-ci-token", token)
+    case _ =>
+      Credentials(Path.userHome / ".sbt" / ".credentials")
   }
 }
 
-lazy val scala_2_13 = "2.13.3"
+// Registry ID is the project ID of the project where the package is published, this should be set in the CI/CD environment
+val registryId = sys.env.get("REGISTRY_HOST_PROJECT_ID").getOrElse("")
 
-lazy val IntegrationTest = config("it") extend Test
-
-lazy val root = (project in file(".")).
-  configs(IntegrationTest)
+lazy val root = (project in file("."))
   .settings(
-    Defaults.itSettings,
     name := "common",
     organization := "io.mdcatapult.doclib",
     scalaVersion := scala_2_13,
@@ -33,47 +46,26 @@ lazy val root = (project in file(".")).
       "-Xlint",
       "-Xfatal-warnings",
     ),
-    resolvers += ("gitlab" at "https://gitlab.com/api/v4/projects/50550924/packages/maven"),
-    credentials += {
-      sys.env.get("CI_JOB_TOKEN") match {
-        case Some(p) =>
-          Credentials("GitLab Packages Registry", "gitlab.com", "gitlab-ci-token", p)
-        case None =>
-          Credentials(Path.userHome / ".sbt" / ".credentials")
-      }
+    resolvers ++= Seq(
+      "gitlab" at s"https://gitlab.com/api/v4/projects/$registryId/packages/maven",
+      "Maven Public" at "https://repo1.maven.org/maven2"),
+    publishTo := {
+      Some("gitlab" at s"https://gitlab.com/api/v4/projects/$registryId/packages/maven")
     },
+    credentials += creds,
     libraryDependencies ++= {
-      val kleinUtilVersion = "1.2.6"
-      val kleinMongoVersion = "2.0.8"
-      val kleinQueueVersion = "2.0.2"
-
-      val configVersion = "1.4.2"
-      val catsVersion = "2.9.0"
-      val playVersion = "2.9.4"
-      val tikaVersion = "1.28.5"
-      val betterFilesVersion = "3.9.2"
-      val akkaVersion = "2.8.1"
-      val prometheusClientVersion = "0.9.0"
-      val scalacticVersion = "3.2.15"
-      val scalaTestVersion = "3.2.17"
-      val scalaMockVersion = "5.2.0"
-      val scalaCheckVersion = "1.17.0"
-      val scoptVersion = "4.1.0"
-      val lemonLabsURIVersion = "4.0.3"
-
       Seq(
         "io.mdcatapult.klein" %% "queue"                % kleinQueueVersion,
         "io.mdcatapult.klein" %% "mongo"                % kleinMongoVersion,
         "io.mdcatapult.klein" %% "util"                 % kleinUtilVersion,
 
         "org.scalactic" %% "scalactic"                  % scalacticVersion,
-        "org.scalatest" %% "scalatest"                  % scalaTestVersion % "it, test",
-        "org.scalamock" %% "scalamock"                  % scalaMockVersion % "it, test",
-        "org.scalacheck" %% "scalacheck"                % scalaCheckVersion % Test,
-        "com.typesafe.akka" %% "akka-slf4j"             % akkaVersion,
-        "com.typesafe.akka" %% "akka-testkit"           % akkaVersion % "it, test",
-        "com.typesafe.akka" %% "akka-protobuf-v3"       % akkaVersion,
-        "com.typesafe.akka" %% "akka-stream"            % akkaVersion,
+        "org.scalatest" %% "scalatest"                  % scalaTestVersion % "test",
+        "org.scalamock" %% "scalamock"                  % scalaMockVersion % "test",
+        "org.scalacheck" %% "scalacheck"                % scalaCheckVersion % "test",
+        "org.apache.pekko" %% "pekko-testkit"           % pekkoVersion % "test",
+        "org.apache.pekko" %% "pekko-protobuf-v3"       % pekkoVersion,
+        "org.apache.pekko" %% "pekko-stream"            % pekkoVersion,
         "com.typesafe.play" %% "play-json"              % playVersion,
         "com.typesafe" % "config"                       % configVersion,
         "org.typelevel" %% "cats-kernel"                % catsVersion,
@@ -90,3 +82,24 @@ lazy val root = (project in file(".")).
       )
     }
   )
+
+Global / excludeLintKeys += Test / sourceDirectories
+
+lazy val it = project
+  .in(file("it"))  //it test located in a directory named "it"
+  .settings(
+    name := "common-it",
+    scalaVersion := "2.13.14",
+    Test / sourceDirectories ++= (root / Test / sourceDirectories).value,
+    libraryDependencies ++= {
+      Seq(
+        "org.scalatest" %% "scalatest"         % scalaTestVersion,
+        "org.scalamock" %% "scalamock"         % scalaMockVersion,
+        "org.apache.pekko" %% "pekko-testkit"  % pekkoVersion,
+        "org.apache.pekko" %% "pekko-actor"    % pekkoVersion,
+        "org.scalatest" %% "scalatest"         % scalaTestVersion,
+        "org.apache.pekko" %% "pekko-slf4j"    % pekkoVersion
+      )
+    }
+  )
+  .dependsOn(root % "test->test;compile->compile")

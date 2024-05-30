@@ -1,6 +1,22 @@
+/*
+ * Copyright 2024 Medicines Discovery Catapult
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.mdcatapult.doclib.consumer
 
-import akka.stream.alpakka.amqp.scaladsl.CommittableReadResult
+import org.apache.pekko.stream.connectors.amqp.scaladsl.CommittableReadResult
 import com.typesafe.scalalogging.LazyLogging
 import io.mdcatapult.doclib.consumer.HandlerLogStatus._
 import io.mdcatapult.doclib.exception.DoclibDocException
@@ -92,7 +108,7 @@ abstract class AbstractHandler[T <: Envelope, R <: HandlerResult](implicit appCo
     handlerResult.andThen {
       case Success(handlerResultOpt) =>
         handlerResultOpt._2 match {
-          case Success(handlerResult) => handlerSuccess(documentId, Some(handlerResult), supervisorQueueOpt)
+          case Success(innerHandlerResult) => handlerSuccess(documentId, Some(innerHandlerResult), supervisorQueueOpt)
           case Failure(doclibException: DoclibDocException) =>
             failureWithDoclibDocException(doclibException, flagContext)
           case Failure(exception) if collectionOpt.isDefined =>

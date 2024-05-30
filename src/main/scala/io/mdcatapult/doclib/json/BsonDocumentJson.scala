@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 Medicines Discovery Catapult
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.mdcatapult.doclib.json
 
 import org.bson.BsonDocument
@@ -15,10 +31,13 @@ trait BsonDocumentJson {
       Json.obj(doc.toMap.map { case (s, o) =>
         val v: JsValueWrapper = o match {
           case b: BsonBoolean => JsBoolean(b.getValue)
-          case s: BsonString => JsString(s.getValue)
+          case bs: BsonString => JsString(bs.getValue)
           case n: BsonInt32 => JsNumber(n.getValue)
           case n: BsonInt64 =>  JsNumber(n.getValue)
           case n: BsonNumber => JsNumber(n.doubleValue)
+          case other => throw new MatchError(other)
+          // While we don't particularly care about the other types it is possible so maybe not the most robust bit of code ever
+          // Could throw run time exceptions that we try to avoid if possible
         }
         val ret: (String, JsValueWrapper) = s -> v
         ret
@@ -37,6 +56,7 @@ trait BsonDocumentJson {
         case JsString(s) => s
         case JsNumber(n) => n
         case JsBoolean(b) => b
+        case other => throw new MatchError(other)
       }
 
     def metaValueToJsValue(m: JsValue): JsResult[Any] =
@@ -50,6 +70,7 @@ trait BsonDocumentJson {
         case JsArray(arr) =>
           val list = arr.map(convert)
           JsSuccess(list)
+        case other => throw new MatchError(other)
       }
 
     val anyReads: Reads[Any] = Reads[Any](m => metaValueToJsValue(m))
@@ -63,11 +84,12 @@ trait BsonDocumentJson {
   val mapWrites: Writes[Map[String, Any]] = (map: Map[String, Any]) => Json.obj(map.map { case (s, o) =>
     val v: JsValueWrapper = o match {
       case b: BsonBoolean => JsBoolean(b.getValue)
-      case s: String => JsString(s)
-      case s: BsonString => JsString(s.getValue)
+      case aString: String => JsString(aString)
+      case bsonString: BsonString => JsString(bsonString.getValue)
       case n: BsonInt32 => JsNumber(n.getValue)
       case n: BsonInt64 => JsNumber(n.getValue)
       case n: BsonNumber => JsNumber(n.doubleValue)
+      case other => throw new MatchError(other)
     }
     val ret: (String, JsValueWrapper) = s -> v
     ret
