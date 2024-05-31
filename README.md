@@ -24,6 +24,15 @@ and writing appropriate flags to the DoclibDoc.
 
 ## Fetch dependencies from internal package repository
 
+Make sure your `~/.sbt/.credentials` file is set up correctly.
+
+```bash
+realm=GitLab Packages Registry
+host=gitlab.com
+user=Private-Token
+password=your-private-gitlab-token
+```
+
 Set the `REGISTRY_HOST_PROJECT_ID` to point to the gitlab internal package repo. ie
 ```bash
 export REGISTRY_HOST_PROJECT_ID=12345678

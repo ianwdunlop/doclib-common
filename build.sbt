@@ -1,13 +1,13 @@
 lazy val scala_2_13 = "2.13.14"
 
 val pekkoVersion = "1.0.2"
-val kleinUtilVersion = "1.2.6"
+val kleinUtilVersion = "1.2.7"
 val kleinMongoVersion = "2.0.8"
 val kleinQueueVersion = "3.0.1"
 
 val configVersion = "1.4.3"
 val catsVersion = "2.10.0"
-val playVersion = "2.10.5"
+val playVersion = "3.0.3"
 val tikaVersion = "2.9.2"
 val betterFilesVersion = "3.9.2"
 val prometheusClientVersion = "0.9.0"
@@ -66,7 +66,7 @@ lazy val root = (project in file("."))
         "org.apache.pekko" %% "pekko-testkit"           % pekkoVersion % "test",
         "org.apache.pekko" %% "pekko-protobuf-v3"       % pekkoVersion,
         "org.apache.pekko" %% "pekko-stream"            % pekkoVersion,
-        "com.typesafe.play" %% "play-json"              % playVersion,
+        "org.playframework" %% "play-json"              % playVersion,
         "com.typesafe" % "config"                       % configVersion,
         "org.typelevel" %% "cats-kernel"                % catsVersion,
         "org.typelevel" %% "cats-core"                  % catsVersion,
