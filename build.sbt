@@ -1,39 +1,32 @@
 lazy val scala_2_13 = "2.13.14"
 
-val pekkoVersion = "1.0.2"
-val kleinUtilVersion = "1.2.7"
-val kleinMongoVersion = "2.0.8"
-val kleinQueueVersion = "3.0.1"
+ThisBuild / versionScheme := Some("early-semver")
+
+val pekkoVersion = "1.0.3"
+val doclibUtilVersion = "2.0.0"
+val doclibVersion = "3.0.1"
+val doclibQueueVersion = "4.0.0"
 
 val configVersion = "1.4.3"
-val catsVersion = "2.10.0"
-val playVersion = "3.0.3"
+val catsVersion = "2.12.0"
+val playVersion = "3.0.4"
 val tikaVersion = "2.9.2"
 val betterFilesVersion = "3.9.2"
-val prometheusClientVersion = "0.9.0"
-val scalacticVersion = "3.2.18"
-val scalaTestVersion = "3.2.18"
+val prometheusClientVersion = "0.16.0"
+val scalacticVersion = "3.2.19"
+val scalaTestVersion = "3.2.19"
 val scalaMockVersion = "6.0.0"
 val scalaCheckVersion = "1.18.0"
+
 val scoptVersion = "4.1.0"
 val lemonLabsURIVersion = "4.0.3"
 
-lazy val creds = {
-  sys.env.get("CI_JOB_TOKEN") match {
-    case Some(token) =>
-      Credentials("GitLab Packages Registry", "gitlab.com", "gitlab-ci-token", token)
-    case _ =>
-      Credentials(Path.userHome / ".sbt" / ".credentials")
-  }
-}
-
-// Registry ID is the project ID of the project where the package is published, this should be set in the CI/CD environment
-val registryId = sys.env.get("REGISTRY_HOST_PROJECT_ID").getOrElse("")
+lazy val packageRepoOwner = sys.env.getOrElse("GITHUB_USERNAME", "")
 
 lazy val root = (project in file("."))
   .settings(
     name := "common",
-    organization := "io.mdcatapult.doclib",
+    organization := "io.doclib",
     scalaVersion := scala_2_13,
     useCoursier := false,
     crossScalaVersions := scala_2_13 :: Nil,
@@ -46,18 +39,15 @@ lazy val root = (project in file("."))
       "-Xlint",
       "-Xfatal-warnings",
     ),
-    resolvers ++= Seq(
-      "gitlab" at s"https://gitlab.com/api/v4/projects/$registryId/packages/maven",
-      "Maven Public" at "https://repo1.maven.org/maven2"),
-    publishTo := {
-      Some("gitlab" at s"https://gitlab.com/api/v4/projects/$registryId/packages/maven")
-    },
-    credentials += creds,
+    githubOwner := packageRepoOwner,
+    githubRepository := sys.env.getOrElse("GITHUB_PACKAGE_REPO", "scala-packages"),
+    resolvers += Resolver.githubPackages(packageRepoOwner),
+    releaseIgnoreUntrackedFiles := true,
     libraryDependencies ++= {
       Seq(
-        "io.mdcatapult.klein" %% "queue"                % kleinQueueVersion,
-        "io.mdcatapult.klein" %% "mongo"                % kleinMongoVersion,
-        "io.mdcatapult.klein" %% "util"                 % kleinUtilVersion,
+        "io.doclib" %% "queue"                          % doclibQueueVersion,
+        "io.doclib" %% "mongo"                          % doclibVersion,
+        "io.doclib" %% "common-util"                    % doclibUtilVersion,
 
         "org.scalactic" %% "scalactic"                  % scalacticVersion,
         "org.scalatest" %% "scalatest"                  % scalaTestVersion % "test",
