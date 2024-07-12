@@ -46,8 +46,8 @@ trait PrefetchUtils {
 
   /**
    * Filter out existing derivative.type metadata from
-   * a [[io.mdcatapult.doclib.models.DoclibDoc]]
-   * @param doc The [[io.mdcatapult.doclib.models.DoclibDoc]] to be filtered
+   * a [[io.doclib.common.models.DoclibDoc]]
+   * @param doc The [[io.doclib.common.models.DoclibDoc]] to be filtered
    * @return Filtered metadata list
    */
   def filterDerivatives(doc: DoclibDoc): List[MetaValueUntyped] = {

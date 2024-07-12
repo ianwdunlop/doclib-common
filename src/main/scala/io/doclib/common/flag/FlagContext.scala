@@ -22,7 +22,7 @@ import io.doclib.common.models.{DoclibDoc, DoclibFlagState}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * Context through which this consumer's flag can be maintained for a given [[io.mdcatapult.doclib.models.DoclibDoc]].
+ * Context through which this consumer's flag can be maintained for a given [[io.doclib.common.models.DoclibDoc]].
  */
 trait FlagContext {
 
