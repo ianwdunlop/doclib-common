@@ -78,5 +78,9 @@ Tika > 1.28.5 causes compilation issues - **Note** this no longer seems an issue
 
 Prometheus > 0.9.0 causes integration test failures in `ConsumerHandlerSpec`.
 
-### License
+## Using github package repository
+Uses doclib packages from github via the sbt plugin [sbt-github-packages](https://github.com/djspiewak/sbt-github-packages). Set the
+env vars `GITHUB_USERNAME`, `GITHUB_PACKAGE_REPO` & `GITHUB_TOKEN` to publish the package or to fetch from the package [repo](https://github.com/ianwdunlop/scala-packages).
+
+## License
 This project is licensed under the terms of the Apache 2 license, which can be found in the repository as `LICENSE.txt`
